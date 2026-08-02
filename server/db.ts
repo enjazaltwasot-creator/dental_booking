@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, services, dentists, workingHours, bookings, Booking, Service, Dentist, WorkingHour } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,112 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Dental services queries
+export async function getAllServices(): Promise<Service[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(services);
+}
+
+export async function getServiceById(id: number): Promise<Service | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(services).where(eq(services.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Dentists queries
+export async function getAllDentists(): Promise<Dentist[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dentists);
+}
+
+export async function getDentistById(id: number): Promise<Dentist | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(dentists).where(eq(dentists.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Working hours queries
+export async function getWorkingHoursByDentistAndDay(dentistId: number, dayOfWeek: number): Promise<WorkingHour[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(workingHours).where(
+    and(eq(workingHours.dentistId, dentistId), eq(workingHours.dayOfWeek, dayOfWeek), eq(workingHours.isActive, true))
+  );
+}
+
+// Bookings queries
+export async function createBooking(booking: {
+  referenceNumber: string;
+  dentistId: number;
+  serviceId: number;
+  patientName: string;
+  patientPhone: string;
+  appointmentDate: Date;
+  appointmentTime: string;
+  notes?: string;
+}): Promise<Booking> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(bookings).values({
+    referenceNumber: booking.referenceNumber,
+    dentistId: booking.dentistId,
+    serviceId: booking.serviceId,
+    patientName: booking.patientName,
+    patientPhone: booking.patientPhone,
+    appointmentDate: booking.appointmentDate,
+    appointmentTime: booking.appointmentTime,
+    status: 'pending',
+    notes: booking.notes,
+  });
+  
+  const newBooking = await db.select().from(bookings).where(eq(bookings.referenceNumber, booking.referenceNumber)).limit(1);
+  if (!newBooking.length) throw new Error("Failed to create booking");
+  return newBooking[0];
+}
+
+export async function getBookingByReferenceNumber(referenceNumber: string): Promise<Booking | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(bookings).where(eq(bookings.referenceNumber, referenceNumber)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getAllBookings(): Promise<Booking[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookings);
+}
+
+export async function getBookingsByDentistAndDate(dentistId: number, appointmentDate: Date): Promise<Booking[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookings).where(
+    and(
+      eq(bookings.dentistId, dentistId),
+      eq(bookings.appointmentDate, appointmentDate),
+      ne(bookings.status, 'cancelled')
+    )
+  );
+}
+
+export async function updateBookingStatus(referenceNumber: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<Booking | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  await db.update(bookings).set({ status }).where(eq(bookings.referenceNumber, referenceNumber));
+  
+  const result = await db.select().from(bookings).where(eq(bookings.referenceNumber, referenceNumber)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getBookingById(id: number): Promise<Booking | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
