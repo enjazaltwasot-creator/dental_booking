@@ -3,9 +3,15 @@ import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, time, date, boole
 /**
  * Core user table backing auth flow.
  */
+/**
+ * Core user table backing auth flow.
+ */
 export const users = mysqlTable("users", {
   id: int("id").autoincrement().primaryKey(),
   openId: varchar("openId", { length: 64 }).notNull().unique(),
+  username: varchar("username", { length: 100 }).unique(),
+  password: text("password"),
+
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
@@ -14,7 +20,6 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
-
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
