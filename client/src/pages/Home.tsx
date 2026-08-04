@@ -28,6 +28,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Doctors Section */}
+      <section className="py-16 md:py-24 bg-card/20">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">أطباؤنا المتخصصون</h2>
+            <p className="text-lg text-muted-foreground mb-8">فريق من أفضل أطباء الأسنان المتخصصين</p>
+            <Button
+              onClick={() => navigate('/doctors')}
+              variant="outline"
+              className="px-8 py-2"
+            >
+              عرض جميع الأطباء
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* Services Section */}
       <section className="py-16 md:py-24">
         <div className="container">

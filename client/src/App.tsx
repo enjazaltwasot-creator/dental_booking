@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import BookingForm from "./pages/BookingForm";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import AdminDashboard from "./pages/AdminDashboard";
+import DoctorsList from "./pages/DoctorsList";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/booking"} component={BookingForm} />
       <Route path={"/confirmation/:referenceNumber"} component={BookingConfirmation} />
+      <Route path={"/doctors"} component={DoctorsList} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
