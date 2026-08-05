@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
-import { useAuth } from '@/_core/hooks/useAuth';
+import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -7,38 +6,30 @@ import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { toast } from 'sonner';
 import { useLocation } from 'wouter';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, LogOut } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
-  const { user, isAuthenticated } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
 
-  // Redirect if not authenticated or not admin
+  // Check authentication on mount
+  const { data: authData } = trpc.admin.checkAuth.useQuery();
+  
   useEffect(() => {
-    if (isAuthenticated !== undefined && (!isAuthenticated || user?.role !== 'admin')) {
-      navigate('/');
+    if (authData?.isAuthenticated === false) {
+      navigate('/admin-login');
+    } else if (authData?.isAuthenticated === true) {
+      setIsAuthenticated(true);
     }
-  }, [isAuthenticated, user?.role, navigate]);
+  }, [authData?.isAuthenticated, navigate]);
 
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return (
-      <div className="min-h-screen gradient-calming py-12">
-        <div className="container max-w-2xl mx-auto">
-          <Card className="card-elegant text-center">
-            <h1 className="text-2xl font-bold mb-4">وصول مرفوض</h1>
-            <p className="text-muted-foreground mb-6">
-              عذراً، لا تملك صلاحيات للوصول إلى لوحة التحكم الإدارية
-            </p>
-            <Button onClick={() => navigate('/')} className="btn-elegant">
-              العودة للرئيسية
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (authData === undefined) {
+      setIsAuthenticated(null);
+    }
+  }, [authData]);
 
   const { data: bookings, isLoading, refetch } = trpc.bookings.getAll.useQuery();
   const updateStatusMutation = trpc.bookings.updateStatus.useMutation({
@@ -51,121 +42,132 @@ export default function AdminDashboard() {
     },
   });
 
-  // Filter and search bookings
-  const filteredBookings = useMemo(() => {
-    if (!bookings) return [];
+  const logoutMutation = trpc.admin.logout.useMutation({
+    onSuccess: () => {
+      setIsAuthenticated(false);
+      toast.success('تم تسجيل الخروج بنجاح');
+      navigate('/');
+    },
+  });
 
-    return bookings.filter(booking => {
-      const matchesSearch =
-        booking.patientName.includes(searchTerm) ||
-        booking.patientPhone.includes(searchTerm) ||
-        booking.referenceNumber.includes(searchTerm);
+  const handleLogout = async () => {
+    await logoutMutation.mutateAsync();
+  };
 
-      const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
-
-      return matchesSearch && matchesStatus;
+  const handleStatusUpdate = async (referenceNumber: string, newStatus: 'pending' | 'confirmed' | 'cancelled') => {
+    await updateStatusMutation.mutateAsync({
+      referenceNumber,
+      status: newStatus,
     });
-  }, [bookings, searchTerm, filterStatus]);
+  };
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen gradient-calming flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const filteredBookings = (bookings || [])?.filter(booking => {
+    const matchesSearch = 
+      booking.patientName.includes(searchTerm) ||
+      booking.patientPhone.includes(searchTerm) ||
+      booking.referenceNumber.includes(searchTerm);
+    
+    const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
+    
+    return matchesSearch && matchesStatus;
+  }) || [];
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
       case 'cancelled':
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <XCircle className="w-5 h-5 text-red-600" />;
       case 'pending':
       default:
-        return <Clock className="w-5 h-5 text-yellow-500" />;
+        return <Clock className="w-5 h-5 text-yellow-600" />;
     }
   };
 
   const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      pending: 'معلق',
-      confirmed: 'مؤكد',
-      cancelled: 'ملغى',
-    };
-    return statusMap[status] || status;
+    switch (status) {
+      case 'confirmed':
+        return 'مؤكد';
+      case 'cancelled':
+        return 'ملغى';
+      case 'pending':
+      default:
+        return 'معلق';
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-50 text-red-700';
       case 'pending':
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-50 text-yellow-700';
     }
   };
 
-  const formatDate = (dateStr: string | Date) => {
-    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
-
-  const stats = useMemo(() => {
-    if (!bookings) return { total: 0, pending: 0, confirmed: 0, cancelled: 0 };
-    return {
-      total: bookings.length,
-      pending: bookings.filter(b => b.status === 'pending').length,
-      confirmed: bookings.filter(b => b.status === 'confirmed').length,
-      cancelled: bookings.filter(b => b.status === 'cancelled').length,
-    };
-  }, [bookings]);
-
   return (
     <div className="min-h-screen gradient-calming py-12">
-      <div className="container">
+      <div className="container max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-2">لوحة التحكم الإدارية</h1>
-          <p className="text-muted-foreground">إدارة جميع حجوزات العيادة</p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-serif font-bold text-slate-700 mb-2">
+              لوحة التحكم الإدارية
+            </h1>
+            <p className="text-muted-foreground">
+              إدارة جميع حجوزات المواعيد
+            </p>
+          </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            تسجيل الخروج
+          </Button>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'إجمالي الحجوزات', value: stats.total, color: 'bg-blue-100 text-blue-800' },
-            { label: 'معلقة', value: stats.pending, color: 'bg-yellow-100 text-yellow-800' },
-            { label: 'مؤكدة', value: stats.confirmed, color: 'bg-green-100 text-green-800' },
-            { label: 'ملغاة', value: stats.cancelled, color: 'bg-red-100 text-red-800' },
-          ].map((stat, idx) => (
-            <Card key={idx} className="card-elegant">
-              <p className="text-sm text-muted-foreground mb-2">{stat.label}</p>
-              <p className={`text-3xl font-bold px-3 py-2 rounded-lg ${stat.color} inline-block`}>
-                {stat.value}
-              </p>
-            </Card>
-          ))}
-        </div>
-
-        {/* Filters */}
-        <Card className="card-elegant mb-8">
+        {/* Search and Filter */}
+        <Card className="card-elegant mb-6 p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">البحث</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                البحث
+              </label>
               <Input
                 type="text"
-                placeholder="ابحث برقم المرجع أو اسم المريض أو الهاتف"
+                placeholder="ابحث بالاسم أو الهاتف أو رقم المرجع..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-elegant"
+                className="w-full"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">الحالة</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                تصفية الحالة
+              </label>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="input-elegant"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
-                <option value="all">الكل</option>
+                <option value="all">جميع الحالات</option>
                 <option value="pending">معلق</option>
                 <option value="confirmed">مؤكد</option>
                 <option value="cancelled">ملغى</option>
@@ -174,7 +176,7 @@ export default function AdminDashboard() {
             <div className="flex items-end">
               <Button
                 onClick={() => refetch()}
-                className="w-full btn-elegant"
+                className="btn-elegant w-full"
               >
                 تحديث
               </Button>
@@ -189,77 +191,75 @@ export default function AdminDashboard() {
               <Spinner />
             </div>
           ) : filteredBookings.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              لا توجد حجوزات مطابقة للبحث
+            <div className="text-center py-12">
+              <p className="text-muted-foreground text-lg">
+                لا توجد حجوزات متطابقة
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-muted/50 border-b border-muted">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-3 text-right font-semibold">رقم المرجع</th>
-                    <th className="px-6 py-3 text-right font-semibold">المريض</th>
-                    <th className="px-6 py-3 text-right font-semibold">التاريخ والوقت</th>
-                    <th className="px-6 py-3 text-right font-semibold">الحالة</th>
-                    <th className="px-6 py-3 text-right font-semibold">الإجراءات</th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
+                      رقم المرجع
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
+                      اسم المريض
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
+                      الهاتف
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
+                      التاريخ والوقت
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
+                      الحالة
+                    </th>
+                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
+                      الإجراءات
+                    </th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-slate-200">
                   {filteredBookings.map((booking) => (
-                    <tr key={booking.id} className="border-b border-muted hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="font-mono font-semibold text-accent">
-                          {booking.referenceNumber}
-                        </span>
+                    <tr key={booking.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-mono text-slate-700">
+                        {booking.referenceNumber}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {booking.patientName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {booking.patientPhone}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-700">
+                        {new Date(booking.appointmentDate).toLocaleDateString('ar-SA')} - {booking.appointmentTime}
                       </td>
                       <td className="px-6 py-4">
-                        <div>
-                          <p className="font-semibold">{booking.patientName}</p>
-                          <p className="text-sm text-muted-foreground">{booking.patientPhone}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <p>{formatDate(booking.appointmentDate)}</p>
-                          <p className="text-sm text-muted-foreground">{booking.appointmentTime}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
                           {getStatusIcon(booking.status)}
-                          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}>
-                            {getStatusLabel(booking.status)}
-                          </span>
+                          {getStatusLabel(booking.status)}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           {booking.status !== 'confirmed' && (
                             <Button
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  referenceNumber: booking.referenceNumber,
-                                  status: 'confirmed',
-                                })
-                              }
-                              disabled={updateStatusMutation.isPending}
                               size="sm"
-                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleStatusUpdate(booking.referenceNumber, 'confirmed')}
+                              disabled={updateStatusMutation.isPending}
+                              className="text-xs bg-green-600 hover:bg-green-700 text-white"
                             >
                               تأكيد
                             </Button>
                           )}
                           {booking.status !== 'cancelled' && (
                             <Button
-                              onClick={() =>
-                                updateStatusMutation.mutate({
-                                  referenceNumber: booking.referenceNumber,
-                                  status: 'cancelled',
-                                })
-                              }
-                              disabled={updateStatusMutation.isPending}
                               size="sm"
-                              variant="destructive"
+                              onClick={() => handleStatusUpdate(booking.referenceNumber, 'cancelled')}
+                              disabled={updateStatusMutation.isPending}
+                              className="text-xs bg-red-600 hover:bg-red-700 text-white"
                             >
                               إلغاء
                             </Button>
@@ -273,6 +273,30 @@ export default function AdminDashboard() {
             </div>
           )}
         </Card>
+
+        {/* Stats */}
+        {bookings && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <Card className="card-elegant p-6 text-center">
+              <div className="text-3xl font-bold text-yellow-600 mb-2">
+                {bookings.filter(b => b.status === 'pending').length}
+              </div>
+              <p className="text-muted-foreground">حجوزات معلقة</p>
+            </Card>
+            <Card className="card-elegant p-6 text-center">
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                {bookings.filter(b => b.status === 'confirmed').length}
+              </div>
+              <p className="text-muted-foreground">حجوزات مؤكدة</p>
+            </Card>
+            <Card className="card-elegant p-6 text-center">
+              <div className="text-3xl font-bold text-red-600 mb-2">
+                {bookings.filter(b => b.status === 'cancelled').length}
+              </div>
+              <p className="text-muted-foreground">حجوزات ملغاة</p>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
