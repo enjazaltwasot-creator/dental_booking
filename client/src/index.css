@@ -5,11 +5,11 @@
 @tailwind utilities;
 
 :root {
-  --primary: 30 88 183;
+  --primary: 30 100 200;
   --primary-fg: 255 255 255;
-  --secondary: 255 102 0;
+  --secondary: 255 100 0;
   --secondary-fg: 255 255 255;
-  --accent: 76 175 80;
+  --accent: 100 200 100;
   --accent-fg: 255 255 255;
   --background: 248 250 252;
   --foreground: 30 40 60;
@@ -21,7 +21,7 @@
   --destructive-foreground: 255 255 255;
   --border: 226 232 240;
   --input: 255 255 255;
-  --ring: 30 88 183;
+  --ring: 30 100 200;
 }
 
 body {
