@@ -1,139 +1,114 @@
-import { trpc } from '@/lib/trpc';
-import { Card } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/spinner';
-import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
-import { Star, MapPin, Phone } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { Phone, MapPin, Star } from 'lucide-react';
 
 export default function DoctorsList() {
   const [, navigate] = useLocation();
-  const { data: doctors, isLoading, error, refetch } = trpc.dentists.list.useQuery();
+  const { data: doctors, isLoading } = trpc.booking.getDoctors.useQuery();
 
-  const getSpecializationIcon = (specialization: string) => {
-    const icons: Record<string, string> = {
-      'تنظيف الأسنان': '😁',
-      'حشو الأسنان': '🦷',
-      'تقويم الأسنان': '👥',
-      'خلع الأسنان': '⚕️',
-      'تبييض الأسنان': '✨',
-      'زراعة الأسنان': '🌱',
-    };
-    return icons[specialization] || '🦷';
-  };
-
-  const getSpecializationColor = (specialization: string) => {
-    const colors: Record<string, string> = {
-      'تنظيف الأسنان': 'from-blue-100 to-blue-50',
-      'حشو الأسنان': 'from-purple-100 to-purple-50',
-      'تقويم الأسنان': 'from-pink-100 to-pink-50',
-      'خلع الأسنان': 'from-red-100 to-red-50',
-      'تبييض الأسنان': 'from-yellow-100 to-yellow-50',
-      'زراعة الأسنان': 'from-green-100 to-green-50',
-    };
-    return colors[specialization] || 'from-slate-100 to-slate-50';
+  const styles = {
+    headerBg: { background: 'linear-gradient(to right, #1e3a8a, #1e40af)' },
+    containerBg: { backgroundColor: '#f8fafc' },
+    cardBg: { backgroundColor: '#ffffff', borderColor: '#e2e8f0' },
+    blueText: { color: '#2563eb' },
+    darkBlueText: { color: '#1e3a8a' },
+    orangeBtn: { backgroundColor: '#ff6600', color: 'white' },
   };
 
   return (
-    <div className="min-h-screen gradient-calming py-12">
-      <div className="container">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-serif font-bold text-slate-700 mb-2">أطباؤنا المتخصصون</h1>
-          <p className="text-muted-foreground text-lg">فريق من أفضل أطباء الأسنان المتخصصين</p>
+    <div style={styles.containerBg} className="min-h-screen py-12">
+      {/* Header */}
+      <header className="sticky top-0 z-40 shadow-lg" style={styles.headerBg}>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img 
+              src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
+              alt="Evan Clinic" 
+              className="h-14 w-auto"
+            />
+            <h1 className="text-xl font-bold text-white">أطباؤنا المتخصصون</h1>
+          </div>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            style={styles.orangeBtn}
+          >
+            العودة للرئيسية
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h2 className="text-5xl font-bold mb-4" style={styles.blueText}>
+            فريقنا الطبي
+          </h2>
+          <p className="text-xl" style={{ color: '#64748b' }}>
+            أطباء متخصصون بخبرة عالية وكفاءة مثبتة
+          </p>
         </div>
 
-        {/* Doctors Grid */}
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Spinner />
-          </div>
-        ) : error ? (
           <div className="text-center py-12">
-            <Card className="card-elegant max-w-md mx-auto">
-              <div className="p-6">
-                <p className="text-red-600 font-semibold mb-4">حدث خطأ في تحميل بيانات الأطباء</p>
-                <p className="text-muted-foreground mb-6">{error.message}</p>
-                <Button
-                  onClick={() => refetch()}
-                  className="btn-elegant"
-                >
-                  حاول مرة أخرى
-                </Button>
-              </div>
-            </Card>
-          </div>
-        ) : !doctors || doctors.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground text-lg">لا توجد بيانات أطباء متاحة حالياً</p>
+            <p style={styles.blueText} className="text-lg font-semibold">جاري التحميل...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {doctors?.map((doctor: any) => (
-              <Card key={doctor.id} className="card-elegant overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                {/* Specialization Header */}
-                <div className={`bg-gradient-to-r ${getSpecializationColor(doctor.specialization)} p-6 text-center`}>
-                  <div className="text-5xl mb-2">{getSpecializationIcon(doctor.specialization)}</div>
-                  <p className="text-sm font-medium text-slate-600">{doctor.specialization}</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {doctors?.map((doctor) => (
+              <div
+                key={doctor.id}
+                className="rounded-2xl p-6 border-2 shadow-md hover:shadow-xl transition-all"
+                style={styles.cardBg}
+              >
+                <div className="mb-4">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white mb-3" style={{ backgroundColor: '#2563eb' }}>
+                    {doctor.name.charAt(0)}
+                  </div>
+                  <h3 className="text-2xl font-bold" style={styles.darkBlueText}>
+                    {doctor.name}
+                  </h3>
+                  <p className="text-sm font-semibold" style={{ color: '#ff6600' }}>
+                    {doctor.specialization}
+                  </p>
                 </div>
 
-                {/* Doctor Info */}
-                <div className="p-6">
-                  <h2 className="text-2xl font-serif font-bold text-slate-700 mb-1">{doctor.name}</h2>
-                  <p className="text-sm text-slate-500 mb-4">دكتور متخصص</p>
-
-                  {/* Rating */}
-                  <div className="flex items-center gap-1 mb-4">
+                <div className="space-y-3 mb-6 pb-6 border-b-2" style={{ borderColor: '#e2e8f0' }}>
+                  <div className="flex items-center gap-2" style={{ color: '#64748b' }}>
+                    <Phone className="w-4 h-4" />
+                    <span className="text-sm">{doctor.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2" style={{ color: '#64748b' }}>
+                    <MapPin className="w-4 h-4" />
+                    <span className="text-sm">{doctor.location}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-4 h-4 ${
-                          i < 4 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                        }`}
+                        className="w-4 h-4"
+                        style={{
+                          fill: i < 4 ? '#ff6600' : '#e2e8f0',
+                          color: i < 4 ? '#ff6600' : '#e2e8f0',
+                        }}
                       />
                     ))}
-                    <span className="text-sm text-slate-600 mr-2">(4.5)</span>
+                    <span className="text-xs font-semibold" style={{ color: '#64748b' }}>
+                      (4.5)
+                    </span>
                   </div>
-
-                  {/* Contact Info */}
-                  <div className="space-y-2 mb-6 pb-6 border-b border-slate-200">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Phone className="w-4 h-4 text-slate-400" />
-                      <span>{doctor.phone || '+966 XX XXX XXXX'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <MapPin className="w-4 h-4 text-slate-400" />
-                      <span>العيادة الرئيسية</span>
-                    </div>
-                  </div>
-
-                  {/* Bio */}
-                  <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                    طبيب أسنان متخصص في {doctor.specialization} بخبرة تزيد عن 5 سنوات في مجال طب الأسنان الحديث.
-                  </p>
-
-                  {/* Book Button */}
-                  <Button
-                    onClick={() => navigate('/booking')}
-                    className="w-full btn-elegant"
-                  >
-                    احجز موعداً الآن
-                  </Button>
                 </div>
-              </Card>
+
+                <button
+                  onClick={() => navigate('/booking')}
+                  className="w-full py-3 rounded-lg font-bold transition-all hover:opacity-90"
+                  style={styles.orangeBtn}
+                >
+                  احجز موعد
+                </button>
+              </div>
             ))}
           </div>
         )}
-
-        {/* Back Button */}
-        <div className="mt-12 text-center">
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="px-8"
-          >
-            العودة للرئيسية
-          </Button>
-        </div>
       </div>
     </div>
   );

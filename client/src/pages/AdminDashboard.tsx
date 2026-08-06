@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
-import { trpc } from '@/lib/trpc';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import { toast } from 'sonner';
 import { useLocation } from 'wouter';
-import { CheckCircle, XCircle, Clock, LogOut } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { Search, Check, X, LogOut } from 'lucide-react';
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -14,7 +9,6 @@ export default function AdminDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
 
-  // Check authentication on mount
   const { data: authData } = trpc.admin.checkAuth.useQuery();
   
   useEffect(() => {
@@ -25,27 +19,16 @@ export default function AdminDashboard() {
     }
   }, [authData?.isAuthenticated, navigate]);
 
-  useEffect(() => {
-    if (authData === undefined) {
-      setIsAuthenticated(null);
-    }
-  }, [authData]);
-
   const { data: bookings, isLoading, refetch } = trpc.bookings.getAll.useQuery();
   const updateStatusMutation = trpc.bookings.updateStatus.useMutation({
     onSuccess: () => {
-      toast.success('تم تحديث حالة الحجز بنجاح');
       refetch();
-    },
-    onError: (error) => {
-      toast.error(`خطأ: ${error.message}`);
     },
   });
 
   const logoutMutation = trpc.admin.logout.useMutation({
     onSuccess: () => {
       setIsAuthenticated(false);
-      toast.success('تم تسجيل الخروج بنجاح');
       navigate('/');
     },
   });
@@ -63,8 +46,8 @@ export default function AdminDashboard() {
 
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen gradient-calming flex items-center justify-center">
-        <Spinner />
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f8fafc' }}>
+        <p style={{ color: '#2563eb' }} className="text-lg font-semibold">جاري التحميل...</p>
       </div>
     );
   }
@@ -84,217 +67,213 @@ export default function AdminDashboard() {
     return matchesSearch && matchesStatus;
   }) || [];
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
-      case 'cancelled':
-        return <XCircle className="w-5 h-5 text-red-600" />;
-      case 'pending':
-      default:
-        return <Clock className="w-5 h-5 text-yellow-600" />;
-    }
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { bg: string; text: string; label: string }> = {
+      pending: { bg: '#fef3c7', text: '#92400e', label: 'معلق' },
+      confirmed: { bg: '#dcfce7', text: '#166534', label: 'مؤكد' },
+      cancelled: { bg: '#fee2e2', text: '#991b1b', label: 'ملغى' },
+    };
+    return statusMap[status] || statusMap.pending;
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'مؤكد';
-      case 'cancelled':
-        return 'ملغى';
-      case 'pending':
-      default:
-        return 'معلق';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-50 text-green-700';
-      case 'cancelled':
-        return 'bg-red-50 text-red-700';
-      case 'pending':
-      default:
-        return 'bg-yellow-50 text-yellow-700';
-    }
+  const styles = {
+    headerBg: { background: 'linear-gradient(to right, #1e3a8a, #1e40af)' },
+    containerBg: { backgroundColor: '#f8fafc' },
+    cardBg: { backgroundColor: '#ffffff', borderColor: '#e2e8f0' },
+    blueText: { color: '#2563eb' },
+    darkBlueText: { color: '#1e3a8a' },
+    orangeBtn: { backgroundColor: '#ff6600', color: 'white' },
+    greenBtn: { backgroundColor: '#22c55e', color: 'white' },
+    redBtn: { backgroundColor: '#ef4444', color: 'white' },
+    inputBorder: { borderColor: '#cbd5e1' },
   };
 
   return (
-    <div className="min-h-screen gradient-calming py-12">
-      <div className="container max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-serif font-bold text-slate-700 mb-2">
-              لوحة التحكم الإدارية
-            </h1>
-            <p className="text-muted-foreground">
-              إدارة جميع حجوزات المواعيد
-            </p>
+    <div style={styles.containerBg} className="min-h-screen py-12">
+      {/* Header */}
+      <header className="sticky top-0 z-40 shadow-lg" style={styles.headerBg}>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img 
+              src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
+              alt="Evan Clinic" 
+              className="h-14 w-auto"
+            />
+            <h1 className="text-xl font-bold text-white">لوحة التحكم</h1>
           </div>
-          <Button
+          <button
             onClick={handleLogout}
-            variant="outline"
-            className="flex items-center gap-2"
+            className="px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+            style={styles.orangeBtn}
           >
             <LogOut className="w-4 h-4" />
-            تسجيل الخروج
-          </Button>
+            تسجيل خروج
+          </button>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Title */}
+        <div className="mb-8">
+          <h2 className="text-4xl font-bold mb-2" style={styles.blueText}>
+            إدارة الحجوزات
+          </h2>
+          <p style={{ color: '#64748b' }}>عرض وإدارة جميع حجوزات المرضى</p>
         </div>
 
         {/* Search and Filter */}
-        <Card className="card-elegant mb-6 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                البحث
-              </label>
-              <Input
+        <div className="mb-8 space-y-4">
+          <div className="flex gap-4 flex-col md:flex-row">
+            <div className="flex-1 relative">
+              <Search className="absolute right-4 top-3.5 w-5 h-5" style={{ color: '#64748b' }} />
+              <input
                 type="text"
-                placeholder="ابحث بالاسم أو الهاتف أو رقم المرجع..."
+                placeholder="ابحث عن المريض أو رقم الجوال..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
+                className="w-full pr-12 pl-4 py-3 rounded-lg border-2 font-semibold"
+                style={styles.inputBorder}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                تصفية الحالة
-              </label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">جميع الحالات</option>
-                <option value="pending">معلق</option>
-                <option value="confirmed">مؤكد</option>
-                <option value="cancelled">ملغى</option>
-              </select>
-            </div>
-            <div className="flex items-end">
-              <Button
-                onClick={() => refetch()}
-                className="btn-elegant w-full"
-              >
-                تحديث
-              </Button>
-            </div>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="px-4 py-3 rounded-lg border-2 font-semibold"
+              style={styles.inputBorder}
+            >
+              <option value="all">جميع الحالات</option>
+              <option value="pending">معلق</option>
+              <option value="confirmed">مؤكد</option>
+              <option value="cancelled">ملغى</option>
+            </select>
+            <button
+              onClick={() => refetch()}
+              className="px-6 py-3 rounded-lg font-bold transition-all hover:opacity-90"
+              style={styles.blueText}
+            >
+              تحديث
+            </button>
           </div>
-        </Card>
+        </div>
 
         {/* Bookings Table */}
-        <Card className="card-elegant overflow-hidden">
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <Spinner />
-            </div>
-          ) : filteredBookings.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">
-                لا توجد حجوزات متطابقة
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
-                      رقم المرجع
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
-                      اسم المريض
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
-                      الهاتف
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
-                      التاريخ والوقت
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
-                      الحالة
-                    </th>
-                    <th className="px-6 py-3 text-right text-sm font-semibold text-slate-700">
-                      الإجراءات
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {filteredBookings.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 text-sm font-mono text-slate-700">
+        <div className="rounded-2xl overflow-hidden shadow-lg" style={styles.cardBg}>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #e2e8f0' }}>
+                  <th className="px-6 py-4 text-right font-bold" style={styles.darkBlueText}>
+                    رقم المرجع
+                  </th>
+                  <th className="px-6 py-4 text-right font-bold" style={styles.darkBlueText}>
+                    اسم المريض
+                  </th>
+                  <th className="px-6 py-4 text-right font-bold" style={styles.darkBlueText}>
+                    رقم الجوال
+                  </th>
+                  <th className="px-6 py-4 text-right font-bold" style={styles.darkBlueText}>
+                    التاريخ والوقت
+                  </th>
+                  <th className="px-6 py-4 text-right font-bold" style={styles.darkBlueText}>
+                    الحالة
+                  </th>
+                  <th className="px-6 py-4 text-right font-bold" style={styles.darkBlueText}>
+                    الإجراءات
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredBookings?.map((booking) => {
+                  const statusBadge = getStatusBadge(booking.status);
+                  return (
+                    <tr
+                      key={booking.id}
+                      style={{ borderBottom: '1px solid #e2e8f0' }}
+                    >
+                      <td className="px-6 py-4 font-mono font-semibold" style={styles.darkBlueText}>
                         {booking.referenceNumber}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-6 py-4 font-semibold" style={styles.darkBlueText}>
                         {booking.patientName}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-6 py-4" style={{ color: '#64748b' }}>
                         {booking.patientPhone}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-700">
+                      <td className="px-6 py-4" style={{ color: '#64748b' }}>
                         {new Date(booking.appointmentDate).toLocaleDateString('ar-SA')} - {booking.appointmentTime}
                       </td>
                       <td className="px-6 py-4">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(booking.status)}`}>
-                          {getStatusIcon(booking.status)}
-                          {getStatusLabel(booking.status)}
-                        </div>
+                        <span
+                          className="px-3 py-1 rounded-full text-sm font-semibold"
+                          style={{
+                            backgroundColor: statusBadge.bg,
+                            color: statusBadge.text,
+                          }}
+                        >
+                          {statusBadge.label}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
                           {booking.status !== 'confirmed' && (
-                            <Button
-                              size="sm"
+                            <button
                               onClick={() => handleStatusUpdate(booking.referenceNumber, 'confirmed')}
                               disabled={updateStatusMutation.isPending}
-                              className="text-xs bg-green-600 hover:bg-green-700 text-white"
+                              className="p-2 rounded-lg transition-all hover:opacity-80 flex items-center gap-1"
+                              style={styles.greenBtn}
                             >
-                              تأكيد
-                            </Button>
+                              <Check className="w-4 h-4" />
+                            </button>
                           )}
                           {booking.status !== 'cancelled' && (
-                            <Button
-                              size="sm"
+                            <button
                               onClick={() => handleStatusUpdate(booking.referenceNumber, 'cancelled')}
                               disabled={updateStatusMutation.isPending}
-                              className="text-xs bg-red-600 hover:bg-red-700 text-white"
+                              className="p-2 rounded-lg transition-all hover:opacity-80 flex items-center gap-1"
+                              style={styles.redBtn}
                             >
-                              إلغاء
-                            </Button>
+                              <X className="w-4 h-4" />
+                            </button>
                           )}
                         </div>
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {filteredBookings?.length === 0 && (
+          <div className="text-center py-12">
+            <p style={styles.blueText} className="text-lg font-semibold">
+              لا توجد حجوزات
+            </p>
+          </div>
+        )}
 
         {/* Stats */}
         {bookings && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <Card className="card-elegant p-6 text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div className="rounded-2xl p-6 text-center shadow-md" style={styles.cardBg}>
+              <div className="text-4xl font-bold mb-2" style={{ color: '#f59e0b' }}>
                 {bookings.filter(b => b.status === 'pending').length}
               </div>
-              <p className="text-muted-foreground">حجوزات معلقة</p>
-            </Card>
-            <Card className="card-elegant p-6 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
+              <p style={{ color: '#64748b' }} className="font-semibold">حجوزات معلقة</p>
+            </div>
+            <div className="rounded-2xl p-6 text-center shadow-md" style={styles.cardBg}>
+              <div className="text-4xl font-bold mb-2" style={{ color: '#22c55e' }}>
                 {bookings.filter(b => b.status === 'confirmed').length}
               </div>
-              <p className="text-muted-foreground">حجوزات مؤكدة</p>
-            </Card>
-            <Card className="card-elegant p-6 text-center">
-              <div className="text-3xl font-bold text-red-600 mb-2">
+              <p style={{ color: '#64748b' }} className="font-semibold">حجوزات مؤكدة</p>
+            </div>
+            <div className="rounded-2xl p-6 text-center shadow-md" style={styles.cardBg}>
+              <div className="text-4xl font-bold mb-2" style={{ color: '#ef4444' }}>
                 {bookings.filter(b => b.status === 'cancelled').length}
               </div>
-              <p className="text-muted-foreground">حجوزات ملغاة</p>
-            </Card>
+              <p style={{ color: '#64748b' }} className="font-semibold">حجوزات ملغاة</p>
+            </div>
           </div>
         )}
       </div>

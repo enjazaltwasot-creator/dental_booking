@@ -1,334 +1,286 @@
-import { useState, useMemo } from 'react';
-import { trpc } from '@/lib/trpc';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { useLocation } from 'wouter';
-
-type Step = 'service' | 'dentist' | 'datetime' | 'patient';
+import { trpc } from '@/lib/trpc';
+import { ChevronRight, Check } from 'lucide-react';
 
 export default function BookingForm() {
   const [, navigate] = useLocation();
-  const [currentStep, setCurrentStep] = useState<Step>('service');
-  const [selectedService, setSelectedService] = useState<number | null>(null);
-  const [selectedDentist, setSelectedDentist] = useState<number | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedTime, setSelectedTime] = useState<string>('');
-  const [patientName, setPatientName] = useState('');
-  const [patientPhone, setPatientPhone] = useState('');
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    serviceId: '',
+    doctorId: '',
+    date: '',
+    time: '',
+    name: '',
+    phone: '',
+  });
 
-  // Queries
-  const { data: services, isLoading: servicesLoading } = trpc.services.list.useQuery();
-  const { data: dentists, isLoading: dentistsLoading } = trpc.dentists.list.useQuery();
-  const { data: bookedSlots } = trpc.bookings.getByDentistAndDate.useQuery(
-    { dentistId: selectedDentist || 0, appointmentDate: selectedDate || new Date().toISOString() },
-    { enabled: selectedDentist !== null && selectedDate !== '' }
-  );
-  const { data: workingHours } = trpc.workingHours.getByDentistAndDay.useQuery(
-    { dentistId: selectedDentist || 0, dayOfWeek: selectedDate ? new Date(selectedDate).getDay() : 0 },
-    { enabled: selectedDentist !== null && selectedDate !== '' }
+  const { data: services } = trpc.booking.getServices.useQuery();
+  const { data: doctors } = trpc.booking.getDoctors.useQuery();
+  const { data: availableSlots } = trpc.booking.getAvailableSlots.useQuery(
+    { doctorId: parseInt(formData.doctorId) || 0, date: formData.date },
+    { enabled: !!formData.doctorId && !!formData.date }
   );
 
-  // Create booking mutation
-  const createBookingMutation = trpc.bookings.create.useMutation({
-    onSuccess: (booking) => {
-      toast.success('تم إنشاء الحجز بنجاح!');
-      navigate(`/confirmation/${booking.referenceNumber}`);
-    },
-    onError: (error) => {
-      toast.error(`خطأ: ${error.message}`);
+  const createBooking = trpc.booking.createBooking.useMutation({
+    onSuccess: (data) => {
+      navigate(`/confirmation/${data.id}`);
     },
   });
 
-  // Generate available time slots
-  const availableTimeSlots = useMemo(() => {
-    if (!workingHours || workingHours.length === 0) return [];
-    
-    const slots: string[] = [];
-    const workingHour = workingHours[0];
-    if (!workingHour) return [];
-
-    const [startHour, startMin] = workingHour.startTime.split(':').map(Number);
-    const [endHour, endMin] = workingHour.endTime.split(':').map(Number);
-
-    let current = new Date();
-    current.setHours(startHour, startMin, 0);
-    const end = new Date();
-    end.setHours(endHour, endMin, 0);
-
-    const bookedTimes = (bookedSlots || []).map(b => b.appointmentTime);
-
-    while (current < end) {
-      const timeStr = current.toTimeString().slice(0, 5);
-      if (!bookedTimes.includes(timeStr)) {
-        slots.push(timeStr);
-      }
-      current.setMinutes(current.getMinutes() + 30);
-    }
-
-    return slots;
-  }, [workingHours, bookedSlots]);
-
-  // Get minimum date (today)
-  const minDate = new Date().toISOString().split('T')[0];
-
-  const canProceedToNextStep = () => {
-    switch (currentStep) {
-      case 'service':
-        return selectedService !== null;
-      case 'dentist':
-        return selectedDentist !== null;
-      case 'datetime':
-        return selectedDate !== '' && selectedTime !== '';
-      case 'patient':
-        return patientName.trim() !== '' && patientPhone.trim() !== '';
-      default:
-        return false;
-    }
+  const handleNext = () => {
+    if (step < 4) setStep(step + 1);
   };
 
-  const handleSubmit = async () => {
-    if (!selectedService || !selectedDentist || !selectedDate || !selectedTime) {
-      toast.error('يرجى ملء جميع الحقول المطلوبة');
-      return;
-    }
+  const handlePrev = () => {
+    if (step > 1) setStep(step - 1);
+  };
 
-    createBookingMutation.mutate({
-      dentistId: selectedDentist,
-      serviceId: selectedService,
-      patientName,
-      patientPhone,
-      appointmentDate: selectedDate,
-      appointmentTime: selectedTime,
+  const handleSubmit = () => {
+    createBooking.mutate({
+      serviceId: parseInt(formData.serviceId),
+      doctorId: parseInt(formData.doctorId),
+      date: formData.date,
+      time: formData.time,
+      patientName: formData.name,
+      patientPhone: formData.phone,
     });
   };
 
+  const styles = {
+    headerBg: { background: 'linear-gradient(to right, #1e3a8a, #1e40af)' },
+    containerBg: { backgroundColor: '#f8fafc' },
+    cardBg: { backgroundColor: '#ffffff', borderColor: '#e2e8f0' },
+    primaryBtn: { backgroundColor: '#2563eb', color: 'white' },
+    orangeBtn: { backgroundColor: '#ff6600', color: 'white' },
+    stepActive: { backgroundColor: '#2563eb', color: 'white' },
+    stepInactive: { backgroundColor: '#e2e8f0', color: '#64748b' },
+    inputBorder: { borderColor: '#cbd5e1' },
+    labelText: { color: '#1e3a8a' },
+    blueText: { color: '#2563eb' },
+  };
+
   return (
-    <div className="min-h-screen gradient-calming py-12">
-      <div className="container">
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-2">احجز موعدك</h1>
-            <p className="text-muted-foreground">اتبع الخطوات التالية لحجز موعد مع طبيب الأسنان</p>
+    <div style={styles.containerBg} className="min-h-screen py-12">
+      {/* Header */}
+      <header className="sticky top-0 z-40 shadow-lg" style={styles.headerBg}>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img 
+              src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
+              alt="Evan Clinic" 
+              className="h-14 w-auto"
+            />
+            <h1 className="text-xl font-bold text-white">احجز موعدك</h1>
           </div>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            style={styles.orangeBtn}
+          >
+            العودة للرئيسية
+          </button>
+        </div>
+      </header>
 
-          {/* Progress indicator */}
-          <div className="mb-8 flex justify-between items-center">
-            {(['service', 'dentist', 'datetime', 'patient'] as Step[]).map((step, idx) => (
-              <div key={step} className="flex items-center flex-1">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${
-                    currentStep === step
-                      ? 'bg-accent text-white'
-                      : ['service', 'dentist', 'datetime', 'patient'].indexOf(currentStep) > idx
-                      ? 'bg-green-500 text-white'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                >
-                  {idx + 1}
-                </div>
-                {idx < 3 && (
-                  <div
-                    className={`flex-1 h-1 mx-2 ${
-                      ['service', 'dentist', 'datetime', 'patient'].indexOf(currentStep) > idx
-                        ? 'bg-green-500'
-                        : 'bg-muted'
-                    }`}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Form content */}
-          <Card className="card-elegant">
-            {/* Step 1: Service Selection */}
-            {currentStep === 'service' && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-6">اختر الخدمة</h2>
-                {servicesLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Spinner />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4">
-                    {services?.map(service => (
-                      <button
-                        key={service.id}
-                        onClick={() => setSelectedService(service.id)}
-                        className={`p-4 rounded-lg border-2 transition-all text-left ${
-                          selectedService === service.id
-                            ? 'border-accent bg-accent/10'
-                            : 'border-muted hover:border-accent/50'
-                        }`}
-                      >
-                        <div className="font-semibold">{service.name}</div>
-                        <div className="text-sm text-muted-foreground">{service.description}</div>
-                        <div className="text-xs text-muted-foreground mt-2">المدة: {service.duration} دقيقة</div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 2: Dentist Selection */}
-            {currentStep === 'dentist' && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-6">اختر طبيب الأسنان</h2>
-                {dentistsLoading ? (
-                  <div className="flex justify-center py-8">
-                    <Spinner />
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-4">
-                    {dentists?.map(dentist => (
-                      <button
-                        key={dentist.id}
-                        onClick={() => setSelectedDentist(dentist.id)}
-                        className={`p-4 rounded-lg border-2 transition-all text-left ${
-                          selectedDentist === dentist.id
-                            ? 'border-accent bg-accent/10'
-                            : 'border-muted hover:border-accent/50'
-                        }`}
-                      >
-                        <div className="font-semibold">{dentist.name}</div>
-                        <div className="text-sm text-muted-foreground">{dentist.specialization}</div>
-                        {dentist.bio && <div className="text-xs text-muted-foreground mt-2">{dentist.bio}</div>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Step 3: Date and Time Selection */}
-            {currentStep === 'datetime' && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-6">اختر التاريخ والوقت</h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="date" className="block mb-2">التاريخ</Label>
-                    <Input
-                      id="date"
-                      type="date"
-                      min={minDate}
-                      value={selectedDate}
-                      onChange={(e) => {
-                        setSelectedDate(e.target.value);
-                        setSelectedTime('');
-                      }}
-                      className="input-elegant"
-                    />
-                  </div>
-
-                  {selectedDate && (
-                    <div>
-                      <Label htmlFor="time" className="block mb-2">الوقت</Label>
-                      {availableTimeSlots.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-2">
-                          {availableTimeSlots.map(time => (
-                            <button
-                              key={time}
-                              onClick={() => setSelectedTime(time)}
-                              className={`p-2 rounded-lg border-2 transition-all ${
-                                selectedTime === time
-                                  ? 'border-accent bg-accent/10'
-                                  : 'border-muted hover:border-accent/50'
-                              }`}
-                            >
-                              {time}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 text-muted-foreground">
-                          لا توجد مواعيد متاحة في هذا التاريخ
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Step 4: Patient Information */}
-            {currentStep === 'patient' && (
-              <div>
-                <h2 className="text-2xl font-semibold mb-6">بيانات المريض</h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name" className="block mb-2">الاسم الكامل</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      placeholder="أدخل اسمك الكامل"
-                      className="input-elegant"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone" className="block mb-2">رقم الهاتف</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={patientPhone}
-                      onChange={(e) => setPatientPhone(e.target.value)}
-                      placeholder="أدخل رقم هاتفك"
-                      className="input-elegant"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-muted">
-              <Button
-                onClick={() => {
-                  const steps: Step[] = ['service', 'dentist', 'datetime', 'patient'];
-                  const currentIdx = steps.indexOf(currentStep);
-                  if (currentIdx > 0) {
-                    setCurrentStep(steps[currentIdx - 1]);
-                  }
-                }}
-                disabled={currentStep === 'service'}
-                variant="outline"
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Progress Steps */}
+        <div className="flex justify-between mb-12">
+          {[1, 2, 3, 4].map((s) => (
+            <div key={s} className="flex flex-col items-center flex-1">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition-all"
+                style={step >= s ? styles.stepActive : styles.stepInactive}
               >
-                السابق
-              </Button>
-
-              {currentStep !== 'patient' ? (
-                <Button
-                  onClick={() => {
-                    const steps: Step[] = ['service', 'dentist', 'datetime', 'patient'];
-                    const currentIdx = steps.indexOf(currentStep);
-                    if (canProceedToNextStep() && currentIdx < steps.length - 1) {
-                      setCurrentStep(steps[currentIdx + 1]);
-                    } else if (!canProceedToNextStep()) {
-                      toast.error('يرجى ملء جميع الحقول المطلوبة');
-                    }
-                  }}
-                  disabled={!canProceedToNextStep()}
-                >
-                  التالي
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!canProceedToNextStep() || createBookingMutation.isPending}
-                  className="btn-elegant"
-                >
-                  {createBookingMutation.isPending ? 'جاري الحجز...' : 'تأكيد الحجز'}
-                </Button>
-              )}
+                {step > s ? <Check className="w-6 h-6" /> : s}
+              </div>
+              <span className="text-xs text-center" style={styles.labelText}>
+                {['الخدمة', 'الطبيب', 'الموعد', 'البيانات'][s - 1]}
+              </span>
             </div>
-          </Card>
+          ))}
+        </div>
+
+        {/* Form Card */}
+        <div className="rounded-2xl p-8 shadow-lg" style={styles.cardBg}>
+          {/* Step 1: Service Selection */}
+          {step === 1 && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6" style={styles.blueText}>
+                اختر الخدمة
+              </h2>
+              <div className="space-y-3">
+                {services?.map((service) => (
+                  <button
+                    key={service.id}
+                    onClick={() => {
+                      setFormData({ ...formData, serviceId: service.id.toString() });
+                      handleNext();
+                    }}
+                    className="w-full p-4 rounded-lg border-2 text-right font-semibold transition-all hover:shadow-md"
+                    style={{
+                      borderColor: formData.serviceId === service.id.toString() ? '#2563eb' : '#e2e8f0',
+                      backgroundColor: formData.serviceId === service.id.toString() ? '#dbeafe' : '#ffffff',
+                      color: '#1e3a8a',
+                    }}
+                  >
+                    {service.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Doctor Selection */}
+          {step === 2 && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6" style={styles.blueText}>
+                اختر الطبيب
+              </h2>
+              <div className="space-y-3">
+                {doctors?.map((doctor) => (
+                  <button
+                    key={doctor.id}
+                    onClick={() => {
+                      setFormData({ ...formData, doctorId: doctor.id.toString() });
+                      handleNext();
+                    }}
+                    className="w-full p-4 rounded-lg border-2 text-right transition-all hover:shadow-md"
+                    style={{
+                      borderColor: formData.doctorId === doctor.id.toString() ? '#2563eb' : '#e2e8f0',
+                      backgroundColor: formData.doctorId === doctor.id.toString() ? '#dbeafe' : '#ffffff',
+                    }}
+                  >
+                    <div className="font-semibold" style={styles.labelText}>
+                      {doctor.name}
+                    </div>
+                    <div className="text-sm" style={{ color: '#64748b' }}>
+                      {doctor.specialization}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Date and Time Selection */}
+          {step === 3 && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6" style={styles.blueText}>
+                اختر الموعد والوقت
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-semibold mb-2" style={styles.labelText}>
+                    التاريخ
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    className="w-full p-3 rounded-lg border-2 font-semibold"
+                    style={styles.inputBorder}
+                  />
+                </div>
+                {availableSlots && availableSlots.length > 0 && (
+                  <div>
+                    <label className="block font-semibold mb-2" style={styles.labelText}>
+                      الوقت
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {availableSlots.map((slot) => (
+                        <button
+                          key={slot}
+                          onClick={() => setFormData({ ...formData, time: slot })}
+                          className="p-2 rounded-lg border-2 font-semibold transition-all"
+                          style={{
+                            borderColor: formData.time === slot ? '#2563eb' : '#e2e8f0',
+                            backgroundColor: formData.time === slot ? '#2563eb' : '#ffffff',
+                            color: formData.time === slot ? '#ffffff' : '#1e3a8a',
+                          }}
+                        >
+                          {slot}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Patient Details */}
+          {step === 4 && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6" style={styles.blueText}>
+                بيانات المريض
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-semibold mb-2" style={styles.labelText}>
+                    الاسم الكامل
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="أدخل اسمك الكامل"
+                    className="w-full p-3 rounded-lg border-2 font-semibold"
+                    style={styles.inputBorder}
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-2" style={styles.labelText}>
+                    رقم الجوال
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="أدخل رقم جوالك"
+                    className="w-full p-3 rounded-lg border-2 font-semibold"
+                    style={styles.inputBorder}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="flex gap-4 mt-8 justify-between">
+            <button
+              onClick={handlePrev}
+              disabled={step === 1}
+              className="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-50"
+              style={{
+                backgroundColor: step === 1 ? '#e2e8f0' : '#f1f5f9',
+                color: '#64748b',
+                border: '2px solid #e2e8f0',
+              }}
+            >
+              السابق
+            </button>
+            {step < 4 ? (
+              <button
+                onClick={handleNext}
+                disabled={!formData[['serviceId', 'doctorId', 'date'][step - 1]]}
+                className="px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
+                style={styles.primaryBtn}
+              >
+                التالي
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!formData.name || !formData.phone}
+                className="px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-50"
+                style={styles.orangeBtn}
+              >
+                تأكيد الحجز
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
