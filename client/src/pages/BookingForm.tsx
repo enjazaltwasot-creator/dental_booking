@@ -178,8 +178,8 @@ export default function BookingForm() {
                     type="date"
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full p-3 rounded-lg border-2 font-semibold"
-                    style={styles.inputBorder}
+                    className="w-full px-0 py-2 font-semibold outline-none focus:outline-none bg-transparent"
+                    style={{ borderBottom: '1px solid #cbd5e1', borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}
                   />
                 </div>
                 {availableSlots && availableSlots.length > 0 && (
@@ -225,8 +225,8 @@ export default function BookingForm() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="أدخل اسمك الكامل"
-                    className="w-full p-3 rounded-lg border-2 font-semibold"
-                    style={styles.inputBorder}
+                    className="w-full px-0 py-2 font-semibold outline-none focus:outline-none bg-transparent"
+                    style={{ borderBottom: '1px solid #cbd5e1', borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}
                   />
                 </div>
                 <div>
@@ -238,8 +238,8 @@ export default function BookingForm() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="أدخل رقم جوالك"
-                    className="w-full p-3 rounded-lg border-2 font-semibold"
-                    style={styles.inputBorder}
+                    className="w-full px-0 py-2 font-semibold outline-none focus:outline-none bg-transparent"
+                    style={{ borderBottom: '1px solid #cbd5e1', borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}
                   />
                 </div>
               </div>

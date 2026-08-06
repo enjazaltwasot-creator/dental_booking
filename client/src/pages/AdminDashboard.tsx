@@ -131,8 +131,8 @@ export default function AdminDashboard() {
                 placeholder="ابحث عن المريض أو رقم الجوال..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-12 pl-4 py-3 rounded-lg border-2 font-semibold"
-                style={styles.inputBorder}
+                className="w-full pr-12 pl-4 py-2 font-semibold outline-none focus:outline-none bg-transparent"
+                style={{ borderBottom: '1px solid #cbd5e1', borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}
               />
             </div>
             <select
