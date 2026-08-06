@@ -1,234 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 280 20% 97%;
-    --foreground: 280 15% 25%;
-    --card: 280 25% 95%;
-    --card-foreground: 280 15% 25%;
-    --popover: 280 25% 95%;
-    --popover-foreground: 280 15% 25%;
-    --muted: 280 10% 70%;
-    --muted-foreground: 280 10% 40%;
-    --accent: 280 60% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 280 15% 85%;
-    --input: 280 15% 85%;
-    --ring: 280 60% 60%;
-    --radius: 0.5rem;
-
-    /* Calming gradient colors */
-    --gradient-lavender: 280 40% 75%;
-    --gradient-blush: 350 70% 80%;
-    --gradient-mint: 160 50% 80%;
-  }
-
-  .dark {
-    --background: 280 20% 15%;
-    --foreground: 280 10% 95%;
-    --card: 280 25% 20%;
-    --card-foreground: 280 10% 95%;
-    --popover: 280 25% 20%;
-    --popover-foreground: 280 10% 95%;
-    --muted: 280 10% 40%;
-    --muted-foreground: 280 10% 70%;
-    --accent: 280 60% 60%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 0%;
-    --border: 280 15% 30%;
-    --input: 280 15% 30%;
-    --ring: 280 60% 60%;
-  }
-
-  body {
-    background-color: hsl(var(--card));
-    color: hsl(var(--foreground));
-    font-family: 'Inter', sans-serif;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
-    color: hsl(280, 30%, 40%);
-    font-weight: 600;
-  }
-
-  h1 {
-    font-size: 2.25rem;
-    font-weight: bold;
-  }
-
-  h2 {
-    font-size: 1.875rem;
-    font-weight: 600;
-  }
-
-  h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-
-  /* Decorative elements */
-  .corner-bracket {
-    position: relative;
-  }
-
-  .corner-bracket::before,
-  .corner-bracket::after {
-    content: '';
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    border: 1.5px solid hsl(280, 30%, 70%);
-  }
-
-  .corner-bracket::before {
-    top: -6px;
-    left: -6px;
-    border-right: none;
-    border-bottom: none;
-  }
-
-  .corner-bracket::after {
-    bottom: -6px;
-    right: -6px;
-    border-left: none;
-    border-top: none;
-  }
-
-  /* Vertical line accent */
-  .vertical-line {
-    position: relative;
-    padding-left: 16px;
-  }
-
-  .vertical-line::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(to bottom, hsl(280, 40%, 75%), transparent);
-  }
-
-  /* Container */
-  .container {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 80rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  @media (min-width: 640px) {
-    .container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .container {
-      padding-left: 2rem;
-      padding-right: 2rem;
-    }
-  }
-
-  /* Flex defaults */
-  .flex {
-    min-width: 0;
-    min-height: 0;
-  }
+:root {
+  --primary: 15 23 42;
+  --primary-fg: 248 250 252;
+  --secondary: 6 182 212;
+  --secondary-fg: 15 23 42;
+  --background: 248 250 252;
+  --foreground: 15 23 42;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --muted: 226 232 240;
+  --muted-foreground: 71 85 105;
+  --accent: 6 182 212;
+  --accent-foreground: 15 23 42;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 226 232 240;
+  --input: 255 255 255;
+  --ring: 6 182 212;
 }
 
-@layer components {
-  /* Calming gradient background */
-  .gradient-calming {
-    background: linear-gradient(135deg, 
-      hsl(280, 40%, 85%) 0%,
-      hsl(350, 60%, 85%) 50%,
-      hsl(160, 50%, 85%) 100%);
-  }
-
-  .gradient-calming-dark {
-    background: linear-gradient(135deg, 
-      hsl(280, 40%, 25%) 0%,
-      hsl(350, 60%, 25%) 50%,
-      hsl(160, 50%, 25%) 100%);
-  }
-
-  /* Soft shadow */
-  .shadow-soft {
-    box-shadow: 0 4px 20px rgba(280, 40%, 75%, 0.1);
-  }
-
-  /* Elegant button */
-  .btn-elegant {
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    transition: all 0.3s ease-out;
-    background: hsl(280, 60%, 60%);
-    color: white;
-  }
-
-  .btn-elegant:hover {
-    background: hsl(280, 60%, 50%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(280, 60%, 60%, 0.3);
-  }
-
-  /* Input styling */
-  .input-elegant {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    border: 1px solid hsl(var(--border));
-    background-color: hsl(var(--card));
-    color: hsl(var(--foreground));
-    transition: all 0.3s ease-out;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .input-elegant:focus {
-    outline: none;
-    border: 2px solid hsl(var(--ring));
-    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
-  }
-
-  /* Card styling */
-  .card-elegant {
-    background-color: hsl(var(--card));
-    color: hsl(var(--card-foreground));
-    border-radius: 0.5rem;
-    padding: 1.5rem;
-    transition: all 0.3s ease-out;
-    box-shadow: 0 4px 20px rgba(280, 40%, 75%, 0.1);
-  }
-
-  .card-elegant:hover {
-    box-shadow: 0 10px 28px rgba(280, 40%, 75%, 0.15);
-  }
-}
-
-/* Smooth transitions */
-@layer utilities {
-  .transition-smooth {
-    transition: all 0.3s ease-out;
-  }
-
-  .text-serif {
-    font-family: 'Playfair Display', serif;
-  }
-
-  .text-sans {
-    font-family: 'Inter', sans-serif;
-  }
+body {
+  font-family: 'Inter', 'IBM Plex Sans Arabic', sans-serif;
 }

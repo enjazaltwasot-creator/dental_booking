@@ -7,21 +7,20 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import BookingForm from "./pages/BookingForm";
 import BookingConfirmation from "./pages/BookingConfirmation";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminLogin from "./pages/AdminLogin";
 import DoctorsList from "./pages/DoctorsList";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/booking"} component={BookingForm} />
-      <Route path={"/confirmation/:referenceNumber"} component={BookingConfirmation} />
+      <Route path={"/booking-confirmation/:id"} component={BookingConfirmation} />
       <Route path={"/doctors"} component={DoctorsList} />
       <Route path={"/admin-login"} component={AdminLogin} />
       <Route path={"/admin"} component={AdminDashboard} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -30,9 +29,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="light"
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
           <Router />
