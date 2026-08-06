@@ -17,11 +17,13 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: '#ffffff' }}>
       {/* Header */}
       <header className="sticky top-0 z-40 shadow-lg" style={styles.headerBg}>
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md" style={{ backgroundColor: '#ff6600' }}>
-              E
-            </div>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <img 
+              src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
+              alt="Evan Clinic Logo" 
+              className="h-16 w-auto"
+            />
             <div>
               <h1 className="text-xl font-bold text-white">إيفان</h1>
               <p className="text-xs font-semibold" style={{ color: '#ffb84d' }}>عيادات طبية</p>
