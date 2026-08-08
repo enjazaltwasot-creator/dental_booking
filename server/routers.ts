@@ -89,6 +89,46 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getWorkingHoursByDentistAndDay(input.dentistId, input.dayOfWeek);
       }),
+    availableSlots: publicProcedure
+      .input(z.object({ dentistId: z.number(), date: z.string() }))
+      .query(async ({ input }) => {
+        if (!input.dentistId || !input.date) return [];
+        const target = new Date(`${input.date}T00:00:00`);
+        if (Number.isNaN(target.getTime())) return [];
+        const dayOfWeek = target.getDay();
+
+        const hours = await db.getWorkingHoursByDentistAndDay(input.dentistId, dayOfWeek);
+        if (!hours.length) return [];
+
+        const booked = await db.getBookingsByDentistAndDate(input.dentistId, target);
+        const takenTimes = new Set(
+          booked.map(b => String(b.appointmentTime).slice(0, 5))
+        );
+
+        const toMinutes = (value: string) => {
+          const [h, m] = String(value).split(":").map(Number);
+          return h * 60 + (m || 0);
+        };
+        const toLabel = (total: number) => {
+          const h = Math.floor(total / 60);
+          const m = total % 60;
+          return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+        };
+
+        const SLOT_MINUTES = 30;
+        const slots: string[] = [];
+        for (const window of hours) {
+          const start = toMinutes(window.startTime as unknown as string);
+          const end = toMinutes(window.endTime as unknown as string);
+          for (let t = start; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) {
+            const label = toLabel(t);
+            if (!takenTimes.has(label) && !slots.includes(label)) {
+              slots.push(label);
+            }
+          }
+        }
+        return slots.sort();
+      }),
   }),
 
   // Bookings

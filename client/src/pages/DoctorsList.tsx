@@ -1,90 +1,82 @@
-import { useLocation } from 'wouter';
-import { trpc } from '@/lib/trpc';
+import { Link } from "wouter";
+import { Mail, Phone } from "lucide-react";
+import PageShell from "@/components/PageShell";
+import { trpc } from "@/lib/trpc";
 
 export default function DoctorsList() {
-  const [, navigate] = useLocation();
-  const { data: doctors, isLoading } = trpc.booking.getDoctors.useQuery();
+  const { data: dentists, isLoading } = trpc.dentists.list.useQuery();
 
   return (
-    <div dir="rtl" className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <img 
-            src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
-            alt="Evan Clinic" 
-            className="h-12 w-auto"
-          />
-          <h1 className="text-2xl font-bold text-slate-900">أطباؤنا المتخصصون</h1>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-          >
-            العودة للرئيسية
-          </button>
+    <PageShell>
+      <section className="border-b border-border bg-secondary/30 py-14">
+        <div className="container text-center">
+          <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">فريقنا الطبي</h1>
+          <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-muted-foreground">
+            أطباء متخصصون بخبرة عالية وكفاءة مثبتة في مختلف المجالات الطبية.
+          </p>
         </div>
-      </nav>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-slate-900 mb-4">فريقنا الطبي</h2>
-          <p className="text-lg text-slate-600">أطباء متخصصون بخبرة عالية وكفاءة مثبتة</p>
-        </div>
+      <section className="py-14">
+        <div className="container">
+          {isLoading && (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="h-64 animate-pulse rounded-2xl border border-border bg-secondary/50" />
+              ))}
+            </div>
+          )}
 
-        {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-lg text-slate-600 font-semibold">جاري التحميل...</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {doctors?.map((doctor) => (
-              <div
+          {!isLoading && (dentists?.length ?? 0) === 0 && (
+            <p className="py-16 text-center text-muted-foreground">لا يوجد أطباء متاحون حالياً.</p>
+          )}
+
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {(dentists ?? []).map(doctor => (
+              <article
                 key={doctor.id}
-                className="bg-white rounded-xl p-6 border border-slate-100 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                className="flex flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
               >
-                <div className="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center text-2xl font-bold text-sky-600 mb-4 mx-auto">
-                  {doctor.name.charAt(0)}
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 text-center mb-1">
-                  {doctor.name}
-                </h3>
-                <p className="text-sm font-semibold text-sky-600 text-center mb-4">
-                  {doctor.specialization}
-                </p>
-
-                <div className="space-y-3 mb-6 pb-6 border-b border-slate-100">
-                  <div className="flex items-center justify-center gap-2 text-slate-600">
-                    <i className="fas fa-phone text-sky-600"></i>
-                    <span className="text-sm">{doctor.phone}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2 text-slate-600">
-                    <i className="fas fa-map-marker-alt text-sky-600"></i>
-                    <span className="text-sm">{doctor.location}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <i
-                        key={i}
-                        className={`fas fa-star ${
-                          i < 4 ? 'text-yellow-400' : 'text-slate-200'
-                        }`}
-                      ></i>
-                    ))}
-                    <span className="text-xs font-semibold text-slate-600 mr-2">(4.5)</span>
+                <div className="flex items-center gap-4">
+                  <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primary/10 text-lg font-extrabold text-primary">
+                    {doctor.name.replace("د.", "").trim().charAt(0)}
+                  </span>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">{doctor.name}</h2>
+                    <p className="mt-0.5 text-sm font-semibold text-primary">{doctor.specialization}</p>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => navigate('/booking')}
-                  className="w-full bg-sky-600 hover:bg-sky-700 text-white py-3 rounded-lg font-bold transition"
+                {doctor.bio && (
+                  <p className="mt-4 flex-1 text-sm leading-7 text-muted-foreground">{doctor.bio}</p>
+                )}
+
+                <div className="mt-5 space-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
+                  {doctor.phone && (
+                    <p className="flex items-center gap-2" dir="ltr">
+                      <Phone className="size-4 text-primary" />
+                      {doctor.phone}
+                    </p>
+                  )}
+                  {doctor.email && (
+                    <p className="flex items-center gap-2" dir="ltr">
+                      <Mail className="size-4 text-primary" />
+                      {doctor.email}
+                    </p>
+                  )}
+                </div>
+
+                <Link
+                  href="/booking"
+                  className="mt-5 rounded-xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground transition-all duration-200 hover:shadow-md"
                 >
-                  احجز موعد
-                </button>
-              </div>
+                  احجز مع الطبيب
+                </Link>
+              </article>
             ))}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </section>
+    </PageShell>
   );
 }

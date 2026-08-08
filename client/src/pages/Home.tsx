@@ -1,209 +1,220 @@
-import { useLocation } from 'wouter';
+import { Link } from "wouter";
+import {
+  ArrowLeft,
+  CalendarCheck,
+  MapPin,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+  Timer,
+} from "lucide-react";
+import PageShell from "@/components/PageShell";
+import { BRANCHES, CLINIC } from "@/lib/clinic";
+import { trpc } from "@/lib/trpc";
+
+const HIGHLIGHTS = [
+  { icon: Timer, title: "حجز في دقائق", text: "اختر الخدمة والطبيب والموعد المناسب لك بخطوات بسيطة." },
+  { icon: ShieldCheck, title: "أطباء معتمدون", text: "نخبة من الأطباء ذوي الخبرة في مختلف التخصصات." },
+  { icon: MapPin, title: "ثلاثة فروع", text: "مواقع استراتيجية في الرياض تسهّل الوصول إليك." },
+];
 
 export default function Home() {
-  const [, navigate] = useLocation();
+  const { data: services } = trpc.services.list.useQuery();
+  const { data: dentists } = trpc.dentists.list.useQuery();
 
   return (
-    <div dir="rtl" className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <img 
-            src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
-            alt="Evan Clinic" 
-            className="h-12 w-auto"
-          />
-          
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-slate-700 hover:text-sky-600 font-medium transition">الرئيسية</a>
-            <a href="#services" className="text-slate-700 hover:text-sky-600 font-medium transition">خدماتنا</a>
-            <a href="#doctors" className="text-slate-700 hover:text-sky-600 font-medium transition">الأطباء</a>
-            <a href="#branches" className="text-slate-700 hover:text-sky-600 font-medium transition">الفروع</a>
-            <a href="#contact" className="text-slate-700 hover:text-sky-600 font-medium transition">اتصل بنا</a>
-          </div>
+    <PageShell>
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border">
+        <div
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(120% 90% at 85% 0%, oklch(0.95 0.04 235) 0%, transparent 55%), radial-gradient(90% 80% at 5% 20%, oklch(0.97 0.03 200) 0%, transparent 60%)",
+          }}
+        />
+        <div className="container grid items-center gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+          <div className="rise-in">
+            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-1.5 text-xs font-semibold text-primary shadow-sm">
+              <Sparkles className="size-3.5" />
+              مركز طبي متخصص
+            </span>
 
-          {/* CTA Button */}
-          <button
-            onClick={() => navigate('/booking')}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
-          >
-            حجز موعد
-          </button>
-        </div>
-      </nav>
+            <h1 className="mt-6 text-4xl font-extrabold leading-[1.25] tracking-tight text-foreground sm:text-5xl lg:text-[3.4rem]">
+              {CLINIC.name}
+            </h1>
+            <p className="mt-3 text-lg font-bold text-primary sm:text-xl">
+              {CLINIC.tagline}
+            </p>
+            <p className="mt-5 max-w-xl text-[15px] leading-8 text-muted-foreground">
+              {CLINIC.description}
+            </p>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-sky-50 via-white to-blue-50 py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Text Content */}
-            <div className="order-2 md:order-1">
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                ابتسامة صحية،<br />حياة أفضل
-              </h1>
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
-                نقدم أفضل الخدمات في مجالات طب الأسنان والجلدية والليزر تحت إشراف نخبة من الأطباء المتخصصين ذوي الخبرة والكفاءة العالية.
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => navigate('/booking')}
-                  className="bg-sky-600 hover:bg-sky-700 text-white px-8 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
-                >
-                  احجز موعدك الآن
-                </button>
-                <button
-                  onClick={() => navigate('/doctors')}
-                  className="border-2 border-sky-600 text-sky-600 hover:bg-sky-50 px-8 py-3 rounded-lg font-semibold transition"
-                >
-                  تعرف على أطباؤنا
-                </button>
-              </div>
-            </div>
-
-            {/* Image */}
-            <div className="order-1 md:order-2">
-              <div className="bg-gradient-to-br from-sky-200 to-blue-200 rounded-2xl h-96 md:h-full min-h-96 flex items-center justify-center shadow-lg">
-                <div className="text-center">
-                  <i className="fas fa-tooth text-6xl text-sky-600 mb-4"></i>
-                  <p className="text-slate-600 font-semibold">مركز طبي متخصص</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">خدماتنا المتخصصة</h2>
-            <p className="text-lg text-slate-600">نقدم مجموعة شاملة من الخدمات الطبية بأحدث التقنيات</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[
-              { icon: 'fa-tooth', title: 'تنظيف الأسنان', desc: 'تنظيف احترافي وتقويم وزراعة' },
-              { icon: 'fa-smile', title: 'تبييض الأسنان', desc: 'تبييض آمن وفعال بأحدث التقنيات' },
-              { icon: 'fa-syringe', title: 'حشو الأسنان', desc: 'حشو آمن وسهل للأسنان والعصب' },
-              { icon: 'fa-heart', title: 'تقويم الأسنان', desc: 'تقويم حديث وسريع وآمن' },
-              { icon: 'fa-spa', title: 'خدمات الجلدية', desc: 'علاجات جلدية متقدمة وآمنة' },
-              { icon: 'fa-lightbulb', title: 'تقنيات الليزر', desc: 'ليزر طبي حديث وفعال' },
-              { icon: 'fa-microscope', title: 'فحوصات دقيقة', desc: 'فحوصات شاملة ودقيقة جداً' },
-              { icon: 'fa-stethoscope', title: 'استشارات طبية', desc: 'استشارات متخصصة ومجانية' },
-            ].map((service, idx) => (
-              <div
-                key={idx}
-                className="bg-white border border-slate-100 rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                href="/booking"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent px-7 py-3.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:shadow-md"
               >
-                <div className="text-4xl text-sky-600 mb-4">
-                  <i className={`fas ${service.icon}`}></i>
+                <CalendarCheck className="size-4" />
+                احجز موعدك الآن
+              </Link>
+              <Link
+                href="/doctors"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-7 py-3.5 text-sm font-bold text-foreground transition-all duration-200 hover:border-primary/40 hover:shadow-md"
+              >
+                تعرّف على أطبائنا
+                <ArrowLeft className="size-4" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-4 rise-in sm:grid-cols-2 lg:grid-cols-1">
+            {HIGHLIGHTS.map(item => (
+              <div
+                key={item.title}
+                className="flex items-start gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md"
+              >
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <item.icon className="size-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">{item.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.text}</p>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
-                <p className="text-slate-600 text-sm">{service.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Doctors Section */}
-      <section id="doctors" className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">فريقنا الطبي</h2>
-            <p className="text-lg text-slate-600">أطباء متخصصون بخبرة عالية وكفاءة مثبتة</p>
+      {/* Services */}
+      <section className="py-16 lg:py-20">
+        <div className="container">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-accent">خدماتنا</span>
+              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
+                رعاية شاملة لصحتك وجمالك
+              </h2>
+            </div>
+            <Link href="/services" className="text-sm font-bold text-primary hover:underline">
+              عرض جميع الخدمات
+            </Link>
           </div>
 
-          <button
-            onClick={() => navigate('/doctors')}
-            className="mx-auto block bg-sky-600 hover:bg-sky-700 text-white px-8 py-3 rounded-lg font-semibold transition shadow-md hover:shadow-lg"
-          >
-            عرض جميع الأطباء
-          </button>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {(services ?? []).slice(0, 6).map(service => (
+              <article
+                key={service.id}
+                className="group rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
+              >
+                <span className="grid size-12 place-items-center rounded-xl bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
+                  <Stethoscope className="size-5" />
+                </span>
+                <h3 className="mt-5 text-lg font-bold text-foreground">{service.name}</h3>
+                <p className="mt-2 text-sm leading-7 text-muted-foreground">{service.description}</p>
+                <p className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+                  <Timer className="size-3.5" />
+                  {service.duration} دقيقة
+                </p>
+              </article>
+            ))}
+
+            {!services && (
+              <>
+                {[0, 1, 2].map(i => (
+                  <div key={i} className="h-52 animate-pulse rounded-2xl border border-border bg-secondary/50" />
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </section>
 
-      {/* Branches Section */}
-      <section id="branches" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-slate-900 mb-4">فروعنا</h2>
-            <p className="text-lg text-slate-600">ثلاث فروع في مواقع استراتيجية بالرياض</p>
+      {/* Doctors */}
+      <section className="border-y border-border bg-secondary/30 py-16 lg:py-20">
+        <div className="container">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-accent">فريقنا</span>
+              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
+                أطباء متخصصون بخبرة عالية
+              </h2>
+            </div>
+            <Link href="/doctors" className="text-sm font-bold text-primary hover:underline">
+              عرض جميع الأطباء
+            </Link>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { name: 'الفرع الرئيسي', address: 'حي الرياض - شارع العليا' },
-              { name: 'فرع الشرق', address: 'حي الشرق - شارع الملك فهد' },
-              { name: 'فرع الغرب', address: 'حي الغرب - شارع الملك عبدالعزيز' },
-            ].map((branch, idx) => (
-              <div
-                key={idx}
-                className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-xl p-8 border border-sky-100 text-center"
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {(dentists ?? []).map(doctor => (
+              <article
+                key={doctor.id}
+                className="rounded-2xl border border-border bg-white p-6 text-center shadow-sm transition-all duration-200 hover:shadow-md"
               >
-                <i className="fas fa-map-marker-alt text-3xl text-sky-600 mb-4 block"></i>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{branch.name}</h3>
-                <p className="text-slate-600">{branch.address}</p>
-                <a
-                  href="https://wa.me/966"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block mt-4 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold transition"
-                >
-                  تواصل عبر واتس
-                </a>
-              </div>
+                <span className="mx-auto grid size-16 place-items-center rounded-full bg-primary/10 text-xl font-extrabold text-primary">
+                  {doctor.name.replace("د.", "").trim().charAt(0)}
+                </span>
+                <h3 className="mt-4 text-base font-bold text-foreground">{doctor.name}</h3>
+                <p className="mt-1 text-sm font-semibold text-primary">{doctor.specialization}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-slate-900 mb-8">تواصل معنا</h2>
-          <div className="flex flex-col md:flex-row justify-center gap-8">
-            <a
-              href="tel:+966"
-              className="flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-lg p-6 hover:shadow-md transition"
-            >
-              <i className="fas fa-phone text-2xl text-sky-600"></i>
-              <span className="text-slate-700 font-semibold">اتصل بنا</span>
-            </a>
-            <a
-              href="https://wa.me/966"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-lg p-6 hover:shadow-md transition"
-            >
-              <i className="fas fa-whatsapp text-2xl text-green-600"></i>
-              <span className="text-slate-700 font-semibold">واتس آب</span>
-            </a>
-            <a
-              href="mailto:info@evanclinic.sa"
-              className="flex items-center justify-center gap-3 bg-white border border-slate-200 rounded-lg p-6 hover:shadow-md transition"
-            >
-              <i className="fas fa-envelope text-2xl text-sky-600"></i>
-              <span className="text-slate-700 font-semibold">البريد الإلكتروني</span>
-            </a>
+      {/* Branches */}
+      <section className="py-16 lg:py-20">
+        <div className="container">
+          <div className="text-center">
+            <span className="text-xs font-bold uppercase tracking-widest text-accent">فروعنا</span>
+            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
+              نخدمك من ثلاثة مواقع
+            </h2>
+          </div>
+
+          <div className="mt-10 grid gap-5 md:grid-cols-3">
+            {BRANCHES.map(branch => (
+              <article
+                key={branch.name}
+                className="rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
+              >
+                <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                  <MapPin className="size-5 text-primary" />
+                  {branch.name}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">{branch.city}</p>
+                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-foreground" dir="ltr">
+                  <Phone className="size-4 text-primary" />
+                  {branch.phone}
+                </p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="mb-4">&copy; 2024 مجمع إيفان الطبي. جميع الحقوق محفوظة.</p>
-          <div className="flex justify-center gap-6">
-            <a href="#" className="hover:text-sky-400 transition">سياسة الخصوصية</a>
-            <a href="#" className="hover:text-sky-400 transition">شروط الاستخدام</a>
-            <a href="#" className="hover:text-sky-400 transition">اتصل بنا</a>
+      {/* CTA */}
+      <section className="pb-20">
+        <div className="container">
+          <div className="overflow-hidden rounded-3xl border border-border bg-primary px-8 py-14 text-center shadow-sm">
+            <h2 className="text-3xl font-extrabold text-primary-foreground sm:text-4xl">
+              اختيارك الصحيح تجده معنا
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-primary-foreground/85">
+              سجّل موعدك الآن واحصل على استشارة مع نخبة من الأطباء المتخصصين.
+            </p>
+            <Link
+              href="/booking"
+              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-8 py-3.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:shadow-md"
+            >
+              <CalendarCheck className="size-4" />
+              سجّل موعدك الآن
+            </Link>
           </div>
         </div>
-      </footer>
-    </div>
+      </section>
+    </PageShell>
   );
 }

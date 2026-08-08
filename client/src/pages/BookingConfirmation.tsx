@@ -1,185 +1,154 @@
-import { useRoute } from 'wouter';
-import { trpc } from '@/lib/trpc';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
-import { CheckCircle } from 'lucide-react';
-import { useLocation } from 'wouter';
+import type { ReactNode } from "react";
+import { Link, useParams } from "wouter";
+import { CalendarDays, CheckCircle2, Clock, Copy, Loader2, Phone, User } from "lucide-react";
+import { toast } from "sonner";
+import PageShell from "@/components/PageShell";
+import { trpc } from "@/lib/trpc";
+import { STATUS_META, formatDate } from "@/lib/clinic";
 
 export default function BookingConfirmation() {
-  const [match, params] = useRoute('/confirmation/:referenceNumber');
-  const [, navigate] = useLocation();
-  const referenceNumber = params?.referenceNumber as string;
+  const params = useParams<{ reference: string }>();
+  const reference = params.reference ?? "";
 
   const { data: booking, isLoading } = trpc.bookings.getByReferenceNumber.useQuery(
-    { referenceNumber: referenceNumber || '' },
-    { enabled: !!referenceNumber }
+    { referenceNumber: reference },
+    { enabled: Boolean(reference) }
   );
 
-  const { data: dentist } = trpc.dentists.getById.useQuery(
-    { id: booking?.dentistId || 0 },
-    { enabled: !!booking?.dentistId }
-  );
+  const { data: services } = trpc.services.list.useQuery();
+  const { data: dentists } = trpc.dentists.list.useQuery();
 
-  const { data: service } = trpc.services.getById.useQuery(
-    { id: booking?.serviceId || 0 },
-    { enabled: !!booking?.serviceId }
-  );
+  const service = services?.find(s => s.id === booking?.serviceId);
+  const dentist = dentists?.find(d => d.id === booking?.dentistId);
+  const status = booking ? STATUS_META[booking.status as keyof typeof STATUS_META] : null;
 
-  if (!match) return null;
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen gradient-calming flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (!booking) {
-    return (
-      <div className="min-h-screen gradient-calming py-12">
-        <div className="container max-w-2xl mx-auto">
-          <Card className="card-elegant text-center">
-            <h1 className="text-2xl font-bold mb-4">لم يتم العثور على الحجز</h1>
-            <p className="text-muted-foreground mb-6">
-              عذراً، لم نتمكن من العثور على الحجز برقم {referenceNumber}
-            </p>
-            <Button onClick={() => navigate('/')} className="btn-elegant">
-              العودة للرئيسية
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  const formatDate = (dateStr: string | Date) => {
-    const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return date.toLocaleDateString('ar-SA', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const getStatusLabel = (status: string) => {
-    const statusMap: Record<string, string> = {
-      pending: 'معلق',
-      confirmed: 'مؤكد',
-      cancelled: 'ملغى',
-    };
-    return statusMap[status] || status;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      case 'pending':
-      default:
-        return 'bg-yellow-100 text-yellow-800';
+  const copyReference = async () => {
+    try {
+      await navigator.clipboard.writeText(reference);
+      toast.success("تم نسخ الرقم المرجعي");
+    } catch {
+      toast.error("تعذر النسخ");
     }
   };
 
   return (
-    <div className="min-h-screen gradient-calming py-12">
-      <div className="container max-w-2xl mx-auto">
-        {/* Success Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <CheckCircle className="w-16 h-16 text-green-500" />
-          </div>
-          <h1 className="text-4xl font-bold mb-2">تم تأكيد حجزك!</h1>
-          <p className="text-muted-foreground">
-            شكراً لاختيارك عيادتنا. سيتم تأكيد موعدك قريباً.
-          </p>
+    <PageShell>
+      <section className="py-14">
+        <div className="container max-w-2xl">
+          {isLoading && (
+            <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground">
+              <Loader2 className="size-5 animate-spin" />
+              جاري تحميل تفاصيل الحجز...
+            </div>
+          )}
+
+          {!isLoading && !booking && (
+            <div className="rounded-2xl border border-border bg-white p-10 text-center shadow-sm">
+              <h1 className="text-xl font-bold text-foreground">لم يتم العثور على الحجز</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                تأكد من صحة الرقم المرجعي أو قم بإنشاء حجز جديد.
+              </p>
+              <Link
+                href="/booking"
+                className="mt-6 inline-block rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground"
+              >
+                حجز موعد جديد
+              </Link>
+            </div>
+          )}
+
+          {booking && (
+            <div className="rise-in overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+              <div className="border-b border-border bg-emerald-50/60 px-6 py-10 text-center sm:px-10">
+                <span className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+                  <CheckCircle2 className="size-8" />
+                </span>
+                <h1 className="mt-5 text-2xl font-extrabold text-foreground">تم استلام حجزك</h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  سيتواصل معك فريق العيادة لتأكيد الموعد.
+                </p>
+              </div>
+
+              <div className="px-6 py-8 sm:px-10">
+                <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5 text-center">
+                  <span className="text-xs font-semibold text-muted-foreground">الرقم المرجعي</span>
+                  <div className="mt-2 flex items-center justify-center gap-3">
+                    <span dir="ltr" className="text-xl font-extrabold tracking-wider text-primary">
+                      {booking.referenceNumber}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={copyReference}
+                      aria-label="نسخ الرقم المرجعي"
+                      className="grid size-8 place-items-center rounded-lg border border-border bg-white text-muted-foreground transition-colors hover:text-primary"
+                    >
+                      <Copy className="size-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <dl className="mt-7 space-y-4 text-sm">
+                  <Row icon={<User className="size-4 text-primary" />} label="المريض" value={booking.patientName} />
+                  <Row icon={<Phone className="size-4 text-primary" />} label="رقم الجوال" value={booking.patientPhone} ltr />
+                  <Row icon={<CalendarDays className="size-4 text-primary" />} label="التاريخ" value={formatDate(booking.appointmentDate)} />
+                  <Row icon={<Clock className="size-4 text-primary" />} label="الوقت" value={String(booking.appointmentTime).slice(0, 5)} ltr />
+                  {service && <Row label="الخدمة" value={service.name} />}
+                  {dentist && <Row label="الطبيب" value={`${dentist.name} — ${dentist.specialization}`} />}
+                  {booking.notes && <Row label="ملاحظات" value={booking.notes} />}
+
+                  <div className="flex items-center justify-between gap-4 pt-1">
+                    <dt className="font-semibold text-muted-foreground">الحالة</dt>
+                    <dd>
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${status?.className ?? ""}`}>
+                        {status?.label}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Link
+                    href="/"
+                    className="flex-1 rounded-xl border border-border bg-white py-3 text-center text-sm font-bold text-foreground transition-all duration-200 hover:shadow-sm"
+                  >
+                    العودة للرئيسية
+                  </Link>
+                  <Link
+                    href="/booking"
+                    className="flex-1 rounded-xl bg-primary py-3 text-center text-sm font-bold text-primary-foreground transition-all duration-200 hover:shadow-md"
+                  >
+                    حجز موعد آخر
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+      </section>
+    </PageShell>
+  );
+}
 
-        {/* Booking Details */}
-        <Card className="card-elegant mb-6">
-          <div className="mb-6 pb-6 border-b border-muted">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">رقم المرجع</p>
-                <p className="text-2xl font-bold text-accent">{booking.referenceNumber}</p>
-              </div>
-              <div className={`px-4 py-2 rounded-lg font-semibold ${getStatusColor(booking.status)}`}>
-                {getStatusLabel(booking.status)}
-              </div>
-            </div>
-          </div>
-
-          {/* Appointment Details */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">طبيب الأسنان</p>
-              <p className="text-lg font-semibold">{dentist?.name}</p>
-              <p className="text-sm text-muted-foreground">{dentist?.specialization}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">الخدمة</p>
-              <p className="text-lg font-semibold">{service?.name}</p>
-              <p className="text-sm text-muted-foreground">المدة: {service?.duration} دقيقة</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">التاريخ</p>
-              <p className="text-lg font-semibold">{formatDate(booking.appointmentDate)}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground mb-2">الوقت</p>
-              <p className="text-lg font-semibold">{booking.appointmentTime}</p>
-            </div>
-          </div>
-
-          {/* Patient Information */}
-          <div className="mb-6 pb-6 border-t border-muted pt-6">
-            <h3 className="text-lg font-semibold mb-4">بيانات المريض</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">الاسم</p>
-                <p className="font-semibold">{booking.patientName}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">رقم الهاتف</p>
-                <p className="font-semibold">{booking.patientPhone}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Important Note */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-900">
-              <strong>ملاحظة مهمة:</strong> سيتم تأكيد موعدك من قبل العيادة قريباً. يرجى الانتظار للحصول على رسالة تأكيد عبر الهاتف.
-            </p>
-          </div>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button
-            onClick={() => {
-              navigator.clipboard.writeText(booking.referenceNumber);
-              alert('تم نسخ رقم المرجع!');
-            }}
-            variant="outline"
-          >
-            نسخ رقم المرجع
-          </Button>
-          <Button
-            onClick={() => navigate('/')}
-            className="btn-elegant"
-          >
-            العودة للرئيسية
-          </Button>
-        </div>
-      </div>
+function Row({
+  icon,
+  label,
+  value,
+  ltr,
+}: {
+  icon?: ReactNode;
+  label: string;
+  value: string;
+  ltr?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
+      <dt className="flex items-center gap-2 font-semibold text-muted-foreground">
+        {icon}
+        {label}
+      </dt>
+      <dd dir={ltr ? "ltr" : undefined} className="text-left font-bold text-foreground">
+        {value}
+      </dd>
     </div>
   );
 }

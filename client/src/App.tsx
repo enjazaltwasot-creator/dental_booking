@@ -5,22 +5,26 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import ServicesList from "./pages/ServicesList";
+import DoctorsList from "./pages/DoctorsList";
+import Branches from "./pages/Branches";
 import BookingForm from "./pages/BookingForm";
 import BookingConfirmation from "./pages/BookingConfirmation";
-import DoctorsList from "./pages/DoctorsList";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/booking"} component={BookingForm} />
-      <Route path={"/booking-confirmation/:id"} component={BookingConfirmation} />
-      <Route path={"/doctors"} component={DoctorsList} />
-      <Route path={"/admin-login"} component={AdminLogin} />
-      <Route path={"/admin"} component={AdminDashboard} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path="/" component={Home} />
+      <Route path="/services" component={ServicesList} />
+      <Route path="/doctors" component={DoctorsList} />
+      <Route path="/branches" component={Branches} />
+      <Route path="/booking" component={BookingForm} />
+      <Route path="/confirmation/:reference" component={BookingConfirmation} />
+      <Route path="/admin-login" component={AdminLogin} />
+      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -31,7 +35,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
-          <Toaster />
+          <Toaster position="top-center" richColors />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
@@ -40,3 +44,4 @@ function App() {
 }
 
 export default App;
+

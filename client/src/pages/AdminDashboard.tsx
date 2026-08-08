@@ -1,245 +1,292 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { trpc } from '@/lib/trpc';
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
+import {
+  CalendarClock,
+  CheckCircle2,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  Search,
+  XCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
+import { LOGO_SRC, STATUS_META, formatDate } from "@/lib/clinic";
+import { cn } from "@/lib/utils";
+
+type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
+
+const FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "الكل" },
+  { value: "pending", label: "معلق" },
+  { value: "confirmed", label: "مؤكد" },
+  { value: "cancelled", label: "ملغى" },
+];
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<StatusFilter>("all");
 
-  const { data: authData } = trpc.admin.checkAuth.useQuery();
-  
+  const utils = trpc.useUtils();
+  const { data: auth, isLoading: checkingAuth } = trpc.admin.checkAuth.useQuery();
+  const authed = auth?.isAuthenticated ?? false;
+
   useEffect(() => {
-    if (authData?.isAuthenticated === false) {
-      navigate('/admin-login');
-    } else if (authData?.isAuthenticated === true) {
-      setIsAuthenticated(true);
-    }
-  }, [authData?.isAuthenticated, navigate]);
+    if (!checkingAuth && !authed) navigate("/admin-login");
+  }, [checkingAuth, authed, navigate]);
 
-  const { data: bookings, isLoading, refetch } = trpc.bookings.getAll.useQuery();
-  const updateStatusMutation = trpc.bookings.updateStatus.useMutation({
+  const {
+    data: bookings,
+    isLoading: loadingBookings,
+    isFetching,
+    refetch,
+  } = trpc.bookings.getAll.useQuery(undefined, { enabled: authed });
+
+  const { data: services } = trpc.services.list.useQuery(undefined, { enabled: authed });
+  const { data: dentists } = trpc.dentists.list.useQuery(undefined, { enabled: authed });
+
+  const updateStatus = trpc.bookings.updateStatus.useMutation({
     onSuccess: () => {
-      refetch();
+      utils.bookings.getAll.invalidate();
+      toast.success("تم تحديث حالة الحجز");
+    },
+    onError: () => toast.error("تعذر تحديث الحالة"),
+  });
+
+  const logout = trpc.admin.logout.useMutation({
+    onSuccess: async () => {
+      await utils.admin.checkAuth.invalidate();
+      navigate("/admin-login");
     },
   });
 
-  const logoutMutation = trpc.admin.logout.useMutation({
-    onSuccess: () => {
-      setIsAuthenticated(false);
-      navigate('/');
-    },
-  });
+  const stats = useMemo(() => {
+    const list = bookings ?? [];
+    return {
+      total: list.length,
+      pending: list.filter(b => b.status === "pending").length,
+      confirmed: list.filter(b => b.status === "confirmed").length,
+      cancelled: list.filter(b => b.status === "cancelled").length,
+    };
+  }, [bookings]);
 
-  const handleLogout = async () => {
-    await logoutMutation.mutateAsync();
-  };
-
-  const handleStatusUpdate = async (referenceNumber: string, newStatus: 'pending' | 'confirmed' | 'cancelled') => {
-    await updateStatusMutation.mutateAsync({
-      referenceNumber,
-      status: newStatus,
+  const filtered = useMemo(() => {
+    const term = search.trim();
+    return (bookings ?? []).filter(b => {
+      const matchesStatus = filter === "all" || b.status === filter;
+      const matchesSearch =
+        !term ||
+        b.patientName.includes(term) ||
+        b.patientPhone.includes(term) ||
+        b.referenceNumber.toLowerCase().includes(term.toLowerCase());
+      return matchesStatus && matchesSearch;
     });
-  };
+  }, [bookings, filter, search]);
 
-  if (isAuthenticated === null) {
+  if (checkingAuth || !authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <p className="text-lg text-slate-600 font-semibold">جاري التحميل...</p>
+      <div className="flex min-h-screen items-center justify-center bg-secondary/40">
+        <Loader2 className="size-6 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  const filteredBookings = (bookings || [])?.filter(booking => {
-    const matchesSearch = 
-      booking.patientName.includes(searchTerm) ||
-      booking.patientPhone.includes(searchTerm) ||
-      booking.referenceNumber.includes(searchTerm);
-    
-    const matchesStatus = filterStatus === 'all' || booking.status === filterStatus;
-    
-    return matchesSearch && matchesStatus;
-  }) || [];
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { bg: string; text: string; label: string }> = {
-      pending: { bg: '#FEF3C7', text: '#92400E', label: 'معلق' },
-      confirmed: { bg: '#DCFCE7', text: '#166534', label: 'مؤكد' },
-      cancelled: { bg: '#FEE2E2', text: '#991B1B', label: 'ملغى' },
-    };
-    return statusMap[status] || statusMap.pending;
-  };
-
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <img 
-            src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
-            alt="Evan Clinic" 
-            className="h-12 w-auto"
-          />
-          <h1 className="text-2xl font-bold text-slate-900">لوحة التحكم</h1>
+    <div className="min-h-screen bg-secondary/30">
+      <header className="sticky top-0 z-40 border-b border-border bg-white/90 backdrop-blur-md">
+        <div className="container flex h-20 items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <img src={LOGO_SRC} alt="مجموعة عيادات إيفان الطبية" className="h-10 w-auto" />
+            <span className="hidden text-sm font-bold text-muted-foreground sm:block">
+              لوحة إدارة الحجوزات
+            </span>
+          </div>
           <button
-            onClick={handleLogout}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg font-semibold transition flex items-center gap-2"
+            type="button"
+            onClick={() => logout.mutate()}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-foreground transition-all duration-200 hover:shadow-sm"
           >
-            <i className="fas fa-sign-out-alt"></i>
-            تسجيل خروج
+            <LogOut className="size-4" />
+            خروج
           </button>
         </div>
-      </nav>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Title */}
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-slate-900 mb-2">إدارة الحجوزات</h2>
-          <p className="text-lg text-slate-600">عرض وإدارة جميع حجوزات المرضى</p>
+      <main className="container py-8">
+        {/* Stats */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="إجمالي الحجوزات" value={stats.total} tone="text-primary" />
+          <StatCard label="معلقة" value={stats.pending} tone="text-amber-600" />
+          <StatCard label="مؤكدة" value={stats.confirmed} tone="text-emerald-600" />
+          <StatCard label="ملغاة" value={stats.cancelled} tone="text-rose-600" />
         </div>
 
-        {/* Search and Filter */}
-        <div className="mb-8 space-y-4">
-          <div className="flex gap-4 flex-col md:flex-row">
-            <div className="flex-1 relative">
-              <i className="fas fa-search absolute right-4 top-3.5 text-slate-400"></i>
-              <input
-                type="text"
-                placeholder="ابحث عن المريض أو رقم الجوال..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-12 pl-4 py-3 rounded-lg border-2 border-slate-200 focus:border-sky-600 focus:outline-none font-semibold"
-              />
-            </div>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-sky-600 focus:outline-none font-semibold"
-            >
-              <option value="all">جميع الحالات</option>
-              <option value="pending">معلق</option>
-              <option value="confirmed">مؤكد</option>
-              <option value="cancelled">ملغى</option>
-            </select>
+        {/* Toolbar */}
+        <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="ابحث بالاسم أو الجوال أو الرقم المرجعي"
+              className="w-full rounded-xl border border-border bg-white py-2.5 pe-10 ps-4 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {FILTERS.map(item => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setFilter(item.value)}
+                className={cn(
+                  "rounded-lg px-3.5 py-2 text-xs font-bold transition-colors duration-200",
+                  filter === item.value
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/70"
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
             <button
+              type="button"
               onClick={() => refetch()}
-              className="px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold transition"
+              aria-label="تحديث"
+              className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-primary"
             >
-              تحديث
+              <RefreshCw className={cn("size-4", isFetching && "animate-spin")} />
             </button>
           </div>
         </div>
 
-        {/* Bookings Table */}
-        <div className="rounded-2xl overflow-hidden shadow-lg bg-white">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-6 py-4 text-right font-bold text-slate-900">رقم المرجع</th>
-                  <th className="px-6 py-4 text-right font-bold text-slate-900">اسم المريض</th>
-                  <th className="px-6 py-4 text-right font-bold text-slate-900">رقم الجوال</th>
-                  <th className="px-6 py-4 text-right font-bold text-slate-900">التاريخ والوقت</th>
-                  <th className="px-6 py-4 text-right font-bold text-slate-900">الحالة</th>
-                  <th className="px-6 py-4 text-right font-bold text-slate-900">الإجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredBookings?.map((booking) => {
-                  const statusBadge = getStatusBadge(booking.status);
-                  return (
-                    <tr
-                      key={booking.id}
-                      className="border-b border-slate-200 hover:bg-slate-50 transition"
-                    >
-                      <td className="px-6 py-4 font-mono font-semibold text-slate-900">
-                        {booking.referenceNumber}
-                      </td>
-                      <td className="px-6 py-4 font-semibold text-slate-900">
-                        {booking.patientName}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {booking.patientPhone}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {new Date(booking.appointmentDate).toLocaleDateString('ar-SA')} - {booking.appointmentTime}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className="px-3 py-1 rounded-full text-sm font-semibold"
-                          style={{
-                            backgroundColor: statusBadge.bg,
-                            color: statusBadge.text,
-                          }}
-                        >
-                          {statusBadge.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          {booking.status !== 'confirmed' && (
-                            <button
-                              onClick={() => handleStatusUpdate(booking.referenceNumber, 'confirmed')}
-                              disabled={updateStatusMutation.isPending}
-                              className="p-2 rounded-lg bg-green-500 hover:bg-green-600 text-white transition disabled:opacity-50"
-                            >
-                              <i className="fas fa-check"></i>
-                            </button>
-                          )}
-                          {booking.status !== 'cancelled' && (
-                            <button
-                              onClick={() => handleStatusUpdate(booking.referenceNumber, 'cancelled')}
-                              disabled={updateStatusMutation.isPending}
-                              className="p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition disabled:opacity-50"
-                            >
-                              <i className="fas fa-times"></i>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        {/* Table */}
+        <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
+          {loadingBookings && (
+            <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground">
+              <Loader2 className="size-5 animate-spin" />
+              جاري تحميل الحجوزات...
+            </div>
+          )}
+
+          {!loadingBookings && filtered.length === 0 && (
+            <div className="py-16 text-center">
+              <CalendarClock className="mx-auto size-10 text-muted-foreground/50" />
+              <p className="mt-3 text-sm text-muted-foreground">لا توجد حجوزات مطابقة.</p>
+            </div>
+          )}
+
+          {!loadingBookings && filtered.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[820px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-secondary/50 text-right">
+                    <Th>الرقم المرجعي</Th>
+                    <Th>المريض</Th>
+                    <Th>الجوال</Th>
+                    <Th>الموعد</Th>
+                    <Th>الخدمة</Th>
+                    <Th>الطبيب</Th>
+                    <Th>الحالة</Th>
+                    <Th>إجراءات</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map(booking => {
+                    const meta = STATUS_META[booking.status as keyof typeof STATUS_META];
+                    const service = services?.find(s => s.id === booking.serviceId);
+                    const dentist = dentists?.find(d => d.id === booking.dentistId);
+                    const busy = updateStatus.isPending;
+
+                    return (
+                      <tr
+                        key={booking.id}
+                        className="border-b border-border transition-colors duration-200 last:border-0 hover:bg-secondary/30"
+                      >
+                        <Td>
+                          <span dir="ltr" className="font-mono text-xs font-bold text-primary">
+                            {booking.referenceNumber}
+                          </span>
+                        </Td>
+                        <Td><span className="font-semibold text-foreground">{booking.patientName}</span></Td>
+                        <Td><span dir="ltr" className="block text-right">{booking.patientPhone}</span></Td>
+                        <Td>
+                          <span className="block text-foreground">{formatDate(booking.appointmentDate)}</span>
+                          <span dir="ltr" className="block text-xs text-muted-foreground">
+                            {String(booking.appointmentTime).slice(0, 5)}
+                          </span>
+                        </Td>
+                        <Td>{service?.name ?? "-"}</Td>
+                        <Td>{dentist?.name ?? "-"}</Td>
+                        <Td>
+                          <span className={cn("rounded-full px-2.5 py-1 text-xs font-bold", meta?.className)}>
+                            {meta?.label}
+                          </span>
+                        </Td>
+                        <Td>
+                          <div className="flex items-center gap-1.5">
+                            {booking.status !== "confirmed" && (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() =>
+                                  updateStatus.mutate({
+                                    referenceNumber: booking.referenceNumber,
+                                    status: "confirmed",
+                                  })
+                                }
+                                aria-label="تأكيد"
+                                className="grid size-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
+                              >
+                                <CheckCircle2 className="size-4" />
+                              </button>
+                            )}
+                            {booking.status !== "cancelled" && (
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() =>
+                                  updateStatus.mutate({
+                                    referenceNumber: booking.referenceNumber,
+                                    status: "cancelled",
+                                  })
+                                }
+                                aria-label="إلغاء"
+                                className="grid size-8 place-items-center rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-200 transition-all duration-200 hover:shadow-sm disabled:opacity-50"
+                              >
+                                <XCircle className="size-4" />
+                              </button>
+                            )}
+                          </div>
+                        </Td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
-
-        {filteredBookings?.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-lg text-slate-600 font-semibold">لا توجد حجوزات</p>
-          </div>
-        )}
-
-        {/* Stats */}
-        {bookings && (
-          <div className="grid md:grid-cols-3 gap-6 mt-8">
-            <div className="rounded-xl bg-white border border-slate-100 p-6 text-center shadow-md">
-              <div className="text-4xl font-bold text-yellow-500 mb-2">
-                {bookings.filter(b => b.status === 'pending').length}
-              </div>
-              <p className="text-slate-600 font-semibold">حجوزات معلقة</p>
-            </div>
-            <div className="rounded-xl bg-white border border-slate-100 p-6 text-center shadow-md">
-              <div className="text-4xl font-bold text-green-500 mb-2">
-                {bookings.filter(b => b.status === 'confirmed').length}
-              </div>
-              <p className="text-slate-600 font-semibold">حجوزات مؤكدة</p>
-            </div>
-            <div className="rounded-xl bg-white border border-slate-100 p-6 text-center shadow-md">
-              <div className="text-4xl font-bold text-red-500 mb-2">
-                {bookings.filter(b => b.status === 'cancelled').length}
-              </div>
-              <p className="text-slate-600 font-semibold">حجوزات ملغاة</p>
-            </div>
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
+}
+
+function StatCard({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div className="rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+      <p className="text-sm font-semibold text-muted-foreground">{label}</p>
+      <p className={cn("mt-2 text-3xl font-extrabold", tone)}>{value}</p>
+    </div>
+  );
+}
+
+function Th({ children }: { children: React.ReactNode }) {
+  return <th className="whitespace-nowrap px-4 py-3.5 text-xs font-bold text-muted-foreground">{children}</th>;
+}
+
+function Td({ children }: { children: React.ReactNode }) {
+  return <td className="whitespace-nowrap px-4 py-4 text-sm text-muted-foreground">{children}</td>;
 }

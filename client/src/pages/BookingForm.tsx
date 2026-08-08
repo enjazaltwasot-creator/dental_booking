@@ -1,241 +1,368 @@
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { trpc } from '@/lib/trpc';
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
+import { toast } from "sonner";
+import { ArrowLeft, ArrowRight, Check, Loader2, Timer } from "lucide-react";
+import PageShell from "@/components/PageShell";
+import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
+import { toDateInputValue } from "@/lib/clinic";
+
+const STEPS = ["الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
 
 export default function BookingForm() {
   const [, navigate] = useLocation();
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    serviceId: '',
-    doctorId: '',
-    date: '',
-    time: '',
-    name: '',
-    phone: '',
-  });
+  const [step, setStep] = useState(0);
 
-  const { data: services } = trpc.booking.getServices.useQuery();
-  const { data: doctors } = trpc.booking.getDoctors.useQuery();
-  const { data: availableSlots } = trpc.booking.getAvailableSlots.useQuery(
-    { doctorId: parseInt(formData.doctorId) || 0, date: formData.date },
-    { enabled: !!formData.doctorId && !!formData.date }
+  const [serviceId, setServiceId] = useState<number | null>(null);
+  const [dentistId, setDentistId] = useState<number | null>(null);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [patientPhone, setPatientPhone] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const minDate = useMemo(() => toDateInputValue(new Date()), []);
+
+  const { data: services, isLoading: loadingServices } = trpc.services.list.useQuery();
+  const { data: dentists, isLoading: loadingDentists } = trpc.dentists.list.useQuery();
+
+  const { data: slots, isFetching: loadingSlots } = trpc.workingHours.availableSlots.useQuery(
+    { dentistId: dentistId ?? 0, date },
+    { enabled: Boolean(dentistId) && Boolean(date) }
   );
 
-  const createBooking = trpc.booking.createBooking.useMutation({
-    onSuccess: (data) => {
-      navigate(`/confirmation/${data.id}`);
+  useEffect(() => {
+    setTime("");
+  }, [dentistId, date]);
+
+  const createBooking = trpc.bookings.create.useMutation({
+    onSuccess: booking => {
+      navigate(`/confirmation/${booking.referenceNumber}`);
+    },
+    onError: error => {
+      toast.error(error.message || "تعذر إتمام الحجز، يرجى المحاولة مرة أخرى.");
     },
   });
 
-  const handleNext = () => {
-    if (step < 4) setStep(step + 1);
-  };
-
-  const handlePrev = () => {
-    if (step > 1) setStep(step - 1);
-  };
+  const canContinue = [
+    Boolean(serviceId),
+    Boolean(dentistId),
+    Boolean(date) && Boolean(time),
+    patientName.trim().length >= 3 && patientPhone.trim().length >= 9,
+  ][step];
 
   const handleSubmit = () => {
+    if (!serviceId || !dentistId || !date || !time) return;
     createBooking.mutate({
-      serviceId: parseInt(formData.serviceId),
-      doctorId: parseInt(formData.doctorId),
-      date: formData.date,
-      time: formData.time,
-      patientName: formData.name,
-      patientPhone: formData.phone,
+      serviceId,
+      dentistId,
+      appointmentDate: date,
+      appointmentTime: time,
+      patientName: patientName.trim(),
+      patientPhone: patientPhone.trim(),
+      notes: notes.trim() || undefined,
     });
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <img 
-            src="/manus-storage/evan-clinic-logo_3b9cca8a.webp" 
-            alt="Evan Clinic" 
-            className="h-12 w-auto"
-          />
-          <h1 className="text-2xl font-bold text-slate-900">احجز موعدك</h1>
-          <button
-            onClick={() => navigate('/')}
-            className="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg font-semibold transition"
-          >
-            العودة للرئيسية
-          </button>
+    <PageShell>
+      <section className="border-b border-border bg-secondary/30 py-12">
+        <div className="container text-center">
+          <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">احجز موعدك</h1>
+          <p className="mx-auto mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
+            أربع خطوات بسيطة تفصلك عن موعدك مع نخبة من الأطباء.
+          </p>
         </div>
-      </nav>
+      </section>
 
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        {/* Progress Steps */}
-        <div className="flex justify-between mb-12">
-          {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex flex-col items-center flex-1">
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-2 transition ${
-                  step >= s
-                    ? 'bg-sky-600 text-white'
-                    : 'bg-slate-200 text-slate-600'
-                }`}
-              >
-                {step > s ? '✓' : s}
-              </div>
-              <span className="text-xs text-center text-slate-600 font-semibold">
-                {['الخدمة', 'الطبيب', 'الموعد', 'البيانات'][s - 1]}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white rounded-2xl p-8 shadow-lg">
-          {/* Step 1: Service Selection */}
-          {step === 1 && (
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">اختر الخدمة</h2>
-              <div className="space-y-3">
-                {services?.map((service) => (
-                  <button
-                    key={service.id}
-                    onClick={() => {
-                      setFormData({ ...formData, serviceId: service.id.toString() });
-                      handleNext();
-                    }}
-                    className={`w-full p-4 rounded-lg border-2 text-right font-semibold transition ${
-                      formData.serviceId === service.id.toString()
-                        ? 'border-sky-600 bg-sky-50'
-                        : 'border-slate-200 bg-white hover:border-sky-300'
-                    }`}
+      <section className="py-12">
+        <div className="container max-w-3xl">
+          {/* Stepper */}
+          <ol className="flex items-center gap-2">
+            {STEPS.map((label, index) => {
+              const done = index < step;
+              const active = index === step;
+              return (
+                <li key={label} className="flex flex-1 flex-col items-center gap-2">
+                  <div className="flex w-full items-center gap-2">
+                    <span
+                      className={cn(
+                        "grid size-9 shrink-0 place-items-center rounded-full text-sm font-bold transition-colors duration-200",
+                        done && "bg-primary text-primary-foreground",
+                        active && "bg-accent text-accent-foreground",
+                        !done && !active && "bg-secondary text-muted-foreground"
+                      )}
+                    >
+                      {done ? <Check className="size-4" /> : index + 1}
+                    </span>
+                    {index < STEPS.length - 1 && (
+                      <span
+                        className={cn(
+                          "h-0.5 flex-1 rounded-full transition-colors duration-200",
+                          done ? "bg-primary" : "bg-border"
+                        )}
+                      />
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      "w-full text-center text-[11px] font-semibold sm:text-xs",
+                      active ? "text-foreground" : "text-muted-foreground"
+                    )}
                   >
-                    {service.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+                    {label}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
 
-          {/* Step 2: Doctor Selection */}
-          {step === 2 && (
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">اختر الطبيب</h2>
-              <div className="space-y-3">
-                {doctors?.map((doctor) => (
-                  <button
-                    key={doctor.id}
-                    onClick={() => {
-                      setFormData({ ...formData, doctorId: doctor.id.toString() });
-                      handleNext();
-                    }}
-                    className={`w-full p-4 rounded-lg border-2 text-right transition ${
-                      formData.doctorId === doctor.id.toString()
-                        ? 'border-sky-600 bg-sky-50'
-                        : 'border-slate-200 bg-white hover:border-sky-300'
-                    }`}
-                  >
-                    <div className="font-semibold text-slate-900">{doctor.name}</div>
-                    <div className="text-sm text-slate-600">{doctor.specialization}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="mt-8 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
+            {/* Step 1 — Service */}
+            {step === 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground">اختر الخدمة</h2>
+                <p className="mt-1 text-sm text-muted-foreground">حدّد الخدمة التي ترغب بحجزها.</p>
 
-          {/* Step 3: Date and Time Selection */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">اختر الموعد والوقت</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-2">التاريخ</label>
+                {loadingServices && (
+                  <div className="mt-6 space-y-3">
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className="h-16 animate-pulse rounded-xl bg-secondary/60" />
+                    ))}
+                  </div>
+                )}
+
+                {!loadingServices && (services?.length ?? 0) === 0 && (
+                  <p className="mt-6 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">
+                    لا توجد خدمات متاحة حالياً.
+                  </p>
+                )}
+
+                <div className="mt-6 grid gap-3">
+                  {(services ?? []).map(service => (
+                    <button
+                      key={service.id}
+                      type="button"
+                      onClick={() => setServiceId(service.id)}
+                      className={cn(
+                        "flex items-center justify-between gap-4 rounded-xl border p-4 text-right transition-all duration-200",
+                        serviceId === service.id
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-white hover:border-primary/40 hover:shadow-sm"
+                      )}
+                    >
+                      <span className="min-w-0">
+                        <span className="block font-bold text-foreground">{service.name}</span>
+                        <span className="mt-0.5 block truncate text-sm text-muted-foreground">
+                          {service.description}
+                        </span>
+                      </span>
+                      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+                        <Timer className="size-3.5" />
+                        {service.duration} د
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 — Doctor */}
+            {step === 1 && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground">اختر الطبيب</h2>
+                <p className="mt-1 text-sm text-muted-foreground">اختر الطبيب المناسب لحالتك.</p>
+
+                {loadingDentists && (
+                  <div className="mt-6 space-y-3">
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className="h-16 animate-pulse rounded-xl bg-secondary/60" />
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-6 grid gap-3">
+                  {(dentists ?? []).map(doctor => (
+                    <button
+                      key={doctor.id}
+                      type="button"
+                      onClick={() => setDentistId(doctor.id)}
+                      className={cn(
+                        "flex items-center gap-4 rounded-xl border p-4 text-right transition-all duration-200",
+                        dentistId === doctor.id
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-white hover:border-primary/40 hover:shadow-sm"
+                      )}
+                    >
+                      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/10 font-extrabold text-primary">
+                        {doctor.name.replace("د.", "").trim().charAt(0)}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block font-bold text-foreground">{doctor.name}</span>
+                        <span className="mt-0.5 block text-sm text-muted-foreground">
+                          {doctor.specialization}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 3 — Date & time */}
+            {step === 2 && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground">اختر التاريخ والوقت</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  المواعيد المعروضة متاحة فعلياً لدى الطبيب المختار.
+                </p>
+
+                <div className="mt-6">
+                  <label htmlFor="date" className="block text-sm font-semibold text-foreground">
+                    التاريخ
+                  </label>
                   <input
+                    id="date"
                     type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-600 focus:outline-none font-semibold"
+                    value={date}
+                    min={minDate}
+                    onChange={e => setDate(e.target.value)}
+                    className="mt-2 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-foreground outline-none transition-colors duration-200 focus:border-primary focus:ring-2 focus:ring-ring/20"
                   />
                 </div>
-                {availableSlots && availableSlots.length > 0 && (
-                  <div>
-                    <label className="block font-semibold text-slate-900 mb-2">الوقت</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {availableSlots.map((slot) => (
-                        <button
-                          key={slot}
-                          onClick={() => setFormData({ ...formData, time: slot })}
-                          className={`p-2 rounded-lg border-2 font-semibold transition ${
-                            formData.time === slot
-                              ? 'border-sky-600 bg-sky-600 text-white'
-                              : 'border-slate-200 bg-white text-slate-900 hover:border-sky-300'
-                          }`}
-                        >
-                          {slot}
-                        </button>
-                      ))}
-                    </div>
+
+                {date && (
+                  <div className="mt-6">
+                    <span className="block text-sm font-semibold text-foreground">الأوقات المتاحة</span>
+
+                    {loadingSlots && (
+                      <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Loader2 className="size-4 animate-spin" />
+                        جاري تحميل المواعيد...
+                      </p>
+                    )}
+
+                    {!loadingSlots && (slots?.length ?? 0) === 0 && (
+                      <p className="mt-3 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">
+                        لا توجد مواعيد متاحة في هذا اليوم، جرّب تاريخاً آخر.
+                      </p>
+                    )}
+
+                    {!loadingSlots && (slots?.length ?? 0) > 0 && (
+                      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                        {(slots ?? []).map(slot => (
+                          <button
+                            key={slot}
+                            type="button"
+                            dir="ltr"
+                            onClick={() => setTime(slot)}
+                            className={cn(
+                              "rounded-lg border py-2.5 text-sm font-bold transition-all duration-200",
+                              time === slot
+                                ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                                : "border-border bg-white text-foreground hover:border-primary/40"
+                            )}
+                          >
+                            {slot}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 4: Patient Details */}
-          {step === 4 && (
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-6">بيانات المريض</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-2">الاسم الكامل</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="أدخل اسمك الكامل"
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-600 focus:outline-none font-semibold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-slate-900 mb-2">رقم الجوال</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="أدخل رقم جوالك"
-                    className="w-full px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-sky-600 focus:outline-none font-semibold"
-                  />
+            {/* Step 4 — Patient details */}
+            {step === 3 && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground">بياناتك</h2>
+                <p className="mt-1 text-sm text-muted-foreground">سنستخدم هذه البيانات لتأكيد موعدك.</p>
+
+                <div className="mt-6 space-y-5">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-foreground">
+                      الاسم الكامل
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      value={patientName}
+                      onChange={e => setPatientName(e.target.value)}
+                      placeholder="أدخل اسمك الكامل"
+                      className="mt-2 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-foreground">
+                      رقم الجوال
+                    </label>
+                    <input
+                      id="phone"
+                      type="tel"
+                      dir="ltr"
+                      value={patientPhone}
+                      onChange={e => setPatientPhone(e.target.value)}
+                      placeholder="05xxxxxxxx"
+                      className="mt-2 w-full rounded-xl border border-border bg-white px-4 py-3 text-right text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="notes" className="block text-sm font-semibold text-foreground">
+                      ملاحظات (اختياري)
+                    </label>
+                    <textarea
+                      id="notes"
+                      rows={3}
+                      value={notes}
+                      onChange={e => setNotes(e.target.value)}
+                      placeholder="أي تفاصيل تودّ إخبار الطبيب بها"
+                      className="mt-2 w-full resize-none rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Navigation Buttons */}
-          <div className="flex gap-4 mt-8 justify-between">
-            <button
-              onClick={handlePrev}
-              disabled={step === 1}
-              className="px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 border-2 border-slate-200 text-slate-700 hover:border-slate-300"
-            >
-              السابق
-            </button>
-            {step < 4 ? (
-              <button
-                onClick={handleNext}
-                disabled={!formData[['serviceId', 'doctorId', 'date'][step - 1]]}
-                className="px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 bg-sky-600 hover:bg-sky-700 text-white"
-              >
-                التالي
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={!formData.name || !formData.phone}
-                className="px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50 bg-sky-600 hover:bg-sky-700 text-white"
-              >
-                تأكيد الحجز
-              </button>
             )}
+
+            {/* Actions */}
+            <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-6">
+              <button
+                type="button"
+                onClick={() => setStep(s => Math.max(0, s - 1))}
+                disabled={step === 0}
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-3 text-sm font-bold text-foreground transition-all duration-200 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ArrowRight className="size-4" />
+                السابق
+              </button>
+
+              {step < STEPS.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setStep(s => Math.min(STEPS.length - 1, s + 1))}
+                  disabled={!canContinue}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  التالي
+                  <ArrowLeft className="size-4" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!canContinue || createBooking.isPending}
+                  className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-accent-foreground transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {createBooking.isPending && <Loader2 className="size-4 animate-spin" />}
+                  تأكيد الحجز
+                </button>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </PageShell>
   );
 }
