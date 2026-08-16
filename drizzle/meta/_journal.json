@@ -57,6 +57,13 @@
       "when": 1786888106040,
       "tag": "0007_flippant_callisto",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1786901643463,
+      "tag": "0008_nasty_ghost_rider",
+      "breakpoints": true
     }
   ]
 }

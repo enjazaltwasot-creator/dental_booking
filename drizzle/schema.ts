@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, time, date, boolean, uniqueIndex, datetime } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, time, date, boolean, uniqueIndex, datetime, index } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -117,10 +117,38 @@ export const bookingReminders = mysqlTable("booking_reminders", {
 export type BookingReminder = typeof bookingReminders.$inferSelect;
 export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
 
+/** Pseudonymous website or messaging-channel sessions for Evan Assistant. */
+export const assistantConversations = mysqlTable("assistant_conversations", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionKey: varchar("session_key", { length: 64 }).notNull(),
+  channel: mysqlEnum("channel", ["website", "whatsapp"]).default("website").notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("assistant_conversations_session_key_unique").on(table.sessionKey),
+  index("assistant_conversations_last_message_at_index").on(table.lastMessageAt),
+]);
+
+export type AssistantConversation = typeof assistantConversations.$inferSelect;
+
+/** Immutable message rows; no direct identifiers are captured by this model. */
+export const assistantMessages = mysqlTable("assistant_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: int("conversation_id").notNull(),
+  role: mysqlEnum("role", ["user", "assistant"]).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [
+  index("assistant_messages_conversation_created_index").on(table.conversationId, table.createdAt),
+]);
+
+export type AssistantMessage = typeof assistantMessages.$inferSelect;
+
 /** Outbox pattern for CRM synchronization; delivery remains disabled until configured. */
 export const crmSyncEvents = mysqlTable("crm_sync_events", {
   id: int("id").autoincrement().primaryKey(),
-  eventType: mysqlEnum("event_type", ["booking_created"]).notNull(),
+  eventType: mysqlEnum("event_type", ["booking_created", "assistant_conversation"]).notNull(),
   resourceReference: varchar("resource_reference", { length: 80 }).notNull(),
   payload: text("payload").notNull(),
   status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(),

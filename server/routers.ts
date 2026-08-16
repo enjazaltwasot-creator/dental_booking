@@ -160,14 +160,35 @@ export const appRouter = router({
   assistant: router({
     chat: publicProcedure
       .input(z.object({
+        sessionKey: z.string().trim().min(16).max(64).regex(/^[a-zA-Z0-9:_-]+$/),
         messages: z.array(z.object({
           role: z.enum(["user", "assistant"]),
           content: z.string().trim().min(1).max(1500),
         })).min(1).max(10),
       }))
-      .mutation(async ({ input }) => ({
-        reply: await generateClinicAssistantReply(input.messages),
-      })),
+      .mutation(async ({ input }) => {
+        const reply = await generateClinicAssistantReply(input.messages);
+        const latestUserMessage = [...input.messages].reverse().find(message => message.role === "user");
+        if (latestUserMessage) {
+          try {
+            await db.recordAssistantConversation({
+              sessionKey: input.sessionKey,
+              messages: [latestUserMessage, { role: "assistant", content: reply }],
+            });
+          } catch (error) {
+            console.warn("[Assistant] Conversation logging failed", error);
+          }
+        }
+        return { reply };
+      }),
+    conversations: router({
+      list: adminSessionProcedure
+        .input(z.object({ limit: z.number().int().min(1).max(100).default(50) }).optional())
+        .query(async ({ input }) => db.listAssistantConversations(input?.limit ?? 50)),
+      messages: adminSessionProcedure
+        .input(z.object({ conversationId: z.number().int().positive() }))
+        .query(async ({ input }) => db.getAssistantMessages(input.conversationId)),
+    }),
   }),
 
   // Services

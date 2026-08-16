@@ -1,6 +1,6 @@
-import { desc, eq, and, gte, lte, ne } from "drizzle-orm";
+import { asc, desc, eq, and, gte, lte, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User } from "../drizzle/schema";
+import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -307,6 +307,73 @@ export async function getBookingReminders(bookingId: number): Promise<BookingRem
   const db = await getDb();
   if (!db) return [];
   return db.select().from(bookingReminders).where(eq(bookingReminders.bookingId, bookingId));
+}
+
+export type AssistantConversationMessageInput = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export async function recordAssistantConversation(input: {
+  sessionKey: string;
+  messages: AssistantConversationMessageInput[];
+}): Promise<AssistantConversation> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+
+  const lastMessageAt = new Date();
+  await database.insert(assistantConversations).values({
+    sessionKey: input.sessionKey,
+    channel: "website",
+    lastMessageAt,
+  }).onDuplicateKeyUpdate({ set: { lastMessageAt } });
+
+  const conversation = (await database.select().from(assistantConversations)
+    .where(eq(assistantConversations.sessionKey, input.sessionKey)).limit(1))[0];
+  if (!conversation) throw new Error("Failed to create assistant conversation");
+
+  await database.insert(assistantMessages).values(input.messages.map(message => ({
+    conversationId: conversation.id,
+    role: message.role,
+    content: message.content,
+  })));
+
+  const messages = await getAssistantMessages(conversation.id);
+  const payload = JSON.stringify({
+    channel: conversation.channel,
+    conversationId: conversation.id,
+    sessionKey: conversation.sessionKey,
+    lastMessageAt: lastMessageAt.toISOString(),
+    messages: messages.map(message => ({
+      role: message.role,
+      content: message.content,
+      createdAt: message.createdAt.toISOString(),
+    })),
+  });
+
+  await database.insert(crmSyncEvents).values({
+    eventType: "assistant_conversation",
+    resourceReference: `assistant:${conversation.id}`,
+    payload,
+    status: "pending",
+  }).onDuplicateKeyUpdate({ set: { payload, status: "pending" } });
+
+  return conversation;
+}
+
+export async function listAssistantConversations(limit = 50): Promise<AssistantConversation[]> {
+  const database = await getDb();
+  if (!database) return [];
+  return database.select().from(assistantConversations)
+    .orderBy(desc(assistantConversations.lastMessageAt)).limit(limit);
+}
+
+export async function getAssistantMessages(conversationId: number): Promise<AssistantMessage[]> {
+  const database = await getDb();
+  if (!database) return [];
+  return database.select().from(assistantMessages)
+    .where(eq(assistantMessages.conversationId, conversationId))
+    .orderBy(asc(assistantMessages.createdAt));
 }
 
 export async function queueCrmBookingCreatedEvent(booking: Booking): Promise<void> {

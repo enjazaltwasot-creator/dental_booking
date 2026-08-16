@@ -6,9 +6,24 @@ import { trpc } from "@/lib/trpc";
 
 const STARTER_MESSAGE = "هلا بك في مساعد إيفان. أقدر أساعدك باختيار الفرع أو التخصص المناسب، وأوجّهك لخطوات الحجز.";
 const QUICK_PROMPTS = ["أبي أحجز موعد", "وين فروعكم؟", "وش التخصصات المتاحة؟"];
+const SESSION_STORAGE_KEY = "evan-assistant-session";
+
+function getAssistantSessionKey() {
+  const fallback = () => `website-${crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+  try {
+    const current = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    if (current) return current;
+    const next = fallback();
+    window.localStorage.setItem(SESSION_STORAGE_KEY, next);
+    return next;
+  } catch {
+    return fallback();
+  }
+}
 
 export default function EvanAssistant() {
   const [open, setOpen] = useState(false);
+  const [sessionKey] = useState(getAssistantSessionKey);
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: STARTER_MESSAGE },
   ]);
@@ -30,6 +45,7 @@ export default function EvanAssistant() {
     const nextMessages = [...messages, { role: "user" as const, content }].slice(-10);
     setMessages(nextMessages);
     chat.mutate({
+      sessionKey,
       messages: nextMessages.map(message => ({
         role: message.role === "assistant" ? "assistant" as const : "user" as const,
         content: message.content,

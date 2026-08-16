@@ -9,6 +9,7 @@ import {
   Layers3,
   Loader2,
   LogOut,
+  MessageSquareText,
   Pencil,
   Plus,
   Power,
@@ -41,6 +42,7 @@ export default function AdminDashboard() {
   const [serviceDraft, setServiceDraft] = useState({ id: 0, name: "", description: "", duration: 45 });
   const [userDraft, setUserDraft] = useState({ username: "", name: "", password: "" });
   const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const knownBookingIds = useRef<Set<number> | null>(null);
 
   const utils = trpc.useUtils();
@@ -54,6 +56,8 @@ export default function AdminDashboard() {
   const { data: services } = trpc.services.listForAdmin.useQuery(undefined, { enabled: authed });
   const { data: dentists } = trpc.dentists.list.useQuery(undefined, { enabled: authed });
   const { data: adminUsers } = trpc.admin.users.list.useQuery(undefined, { enabled: authed });
+  const { data: conversations } = trpc.assistant.conversations.list.useQuery({ limit: 20 }, { enabled: authed });
+  const { data: conversationMessages } = trpc.assistant.conversations.messages.useQuery({ conversationId: selectedConversationId ?? 0 }, { enabled: authed && selectedConversationId !== null });
   const exportBookings = trpc.admin.exportBookings.useQuery(undefined, { enabled: false });
 
   useEffect(() => {
@@ -66,6 +70,7 @@ export default function AdminDashboard() {
       utils.services.listForAdmin.invalidate(),
       utils.admin.users.list.invalidate(),
       utils.bookings.getAll.invalidate(),
+      utils.assistant.conversations.list.invalidate(),
     ]);
   };
 
@@ -233,6 +238,24 @@ export default function AdminDashboard() {
             <form onSubmit={submitUser} className="mt-4 grid gap-2 rounded-xl bg-secondary/50 p-3 sm:grid-cols-[1fr_1fr_1fr_auto]"><input value={userDraft.username} disabled={!!editingUser} onChange={event => setUserDraft(current => ({ ...current, username: event.target.value }))} placeholder="اسم المستخدم" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary disabled:bg-secondary disabled:text-muted-foreground" /><input value={userDraft.name} onChange={event => setUserDraft(current => ({ ...current, name: event.target.value }))} placeholder="الاسم الظاهر" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input type="password" value={userDraft.password} onChange={event => setUserDraft(current => ({ ...current, password: event.target.value }))} placeholder={editingUser ? "كلمة مرور جديدة (اختياري)" : "كلمة مرور (8 أحرف+)"} className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><div className="flex gap-2"><button type="submit" disabled={createAdminUser.isPending || updateAdminUser.isPending} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground transition-all hover:shadow-sm"><UserPlus className="size-3.5" />{editingUser ? "حفظ" : "إضافة"}</button>{editingUser && <button type="button" onClick={() => { setEditingUser(null); setUserDraft({ username: "", name: "", password: "" }); }} className="rounded-lg border border-border bg-white px-3 text-xs font-bold text-muted-foreground">إلغاء</button>}</div></form>
           </div>
           <div className="rounded-2xl border border-border bg-primary p-5 text-primary-foreground shadow-sm"><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary-foreground/90"><Download className="size-4" />تصدير البيانات</span><h2 className="mt-2 text-xl font-extrabold">ملف الحجوزات التشغيلي</h2><p className="mt-2 text-sm leading-6 text-primary-foreground/75">تنزيل CSV منظم يتضمن بيانات المراجع والفرع والخدمة والطبيب والموعد والحالة، للاستخدام التشغيلي أو الاستيراد لاحقاً في CRM.</p><button type="button" onClick={downloadBookings} disabled={exportBookings.isFetching} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-primary transition-all hover:shadow-md disabled:opacity-70"><Download className="size-4" />{exportBookings.isFetching ? "جارٍ تجهيز الملف..." : "تصدير الحجوزات CSV"}</button><p className="mt-3 text-xs leading-5 text-primary-foreground/65">يُطلب تسجيل دخول إداري صالح قبل إنشاء الملف، ولا يتاح التصدير للعامة.</p></div>
+        </section>
+
+        <section className="mt-6 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4"><div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary"><MessageSquareText className="size-4" />سجل مساعد إيفان</span><h2 className="mt-2 text-xl font-extrabold text-foreground">جلسات المحادثة الأخيرة</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">سجل تشغيلي محمي برمز جلسة، وجاهز للمزامنة مع CRM عند اعتماد القناة.</p></div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-extrabold text-primary">{conversations?.length ?? 0}</span></div>
+            <div className="mt-4 max-h-[360px] divide-y divide-border overflow-y-auto rounded-xl border border-border">
+              {(conversations ?? []).map(conversation => <button type="button" key={conversation.id} onClick={() => setSelectedConversationId(conversation.id)} className={cn("flex w-full items-center justify-between gap-3 px-3 py-3 text-right transition-colors hover:bg-secondary/40", selectedConversationId === conversation.id && "bg-primary/5")}><div className="min-w-0"><p className="text-sm font-bold text-foreground">جلسة موقع إلكتروني</p><p dir="ltr" className="mt-1 truncate text-xs text-muted-foreground">…{conversation.sessionKey.slice(-10)}</p></div><time className="shrink-0 text-xs text-muted-foreground">{new Date(conversation.lastMessageAt).toLocaleDateString("ar-SA", { day: "numeric", month: "short" })}</time></button>)}
+              {!conversations?.length && <p className="px-3 py-8 text-center text-sm text-muted-foreground">لا توجد محادثات مسجلة بعد.</p>}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-accent"><MessageSquareText className="size-4" />تفاصيل الجلسة</span><h2 className="mt-2 text-xl font-extrabold text-foreground">مراجعة الرسائل</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">تظهر الرسائل للمسؤولين فقط. لا يعتمد السجل كتشخيص طبي أو كبديل لملف المراجع الطبي.</p></div>
+            <div className="mt-5 min-h-[236px] space-y-3 rounded-xl bg-secondary/35 p-4">
+              {selectedConversationId === null && <p className="py-16 text-center text-sm text-muted-foreground">اختر جلسة من القائمة لمراجعة رسائلها.</p>}
+              {selectedConversationId !== null && !conversationMessages?.length && <p className="py-16 text-center text-sm text-muted-foreground">جارٍ تحميل الرسائل أو لا توجد رسائل في هذه الجلسة.</p>}
+              {(conversationMessages ?? []).map(message => <div key={message.id} className={cn("max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-7", message.role === "assistant" ? "ml-auto bg-white text-foreground shadow-sm" : "mr-auto bg-primary text-primary-foreground")}><span className="mb-1 block text-[10px] font-extrabold opacity-70">{message.role === "assistant" ? "مساعد إيفان" : "المراجع"}</span>{message.content}</div>)}
+            </div>
+          </div>
         </section>
 
         <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm sm:flex-row sm:items-center"><div className="relative flex-1"><Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input type="text" value={search} onChange={event => setSearch(event.target.value)} placeholder="ابحث بالاسم أو الجوال أو الرقم المرجعي" className="w-full rounded-xl border border-border bg-white py-2.5 pe-10 ps-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20" /></div><div className="flex flex-wrap items-center gap-1.5">{FILTERS.map(item => <button key={item.value} type="button" onClick={() => setFilter(item.value)} className={cn("rounded-lg px-3.5 py-2 text-xs font-bold transition-colors", filter === item.value ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70")}>{item.label}</button>)}<button type="button" onClick={() => refetch()} aria-label="تحديث" className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-primary"><RefreshCw className={cn("size-4", isFetching && "animate-spin")} /></button></div></div>
