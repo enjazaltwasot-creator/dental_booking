@@ -23,11 +23,9 @@ export default function FullWidthGroupHero() {
 
   return (
     <section className="relative isolate min-h-[670px] overflow-hidden border-b border-primary/10 bg-slate-100 sm:min-h-[690px] lg:min-h-[720px]">
-      <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
+      <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover brightness-[1.3] saturate-110" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
         <source src={NATURE_HERO_VIDEO} type="video/mp4" />
       </video>
-
-      <div aria-hidden="true" className="absolute inset-0 z-0 bg-gradient-to-l from-white/18 via-slate-950/4 to-slate-950/20" />
 
       <div className="container relative z-10 flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
         <div
