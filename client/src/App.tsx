@@ -10,6 +10,7 @@ import DoctorsList from "./pages/DoctorsList";
 import Branches from "./pages/Branches";
 import BranchDetail from "./pages/BranchDetail";
 import About from "./pages/About";
+import Vision from "./pages/Vision";
 import BookingForm from "./pages/BookingForm";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import AdminLogin from "./pages/AdminLogin";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/branches" component={Branches} />
       <Route path="/branches/:slug" component={BranchDetail} />
       <Route path="/about" component={About} />
+      <Route path="/vision" component={Vision} />
       <Route path="/booking" component={BookingForm} />
       <Route path="/confirmation/:reference" component={BookingConfirmation} />
       <Route path="/admin-login" component={AdminLogin} />

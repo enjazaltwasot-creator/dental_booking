@@ -131,6 +131,9 @@ export default function Home() {
             </span>
             <h2 className="mt-5 max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl">أن تكون الرعاية الطبية الأكثر وضوحاً وقرباً من احتياج المراجع.</h2>
             <p className="mt-4 max-w-2xl text-[15px] leading-8 text-white/75">نترجم هذه الرؤية إلى خطوات عملية: تخصصات محددة، فروع سهلة الوصول، ومواعيد يمكن إدارتها بسلاسة.</p>
+            <Link href="/vision" className="mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-orange-200 transition-colors hover:text-orange-100">
+              تعرّف على رؤيتنا <ArrowUpLeft className="size-4" />
+            </Link>
           </div>
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
             {[
