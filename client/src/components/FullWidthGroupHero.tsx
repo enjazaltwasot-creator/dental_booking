@@ -11,7 +11,7 @@ export default function FullWidthGroupHero() {
       </video>
 
       <div className="container flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20">
-        <div className="w-full max-w-xl rounded-[1.75rem] border border-white bg-white p-6 text-right shadow-xl shadow-slate-950/15 sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl">
+        <div className="w-full max-w-xl rounded-[1.75rem] border border-white/55 bg-white/48 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-xl sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl">
           <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-sky-50 px-3 py-1.5 text-xs font-extrabold text-primary shadow-sm">
             <Building2 className="size-3.5" />
             مجموعة إيفان الطبية — ثلاث فروع في الرياض
