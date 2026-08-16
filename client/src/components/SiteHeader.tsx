@@ -9,7 +9,9 @@ const NAV_LINKS = [
   { href: "/#about", label: "من نحن" },
   { href: "/#vision", label: "رؤيتنا" },
   { href: "/#specialties", label: "تخصصاتنا" },
+  { href: "/#doctors", label: "الأطباء" },
   { href: "/#branches", label: "فروعنا" },
+  { href: "/#partners", label: "شركاء النجاح" },
 ];
 
 export default function SiteHeader() {
@@ -23,7 +25,7 @@ export default function SiteHeader() {
           <img src={LOGO_SRC} alt="مجموعة عيادات إيفان الطبية" className="h-11 w-auto" />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map(link => {
             const active = location === link.href;
             return (
@@ -59,7 +61,7 @@ export default function SiteHeader() {
             type="button"
             onClick={() => setOpen(v => !v)}
             aria-label="القائمة"
-            className="inline-flex size-10 items-center justify-center rounded-lg border border-border text-foreground md:hidden"
+            className="inline-flex size-10 items-center justify-center rounded-lg border border-border text-foreground lg:hidden"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
@@ -67,7 +69,7 @@ export default function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-border bg-white md:hidden">
+        <div className="border-t border-border bg-white lg:hidden">
           <nav className="container flex flex-col py-3">
             {NAV_LINKS.map(link => (
               <Link

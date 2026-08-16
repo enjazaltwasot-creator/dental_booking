@@ -257,7 +257,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-16 lg:py-20">
+      <section id="doctors" className="py-16 lg:py-20">
         <div className="container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="rounded-3xl border border-border bg-secondary/55 p-7 sm:p-9">
             <span className="grid size-12 place-items-center rounded-2xl bg-white text-primary shadow-sm"><UsersRound className="size-5" /></span>
@@ -282,6 +282,29 @@ export default function Home() {
               </article>
             ))}
             {!dentists && [0, 1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary" />)}
+          </div>
+        </div>
+      </section>
+
+      <section id="partners" className="border-y border-primary/10 bg-secondary/45 py-16 lg:py-20">
+        <div className="container">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.17em] text-accent"><Building2 className="size-4" /> شركاء النجاح</span>
+            <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">نجاحنا يبدأ من كل علاقة تخدم المراجع.</h2>
+            <p className="mt-4 text-[15px] leading-8 text-muted-foreground">ننظر إلى الرعاية كعمل جماعي يجمع الفريق الطبي والتشغيلي والجهات المتعاونة ضمن تجربة مراجع واضحة ومنظمة.</p>
+          </div>
+          <div className="mt-9 grid gap-4 md:grid-cols-3">
+            {[
+              ["الفريق الطبي", "خبرات متخصصة تضع احتياج المراجع في مركز كل قرار."],
+              ["الفرق التشغيلية", "تنسيق يومي يحافظ على سلاسة الرحلة من الحجز حتى الزيارة."],
+              ["الجهات المتعاونة", "تُعرض تفاصيل الشراكات والجهات المعتمدة ضمن بياناتها الرسمية عند اعتمادها."],
+            ].map(([title, text], index) => (
+              <article key={title} className="rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+                <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary">0{index + 1}</span>
+                <h3 className="mt-6 text-lg font-extrabold text-foreground">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-muted-foreground">{text}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
