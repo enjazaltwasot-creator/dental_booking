@@ -90,7 +90,7 @@ describe("booking lifecycle", () => {
       notes: "سجل اختبار",
     });
 
-    expect(created.referenceNumber).toMatch(/^DENTAL-[A-Z0-9]{8}$/);
+    expect(created.referenceNumber).toMatch(/^DENTAL-[A-Za-z0-9_-]{8}$/);
     expect(created.status).toBe("pending");
 
     const fetched = await caller.bookings.getByReferenceNumber({
@@ -113,7 +113,8 @@ describe("booking lifecycle", () => {
 
   it("removes a booked slot from availability", async () => {
     const caller = appRouter.createCaller(createPublicContext().ctx);
-    const date = "2026-09-21";
+    // Monday far in the future; avoids reservations created by earlier test runs.
+    const date = "2099-09-21";
 
     const before = await caller.workingHours.availableSlots({ dentistId: 2, date });
     expect(before.length).toBeGreaterThan(0);

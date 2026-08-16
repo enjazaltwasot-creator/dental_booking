@@ -8,13 +8,17 @@ const NATURE_HERO_VIDEO = "/manus-storage/evan-natural-hero_24f8863d.mp4";
 export default function FullWidthGroupHero() {
   const reduceMotion = useReducedMotion();
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [glow, setGlow] = useState({ x: 50, y: 50, active: false });
 
   function updateTilt(event: React.PointerEvent<HTMLDivElement>) {
     if (reduceMotion || event.pointerType !== "mouse" || window.innerWidth < 1024) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 5;
-    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 4;
+    const pointerX = ((event.clientX - rect.left) / rect.width) * 100;
+    const pointerY = ((event.clientY - rect.top) / rect.height) * 100;
+    const x = (pointerX / 100 - 0.5) * 5;
+    const y = (pointerY / 100 - 0.5) * 4;
     setTilt({ x, y });
+    setGlow({ x: pointerX, y: pointerY, active: true });
   }
 
   return (
@@ -27,7 +31,10 @@ export default function FullWidthGroupHero() {
         <div
           className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl"
           onPointerMove={updateTilt}
-          onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+          onPointerLeave={() => {
+            setTilt({ x: 0, y: 0 });
+            setGlow({ x: 50, y: 50, active: false });
+          }}
           style={{
             transform: `rotateX(${-tilt.y}deg) rotateY(${tilt.x}deg) translateZ(0)`,
             transition: "transform 180ms cubic-bezier(0.23, 1, 0.32, 1)",
@@ -45,6 +52,15 @@ export default function FullWidthGroupHero() {
               WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
               WebkitMaskComposite: "xor",
               maskComposite: "exclude",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0"
+            style={{
+              background: `radial-gradient(260px circle at ${glow.x}% ${glow.y}%, rgba(255,255,255,0.24), rgba(255,255,255,0.05) 30%, transparent 68%)`,
+              opacity: glow.active && !reduceMotion ? 1 : 0,
+              transition: "opacity 220ms ease-out, background 120ms ease-out",
             }}
           />
           <div className="relative z-10">

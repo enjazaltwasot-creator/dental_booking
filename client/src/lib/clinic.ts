@@ -8,9 +8,9 @@ export const CLINIC = {
 } as const;
 
 export const BRANCHES = [
-  { name: "فرع العليا", city: "الرياض - حي العليا", phone: "0112345678" },
-  { name: "فرع النرجس", city: "الرياض - حي النرجس", phone: "0112345679" },
-  { name: "فرع الملقا", city: "الرياض - حي الملقا", phone: "0112345680" },
+  { name: "فرع حي المهدية", city: "الرياض - غرب الرياض", phone: "0112345678" },
+  { name: "فرع حي العليا", city: "الرياض - وسط الرياض", phone: "0112345679" },
+  { name: "فرع حي الأحمدية", city: "الرياض - حي الأحمدية (لبن)", phone: "0112345680" },
 ] as const;
 
 export const DEPARTMENTS = [
@@ -53,4 +53,3 @@ export function toDateInputValue(date: Date) {
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
-
