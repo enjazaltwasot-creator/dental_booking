@@ -15,7 +15,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
-import InteractiveCareOrbit from "@/components/InteractiveCareOrbit";
+import FullWidthDentalHero from "@/components/FullWidthDentalHero";
 import { BRANCHES, CLINIC, DEPARTMENTS } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
@@ -73,59 +73,7 @@ export default function Home() {
 
   return (
     <PageShell>
-      {/* Corporate hero: intentionally content-led, rather than a generic clinic banner. */}
-      <section className="relative isolate overflow-hidden border-b border-border bg-white">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_85%_20%,rgba(33,105,181,0.12),transparent_28%),radial-gradient(circle_at_5%_85%,rgba(249,115,22,0.11),transparent_24%)]" />
-        <div className="container grid gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-20">
-          <div className="order-2 lg:order-1">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-xs font-bold text-primary">
-              <Sparkles className="size-3.5" />
-              منظومة رعاية صحية متخصصة في الرياض
-            </div>
-            <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.22] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              {CLINIC.name}
-              <span className="mt-2 block text-primary">رعاية تُبنى حولك.</span>
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
-              نجمع بين التخصص الطبي وسهولة الوصول إلى الخدمة؛ من خلال ثلاثة فروع ورحلة حجز رقمية واضحة تضع احتياج المراجع أولاً.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/booking"
-                className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <CalendarCheck className="size-4" />
-                ابدأ حجز موعد
-              </Link>
-              <a
-                href="#branches"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-6 py-3.5 text-sm font-bold text-foreground transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
-              >
-                استكشف فروع المجموعة
-                <ArrowLeft className="size-4" />
-              </a>
-            </div>
-            <div className="mt-10 grid max-w-2xl grid-cols-3 divide-x divide-x-reverse divide-border rounded-2xl border border-border bg-white/85 p-4 shadow-sm">
-              <div className="px-3 text-center">
-                <strong className="block text-2xl font-extrabold text-primary">3</strong>
-                <span className="mt-1 block text-xs font-semibold text-muted-foreground">فروع في الرياض</span>
-              </div>
-              <div className="px-3 text-center">
-                <strong className="block text-2xl font-extrabold text-primary">3</strong>
-                <span className="mt-1 block text-xs font-semibold text-muted-foreground">مجالات تخصصية</span>
-              </div>
-              <div className="px-3 text-center">
-                <strong className="block text-2xl font-extrabold text-primary">1</strong>
-                <span className="mt-1 block text-xs font-semibold text-muted-foreground">رحلة حجز موحّدة</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="order-1 lg:order-2">
-            <InteractiveCareOrbit />
-          </div>
-        </div>
-      </section>
+      <FullWidthDentalHero />
 
       <section className="border-b border-border bg-secondary/45 py-6">
         <div className="container grid gap-3 md:grid-cols-3">
