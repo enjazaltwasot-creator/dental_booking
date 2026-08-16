@@ -15,7 +15,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
-import FullWidthDentalHero from "@/components/FullWidthDentalHero";
+import FullWidthGroupHero from "@/components/FullWidthGroupHero";
 import { BRANCHES, CLINIC, DEPARTMENTS } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
@@ -73,7 +73,7 @@ export default function Home() {
 
   return (
     <PageShell>
-      <FullWidthDentalHero />
+      <FullWidthGroupHero />
 
       <section className="border-b border-border bg-secondary/45 py-6">
         <div className="container grid gap-3 md:grid-cols-3">
