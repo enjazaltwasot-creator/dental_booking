@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/", label: "الرئيسية" },
-  { href: "/#branches", label: "المجموعة" },
-  { href: "/services", label: "خدماتنا" },
-  { href: "/doctors", label: "الأطباء" },
-  { href: "/branches", label: "فروعنا" },
+  { href: "/#about", label: "من نحن" },
+  { href: "/#vision", label: "رؤيتنا" },
+  { href: "/#specialties", label: "تخصصاتنا" },
+  { href: "/#branches", label: "فروعنا" },
 ];
 
 export default function SiteHeader() {
@@ -31,7 +31,7 @@ export default function SiteHeader() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "relative rounded-lg px-4 py-2 text-[15px] font-medium transition-colors duration-200",
+                  "relative rounded-lg px-3 py-2 text-[15px] font-medium transition-colors duration-200 lg:px-4",
                   active
                     ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"

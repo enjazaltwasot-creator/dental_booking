@@ -61,6 +61,12 @@ const TRUST_SIGNALS = [
   },
 ];
 
+const GROUP_VALUES = [
+  "تخصصات مترابطة ضمن تجربة رعاية واحدة",
+  "حجز رقمي واضح يبدأ من احتياج المراجع",
+  "فروع قريبة تمنحك مرونة أكبر في اختيار الموعد",
+];
+
 export default function Home() {
   const { data: services } = trpc.services.list.useQuery();
   const { data: dentists } = trpc.dentists.list.useQuery();
@@ -166,6 +172,65 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="about" className="relative overflow-hidden py-16 lg:py-24">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_5%_50%,rgba(249,115,22,0.1),transparent_24%),radial-gradient(circle_at_95%_20%,rgba(2,132,199,0.1),transparent_26%)]" />
+        <div className="container grid gap-8 lg:grid-cols-[0.84fr_1.16fr] lg:items-center">
+          <div className="relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
+            <div className="absolute -right-20 -top-16 size-52 rounded-full border-[30px] border-white/10" />
+            <div className="absolute -bottom-24 -left-12 size-52 rounded-full bg-accent/90 blur-2xl" />
+            <div className="relative">
+              <span className="text-xs font-bold tracking-[0.18em] text-orange-200">EVAN GROUP</span>
+              <p className="mt-12 max-w-sm text-3xl font-extrabold leading-tight sm:text-4xl">الرعاية ليست خدمة منفصلة، بل منظومة متكاملة.</p>
+              <div className="mt-12 grid grid-cols-3 gap-2 border-t border-white/15 pt-5">
+                <div><strong className="block text-xl font-extrabold">01</strong><span className="text-xs text-white/70">المجموعة</span></div>
+                <div><strong className="block text-xl font-extrabold">02</strong><span className="text-xs text-white/70">الفروع</span></div>
+                <div><strong className="block text-xl font-extrabold">03</strong><span className="text-xs text-white/70">الرعاية</span></div>
+              </div>
+            </div>
+          </div>
+          <div className="lg:pr-6">
+            <span className="text-xs font-bold tracking-[0.17em] text-accent">من نحن</span>
+            <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">وجهة طبية تجمع التخصص وسهولة الوصول.</h2>
+            <p className="mt-5 max-w-2xl text-[15px] leading-8 text-muted-foreground">
+              {CLINIC.name} تجمع خدمات طب الأسنان والجلدية والليزر ضمن رحلة علاجية منظمة، وتمنح المراجع بوابة واحدة للوصول إلى تخصصاته وفروعه وموعده المناسب.
+            </p>
+            <div className="mt-8 space-y-3">
+              {GROUP_VALUES.map((value, index) => (
+                <div key={value} className="flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-xs font-extrabold text-accent-foreground">0{index + 1}</span>
+                  <span className="text-sm font-bold text-foreground">{value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="vision" className="border-y border-primary/10 bg-primary py-14 text-white lg:py-18">
+        <div className="container grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-orange-200">
+              <Sparkles className="size-3.5" />
+              رؤيتنا
+            </span>
+            <h2 className="mt-5 max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl">أن تكون الرعاية الطبية الأكثر وضوحاً وقرباً من احتياج المراجع.</h2>
+            <p className="mt-4 max-w-2xl text-[15px] leading-8 text-white/75">نترجم هذه الرؤية إلى خطوات عملية: تخصصات محددة، فروع سهلة الوصول، ومواعيد يمكن إدارتها بسلاسة.</p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            {[
+              ["وضوح", "تعرف مسار الحجز قبل أن تبدأ."],
+              ["قرب", "تصل إلى الفرع الأنسب لك بسهولة."],
+              ["اهتمام", "تنتقل من الخدمة إلى الطبيب والموعد ضمن تجربة واحدة."],
+            ].map(([title, text]) => (
+              <div key={title} className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-4">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-sm font-extrabold text-accent-foreground">✦</span>
+                <div><h3 className="text-sm font-extrabold">{title}</h3><p className="mt-1 text-xs leading-5 text-white/70">{text}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="py-12 lg:py-16">
         <div className="container rounded-[1.75rem] border border-border bg-white p-5 shadow-sm sm:p-7">
           <div className="grid gap-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
@@ -237,12 +302,14 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-y border-border bg-slate-950 py-16 text-white lg:py-20">
+      <section id="specialties" className="relative overflow-hidden border-y border-primary/10 bg-primary py-16 text-white lg:py-20">
+        <div className="pointer-events-none absolute -left-16 top-0 size-72 rounded-full bg-accent/20 blur-3xl" />
+        <div className="pointer-events-none absolute -right-28 bottom-0 size-80 rounded-full border-[42px] border-white/5" />
         <div className="container grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-orange-300">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-orange-200">
               <CheckCircle2 className="size-3.5" />
-              نطاقات الرعاية
+              تخصصاتنا
             </span>
             <h2 className="mt-5 text-3xl font-extrabold leading-tight sm:text-4xl">
               من التخصص إلى التجربة، تحت مظلة واحدة.
@@ -250,7 +317,7 @@ export default function Home() {
             <p className="mt-4 max-w-md text-[15px] leading-8 text-slate-300">
               تعرف على محاور الرعاية المتاحة لدى المجموعة، ثم انتقل مباشرة إلى الحجز لاختيار الخدمة والطبيب والموعد.
             </p>
-            <Link href="/services" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-orange-300 hover:text-orange-200">
+            <Link href="/services" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-orange-200 hover:text-orange-100">
               عرض جميع الخدمات <ArrowUpLeft className="size-4" />
             </Link>
           </div>
@@ -258,7 +325,7 @@ export default function Home() {
             {DEPARTMENTS.map((department, index) => {
               const item = DEPARTMENT_META[index];
               return (
-                <article key={department} className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 transition-colors duration-200 hover:bg-white/[0.1]">
+                <article key={department} className="rounded-2xl border border-white/15 bg-white/[0.1] p-5 backdrop-blur-sm transition-colors duration-200 hover:bg-white/[0.16]">
                   <span className={`grid size-11 place-items-center rounded-xl ${item.tone}`}>
                     <item.icon className="size-5" />
                   </span>
