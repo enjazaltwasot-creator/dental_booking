@@ -2,6 +2,8 @@ import { MapPin, Phone, Clock } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { BRANCHES } from "@/lib/clinic";
 
+const BRANCH_ANCHORS = ["mahdiyah", "olaya", "ahmadiyah"] as const;
+
 export default function Branches() {
   return (
     <PageShell>
@@ -16,9 +18,10 @@ export default function Branches() {
 
       <section className="py-14">
         <div className="container grid gap-5 md:grid-cols-3">
-          {BRANCHES.map(branch => (
+          {BRANCHES.map((branch, index) => (
             <article
               key={branch.name}
+              id={BRANCH_ANCHORS[index]}
               className="rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
             >
               <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
@@ -43,4 +46,3 @@ export default function Branches() {
     </PageShell>
   );
 }
-

@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, CalendarPlus } from "lucide-react";
+import { Menu, X, CalendarPlus, ChevronDown } from "lucide-react";
 import { LOGO_SRC } from "@/lib/clinic";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/", label: "الرئيسية" },
-  { href: "/#about", label: "من نحن" },
   { href: "/#vision", label: "رؤيتنا" },
   { href: "/#specialties", label: "تخصصاتنا" },
   { href: "/#doctors", label: "الأطباء" },
@@ -14,9 +13,16 @@ const NAV_LINKS = [
   { href: "/#partners", label: "شركاء النجاح" },
 ];
 
+const BRANCH_LINKS = [
+  { href: "/branches#mahdiyah", label: "فرع المهدية" },
+  { href: "/branches#olaya", label: "فرع العليا" },
+  { href: "/branches#ahmadiyah", label: "فرع الأحمدية — لبن" },
+];
+
 export default function SiteHeader() {
   const [location] = useLocation();
   const [open, setOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-white/90 backdrop-blur-md">
@@ -26,6 +32,41 @@ export default function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
+          <div
+            className="relative"
+            onMouseEnter={() => setAboutOpen(true)}
+            onMouseLeave={() => setAboutOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setAboutOpen(value => !value)}
+              onFocus={() => setAboutOpen(true)}
+              aria-expanded={aboutOpen}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[15px] font-medium transition-colors duration-200 lg:px-4",
+                location === "/#about" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              من نحن
+              <ChevronDown className={cn("size-3.5 transition-transform duration-200", aboutOpen && "rotate-180")} />
+            </button>
+            <div
+              className={cn(
+                "absolute right-0 top-full z-50 mt-2 w-60 rounded-2xl border border-border bg-white p-2 shadow-xl shadow-slate-900/10 transition-all duration-200",
+                aboutOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-1 opacity-0"
+              )}
+            >
+              <Link href="/#about" onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-extrabold text-primary hover:bg-secondary">
+                عن المجموعة
+              </Link>
+              <div className="my-1 border-t border-border" />
+              {BRANCH_LINKS.map(branch => (
+                <Link key={branch.href} href={branch.href} onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-primary">
+                  {branch.label}
+                </Link>
+              ))}
+            </div>
+          </div>
           {NAV_LINKS.map(link => {
             const active = location === link.href;
             return (
@@ -71,6 +112,17 @@ export default function SiteHeader() {
       {open && (
         <div className="border-t border-border bg-white lg:hidden">
           <nav className="container flex flex-col py-3">
+            <div className="rounded-lg px-3 py-3 text-[15px] font-extrabold text-foreground">من نحن</div>
+            <div className="mr-3 mb-2 border-r-2 border-primary/15 pr-3">
+              <Link href="/#about" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary hover:bg-secondary">
+                عن المجموعة
+              </Link>
+              {BRANCH_LINKS.map(branch => (
+                <Link key={branch.href} href={branch.href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
+                  {branch.label}
+                </Link>
+              ))}
+            </div>
             {NAV_LINKS.map(link => (
               <Link
                 key={link.href}
