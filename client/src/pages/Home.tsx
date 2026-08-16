@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import FullWidthGroupHero from "@/components/FullWidthGroupHero";
-import { BRANCHES, CLINIC, DEPARTMENTS } from "@/lib/clinic";
+import { BRANCHES, CLINIC, DEPARTMENTS, PARTNERS } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
 const PILLARS = [
@@ -290,19 +290,15 @@ export default function Home() {
             <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">نجاحنا يبدأ من كل علاقة تخدم المراجع.</h2>
             <p className="mt-4 text-[15px] leading-8 text-muted-foreground">ننظر إلى الرعاية كعمل جماعي يجمع الفريق الطبي والتشغيلي والجهات المتعاونة ضمن تجربة مراجع واضحة ومنظمة.</p>
           </div>
-          <div className="mt-9 grid gap-4 md:grid-cols-3">
-            {[
-              ["الفريق الطبي", "خبرات متخصصة تضع احتياج المراجع في مركز كل قرار."],
-              ["الفرق التشغيلية", "تنسيق يومي يحافظ على سلاسة الرحلة من الحجز حتى الزيارة."],
-              ["الجهات المتعاونة", "تُعرض تفاصيل الشراكات والجهات المعتمدة ضمن بياناتها الرسمية عند اعتمادها."],
-            ].map(([title, text], index) => (
-              <article key={title} className="rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-                <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary">0{index + 1}</span>
-                <h3 className="mt-6 text-lg font-extrabold text-foreground">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-muted-foreground">{text}</p>
+          <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {PARTNERS.map((partner) => (
+              <article key={partner.id} className="group flex min-h-36 flex-col items-center justify-center rounded-2xl border border-border bg-white px-4 py-5 text-center shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md">
+                <img src={partner.logo} alt={`شعار ${partner.name}`} className="h-16 w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]" loading="lazy" />
+                <h3 className="mt-3 text-xs font-bold text-muted-foreground" dir="ltr">{partner.name}</h3>
               </article>
             ))}
           </div>
+          <p className="mt-5 text-xs leading-6 text-muted-foreground">تُعرض الشعارات كما وردت في الصورة المنشورة ضمن موقع إيفان السابق. ولا يُضاف أي شعار لم يمكن التحقق من اسمه بوضوح.</p>
         </div>
       </section>
 

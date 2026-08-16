@@ -75,6 +75,25 @@ export const DEPARTMENTS = [
   "قسم الليزر",
 ] as const;
 
+export const PARTNERS = [
+  { id: "madfoum", name: "مدفوم", logo: "/manus-storage/partner-madfoum_88567bf6.png" },
+  { id: "aac", name: "AAC", logo: "/manus-storage/partner-aac_72641aa7.png" },
+  { id: "splendor", name: "Splendor X by Lumenis", logo: "/manus-storage/partner-splendor_3aed0c4e.png" },
+  { id: "deka", name: "DEKA", logo: "/manus-storage/partner-deka_bda2c71c.png" },
+  { id: "aesthetic-pioneers", name: "Aesthetic Pioneers", logo: "/manus-storage/partner-aesthetic-pioneers_b399125c.png" },
+  { id: "emc", name: "EMC", logo: "/manus-storage/partner-emc_b18928e6.png" },
+  { id: "promoitalia", name: "Promoitalia", logo: "/manus-storage/partner-promoitalia_f0b65cc3.png" },
+  { id: "kuos-mint", name: "Kuo's MINT Lift", logo: "/manus-storage/partner-kuos-mint_0ecc61c7.png" },
+  { id: "exosmart", name: "exosmart", logo: "/manus-storage/partner-exosmart_606db3a4.png" },
+  { id: "euromi", name: "Euromi", logo: "/manus-storage/partner-euromi_93569519.png" },
+  { id: "magellan", name: "magellan", logo: "/manus-storage/partner-magellan_692151bb.png" },
+  { id: "anteage-md", name: "AnteAGE MD", logo: "/manus-storage/partner-anteage-md_ed564b1e.png" },
+  { id: "clearcaps", name: "clearcaps", logo: "/manus-storage/partner-clearcaps_b74491d6.png" },
+  { id: "ame", name: "AME", logo: "/manus-storage/partner-ame_e86fdbc7.png" },
+  { id: "teoxane", name: "Teoxane", logo: "/manus-storage/partner-teoxane_231122fd.png" },
+  { id: "nabota", name: "Nabota", logo: "/manus-storage/partner-nabota_2adc1ad0.png" },
+] as const;
+
 export const SPECIALTIES = [
   {
     id: "dentistry",
