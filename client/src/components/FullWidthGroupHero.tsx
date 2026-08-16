@@ -1,11 +1,21 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Building2, CalendarCheck } from "lucide-react";
+import { useState } from "react";
 import { Link } from "wouter";
 
 const NATURE_HERO_VIDEO = "/manus-storage/evan-natural-hero_24f8863d.mp4";
 
 export default function FullWidthGroupHero() {
   const reduceMotion = useReducedMotion();
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+
+  function updateTilt(event: React.PointerEvent<HTMLDivElement>) {
+    if (reduceMotion || event.pointerType !== "mouse" || window.innerWidth < 1024) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width - 0.5) * 5;
+    const y = ((event.clientY - rect.top) / rect.height - 0.5) * 4;
+    setTilt({ x, y });
+  }
 
   return (
     <section className="relative isolate min-h-[670px] overflow-hidden border-b border-primary/10 bg-slate-100 sm:min-h-[690px] lg:min-h-[720px]">
@@ -13,8 +23,17 @@ export default function FullWidthGroupHero() {
         <source src={NATURE_HERO_VIDEO} type="video/mp4" />
       </video>
 
-      <div className="container flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20">
-        <div className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl">
+      <div className="container flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
+        <div
+          className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl"
+          onPointerMove={updateTilt}
+          onPointerLeave={() => setTilt({ x: 0, y: 0 })}
+          style={{
+            transform: `rotateX(${-tilt.y}deg) rotateY(${tilt.x}deg) translateZ(0)`,
+            transition: "transform 180ms cubic-bezier(0.23, 1, 0.32, 1)",
+            transformStyle: "preserve-3d",
+          }}
+        >
           <motion.div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] p-px"
