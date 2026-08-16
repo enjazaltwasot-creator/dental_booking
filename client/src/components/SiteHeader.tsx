@@ -5,7 +5,6 @@ import { LOGO_SRC } from "@/lib/clinic";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/", label: "الرئيسية" },
   { href: "/#vision", label: "رؤيتنا" },
   { href: "/#specialties", label: "تخصصاتنا" },
   { href: "/#doctors", label: "الأطباء" },
@@ -32,6 +31,16 @@ export default function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
+          <Link
+            href="/"
+            className={cn(
+              "relative rounded-lg px-3 py-2 text-[15px] font-medium transition-colors duration-200 lg:px-4",
+              location === "/" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            الرئيسية
+            {location === "/" && <span className="absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-primary" />}
+          </Link>
           <div
             className="relative"
             onMouseEnter={() => setAboutOpen(true)}
@@ -112,6 +121,13 @@ export default function SiteHeader() {
       {open && (
         <div className="border-t border-border bg-white lg:hidden">
           <nav className="container flex flex-col py-3">
+            <Link
+              href="/"
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-3 py-3 text-[15px] font-extrabold text-foreground transition-colors hover:bg-secondary"
+            >
+              الرئيسية
+            </Link>
             <div className="rounded-lg px-3 py-3 text-[15px] font-extrabold text-foreground">من نحن</div>
             <div className="mr-3 mb-2 border-r-2 border-primary/15 pr-3">
               <Link href="/#about" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary hover:bg-secondary">
