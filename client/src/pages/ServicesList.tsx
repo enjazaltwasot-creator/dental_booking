@@ -1,181 +1,201 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Pause, Play, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Pause, Play, Sparkles, X } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { cn } from "@/lib/utils";
 
-const SLIDE_DURATION = 4000;
+const DEFAULT_SLIDE_DURATION = 5600;
 
-const SHOWCASE_SLIDES = [
+type StoryItem = {
+  title: string;
+  eyebrow: string;
+  description: string;
+  image: string;
+  imageAlt: string;
+  points: readonly string[];
+};
+
+type SpecialtyStory = {
+  id: string;
+  title: string;
+  shortTitle: string;
+  cover: string;
+  items: readonly StoryItem[];
+};
+
+const SPECIALTY_STORIES: readonly SpecialtyStory[] = [
   {
     id: "dental",
-    node: "طب الأسنان",
-    eyebrow: "رعاية سنية متكاملة",
     title: "طب الأسنان",
-    description: "رحلة منظمة تجمع التشخيص والعلاج والتجميل ضمن مسار حجز واضح يبدأ بالفرع وينتهي بالموعد المناسب.",
-    features: ["فحص وتقييم أولي", "تنسيق الفرع والطبيب", "مسار حجز واضح"],
-    image: "/manus-storage/services-overview_66815dcd.jpg",
-    imageAlt: "طبيب يجري فحصاً للأسنان داخل عيادة",
-  },
-  {
-    id: "implants",
-    node: "زراعة الأسنان",
-    eyebrow: "حلول تعويضية",
-    title: "زراعة الأسنان",
-    description: "يبدأ المسار بتقييم الحاجة وخطة الرعاية مع الطبيب، ثم يحدد الفرع والموعد الملائمين للمراجع.",
-    features: ["تقييم طبي مبدئي", "خطة رعاية متدرجة", "متابعة منظمة"],
-    image: "/manus-storage/services-overview_66815dcd.jpg",
-    imageAlt: "رعاية سنية داخل عيادة إيفان",
-  },
-  {
-    id: "orthodontics",
-    node: "تقويم الأسنان",
-    eyebrow: "تخطيط الابتسامة",
-    title: "تقويم الأسنان",
-    description: "تقييم اصطفاف الأسنان وخيارات التقويم المتاحة، ثم الانتقال مباشرة إلى خطوة حجز منظمة.",
-    features: ["تقييم الحالة", "مناقشة الخيارات", "اختيار الموعد"],
-    image: "/manus-storage/services-overview_66815dcd.jpg",
-    imageAlt: "طبيب أسنان ومراجع داخل العيادة",
+    shortTitle: "الأسنان",
+    cover: "/manus-storage/services-overview_66815dcd.jpg",
+    items: [
+      { title: "طب الأسنان", eyebrow: "رعاية سنية متكاملة", description: "رحلة رعاية منظمة تجمع التقييم وخيارات العلاج والتجميل، ثم تنقلك بسلاسة إلى الفرع والطبيب والموعد المناسب.", image: "/manus-storage/services-overview_66815dcd.jpg", imageAlt: "طبيب يجري فحصاً للأسنان داخل عيادة", points: ["تقييم أولي", "تحديد المسار", "حجز واضح"] },
+      { title: "زراعة الأسنان", eyebrow: "حلول تعويضية", description: "يبدأ المسار بتقييم الحاجة وخطة الرعاية مع الطبيب، قبل تنسيق الموعد المناسب في الفرع الذي تختاره.", image: "/manus-storage/services-overview_66815dcd.jpg", imageAlt: "رعاية سنية داخل عيادة إيفان", points: ["تقييم طبي", "خطة متدرجة", "متابعة منظمة"] },
+      { title: "تقويم الأسنان", eyebrow: "تخطيط الابتسامة", description: "عرض منظم لخيارات التقويم مع تقييم اصطفاف الأسنان وتنسيق الخطوة الأولى للحجز.", image: "/manus-storage/services-overview_66815dcd.jpg", imageAlt: "طبيب أسنان ومراجع داخل العيادة", points: ["تقييم الحالة", "مناقشة الخيارات", "اختيار الموعد"] },
+    ],
   },
   {
     id: "dermatology",
-    node: "الجلدية والتجميل",
-    eyebrow: "عناية منظمة بالبشرة",
     title: "الجلدية والتجميل",
-    description: "خيارات للعناية بالجلد والتجميل ضمن بيئة طبية منظمة، تبدأ باستشارة لتحديد المسار المناسب.",
-    features: ["عناية بالجلد", "استشارات تجميلية", "خدمات معلنة"],
-    image: "/manus-storage/clinic-care_9c78a4bb.jpg",
-    imageAlt: "جلسة عناية تجميلية داخل بيئة طبية",
+    shortTitle: "الجلدية",
+    cover: "/manus-storage/clinic-care_9c78a4bb.jpg",
+    items: [
+      { title: "العناية بالجلد", eyebrow: "رعاية شخصية", description: "مسار استشارة أولية لتحديد احتياج البشرة ضمن بيئة طبية منظمة وتوضيح الخطوة التالية.", image: "/manus-storage/clinic-care_9c78a4bb.jpg", imageAlt: "جلسة عناية تجميلية داخل بيئة طبية", points: ["استشارة أولية", "تحديد الاحتياج", "موعد مناسب"] },
+      { title: "استشارات تجميلية", eyebrow: "قرار مدروس", description: "جلسة تتيح مناقشة الخيارات التجميلية المعلنة وترتيب زيارة واضحة مع المختص.", image: "/manus-storage/clinic-care_9c78a4bb.jpg", imageAlt: "خدمة عناية داخل عيادة", points: ["خيارات معلنة", "توجيه متخصص", "تنسيق الزيارة"] },
+      { title: "بروفايلو", eyebrow: "خدمة معلنة", description: "خدمة مدرجة ضمن التخصصات المعلنة، ويُحدد مدى ملاءمتها بعد التقييم الطبي داخل العيادة.", image: "/manus-storage/clinic-care_9c78a4bb.jpg", imageAlt: "عناية احترافية بالبشرة", points: ["تقييم ملاءمة", "شرح الإجراء", "موعد منظم"] },
+    ],
   },
   {
     id: "laser",
-    node: "تقنيات الليزر",
-    eyebrow: "تقنيات حديثة",
     title: "تقنيات الليزر",
-    description: "تنسيق دقيق للخدمة والفرع والموعد المناسب ضمن تقنيات الليزر المعلنة للمجموعة.",
-    features: ["تقنيات ليزر", "خدمات مخصصة", "تنسيق حسب الفرع"],
-    image: "/manus-storage/laser-care-neutral_0fe7d79f.png",
-    imageAlt: "مراجع يرتدي نظارات واقية خلال جلسة ليزر داخل عيادة",
+    shortTitle: "الليزر",
+    cover: "/manus-storage/laser-care-neutral_0fe7d79f.png",
+    items: [
+      { title: "تقنيات الليزر", eyebrow: "تقنيات حديثة", description: "تنسيق واضح للخدمة والفرع والموعد ضمن تقنيات الليزر المتاحة في المجموعة.", image: "/manus-storage/laser-care-neutral_0fe7d79f.png", imageAlt: "جلسة ليزر داخل عيادة", points: ["خدمة مخصصة", "فرع مناسب", "وقت متاح"] },
+      { title: "ليزر الرجال", eyebrow: "خدمة مخصصة", description: "خدمة معلنة ضمن قسم الليزر، ترتب عبر حجز منظم يوضح الفرع والوقت قبل تأكيد الموعد.", image: "/manus-storage/laser-care-neutral_0fe7d79f.png", imageAlt: "تقنيات ليزر طبية", points: ["خدمة معلنة", "ترتيب سهل", "تجربة منظمة"] },
+      { title: "تنسيق الموعد حسب الفرع", eyebrow: "رحلة موحدة", description: "اختر الفرع ثم الخدمة والطبيب والموعد لتبدأ رحلة حجز موحدة وواضحة من مكان واحد.", image: "/manus-storage/laser-care-neutral_0fe7d79f.png", imageAlt: "رعاية طبية بتقنيات حديثة", points: ["اختيار الفرع", "تحديد الخدمة", "تأكيد الموعد"] },
+    ],
   },
-] as const;
-
-const NODE_POSITIONS = [
-  "left-1/2 top-[7%] -translate-x-1/2",
-  "right-[11%] top-[26%]",
-  "right-[3%] top-[56%]",
-  "left-[3%] top-[56%]",
-  "left-[11%] top-[26%]",
 ];
 
 export default function ServicesList() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [autoPlay, setAutoPlay] = useState(true);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [storyIndex, setStoryIndex] = useState(0);
+  const [itemIndex, setItemIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
-  const activeSlide = SHOWCASE_SLIDES[activeIndex];
+  const [seenStories, setSeenStories] = useState<string[]>([]);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  const activeStory = SPECIALTY_STORIES[storyIndex];
+  const activeItem = activeStory.items[itemIndex];
 
   useEffect(() => {
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReducedMotion(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
+    const updateMotion = () => setReducedMotion(media.matches);
+    updateMotion();
+    media.addEventListener("change", updateMotion);
+    return () => media.removeEventListener("change", updateMotion);
   }, []);
+
+  const changeStory = (nextStory: number) => {
+    setStoryIndex((nextStory + SPECIALTY_STORIES.length) % SPECIALTY_STORIES.length);
+    setItemIndex(0);
+    setProgress(0);
+    setSeenStories(current => current.includes(SPECIALTY_STORIES[(nextStory + SPECIALTY_STORIES.length) % SPECIALTY_STORIES.length].id) ? current : [...current, SPECIALTY_STORIES[(nextStory + SPECIALTY_STORIES.length) % SPECIALTY_STORIES.length].id]);
+  };
+
+  const goNext = () => {
+    if (itemIndex < activeStory.items.length - 1) {
+      setItemIndex(index => index + 1);
+      setProgress(0);
+      return;
+    }
+    changeStory(storyIndex + 1);
+  };
+
+  const goPrevious = () => {
+    if (itemIndex > 0) {
+      setItemIndex(index => index - 1);
+      setProgress(0);
+      return;
+    }
+    const previousStory = (storyIndex - 1 + SPECIALTY_STORIES.length) % SPECIALTY_STORIES.length;
+    setStoryIndex(previousStory);
+    setItemIndex(SPECIALTY_STORIES[previousStory].items.length - 1);
+    setProgress(0);
+  };
+
+  useEffect(() => {
+    setSeenStories(current => current.includes(activeStory.id) ? current : [...current, activeStory.id]);
+  }, [activeStory.id]);
 
   useEffect(() => {
     setProgress(0);
-    if (!autoPlay || reducedMotion) return;
+    if (isPaused || isHolding || reducedMotion) return;
 
     const startedAt = Date.now();
     const timer = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt;
-      const nextProgress = Math.min(100, (elapsed / SLIDE_DURATION) * 100);
+      const nextProgress = Math.min(100, ((Date.now() - startedAt) / DEFAULT_SLIDE_DURATION) * 100);
       setProgress(nextProgress);
-      if (elapsed >= SLIDE_DURATION) {
-        setActiveIndex(index => (index + 1) % SHOWCASE_SLIDES.length);
-      }
+      if (nextProgress >= 100) goNext();
     }, 80);
 
     return () => window.clearInterval(timer);
-  }, [activeIndex, autoPlay, reducedMotion]);
+  }, [storyIndex, itemIndex, isPaused, isHolding, reducedMotion]);
 
-  const selectSlide = (index: number) => {
-    setActiveIndex(index);
-    setAutoPlay(false);
-  };
-
-  const goToPrevious = () => {
-    setActiveIndex(index => (index - 1 + SHOWCASE_SLIDES.length) % SHOWCASE_SLIDES.length);
-    setAutoPlay(false);
-  };
-
-  const goToNext = () => {
-    setActiveIndex(index => (index + 1) % SHOWCASE_SLIDES.length);
-    setAutoPlay(false);
-  };
+  const progressBars = useMemo(() => activeStory.items.map((_, index) => {
+    if (index < itemIndex) return 100;
+    if (index === itemIndex) return progress;
+    return 0;
+  }), [activeStory.items, itemIndex, progress]);
 
   return (
     <PageShell>
-      <section className="bg-[#0f172a] py-6 text-white sm:py-10">
+      <section className="min-h-[calc(100svh-5rem)] bg-[#0b1221] py-7 text-white sm:py-10">
         <div className="container">
-          <div className="mb-7 text-center sm:mb-10">
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1.5 text-xs font-extrabold text-cyan-200"><Sparkles className="size-3.5" /> تخصصات إيفان في عرض تفاعلي</span>
-            <h1 className="mt-4 text-3xl font-extrabold sm:text-5xl">اختر الخدمة، ثم استكشف تفاصيلها</h1>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-8 text-slate-300">تتحرك الشرائح تلقائياً كل أربع ثوانٍ، ويمكنك اختيار أي نقطة أو استخدام أدوات التنقل لقراءة التفاصيل بالوتيرة التي تناسبك.</p>
-          </div>
-
-          <article className="relative isolate min-h-[690px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#111d34] shadow-2xl shadow-slate-950/50 lg:min-h-[720px]">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_82%,rgba(14,165,233,0.18),transparent_26%),radial-gradient(circle_at_82%_18%,rgba(255,102,0,0.14),transparent_28%)]" />
-            <div className="pointer-events-none absolute -right-32 -top-32 size-80 rounded-full border border-cyan-200/10" />
-            <div className="pointer-events-none absolute -bottom-52 -left-44 size-[34rem] rounded-full border border-cyan-200/10" />
-
-            <div className="relative grid min-h-[690px] lg:grid-cols-[0.95fr_1.05fr] lg:min-h-[720px]">
-              <div className="relative order-2 p-5 sm:p-8 lg:order-1 lg:p-12">
-                <div key={activeSlide.id} className="rise-in rounded-3xl border border-white/10 bg-white/[0.055] p-5 backdrop-blur-sm sm:p-7">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="rounded-full bg-orange-500/15 px-3 py-1.5 text-xs font-extrabold text-orange-300">{activeSlide.eyebrow}</span>
-                    <span className="text-xs font-bold text-cyan-200">الشريحة {activeIndex + 1} / {SHOWCASE_SLIDES.length}</span>
-                  </div>
-                  <h2 className="mt-5 text-3xl font-extrabold text-white sm:text-4xl">{activeSlide.title}</h2>
-                  <p className="mt-4 text-sm leading-8 text-slate-300">{activeSlide.description}</p>
-                  <div className="mt-6 overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
-                    <img src={activeSlide.image} alt={activeSlide.imageAlt} className="h-44 w-full object-cover transition-transform duration-700 hover:scale-105 sm:h-52" />
-                  </div>
-                  <ul className="mt-6 grid gap-2 sm:grid-cols-3">
-                    {activeSlide.features.map(feature => <li key={feature} className="flex items-center gap-2 rounded-xl bg-cyan-300/5 px-3 py-2.5 text-xs font-bold text-slate-100"><Check className="size-4 shrink-0 text-cyan-300" />{feature}</li>)}
-                  </ul>
-                  <Link href="/booking" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-orange-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-400">ابدأ الحجز <ArrowLeft className="size-4" /></Link>
-                </div>
-
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <button type="button" onClick={goToPrevious} aria-label="الشريحة السابقة" className="grid size-10 place-items-center rounded-xl border border-white/15 bg-white/5 text-cyan-100 transition-all hover:bg-cyan-300 hover:text-slate-950"><ChevronRight className="size-5" /></button>
-                  <button type="button" onClick={goToNext} aria-label="الشريحة التالية" className="grid size-10 place-items-center rounded-xl border border-white/15 bg-white/5 text-cyan-100 transition-all hover:bg-cyan-300 hover:text-slate-950"><ChevronLeft className="size-5" /></button>
-                  <button type="button" onClick={() => setAutoPlay(value => !value)} className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-extrabold text-white transition-all hover:bg-white/10">
-                    {autoPlay && !reducedMotion ? <Pause className="size-4" /> : <Play className="size-4" />}
-                    {autoPlay && !reducedMotion ? "إيقاف العرض" : "تشغيل العرض"}
-                  </button>
-                  <div className="h-1.5 min-w-28 flex-1 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-orange-500 transition-[width] duration-100" style={{ width: `${autoPlay && !reducedMotion ? progress : 0}%` }} /></div>
-                </div>
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 sm:mb-8">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-300/10 px-3 py-1.5 text-xs font-extrabold text-cyan-100"><Sparkles className="size-3.5" /> تخصصات إيفان</span>
+                <h1 className="mt-3 text-2xl font-extrabold sm:text-3xl">استكشف التخصصات كقصة تفاعلية</h1>
               </div>
-
-              <div className="relative order-1 min-h-[360px] overflow-hidden p-5 sm:min-h-[430px] lg:order-2 lg:min-h-full">
-                <svg className="pointer-events-none absolute inset-x-[6%] top-[5%] h-[68%] w-[88%]" viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true">
-                  <path d="M 90 465 A 420 420 0 0 1 910 465" fill="none" stroke="rgba(103,232,249,0.48)" strokeWidth="2" strokeDasharray="10 12" />
-                  <path d="M 135 465 A 375 375 0 0 1 865 465" fill="none" stroke="rgba(255,102,0,0.25)" strokeWidth="1" />
-                </svg>
-
-                {SHOWCASE_SLIDES.map((slide, index) => (
-                  <button key={slide.id} type="button" onClick={() => selectSlide(index)} aria-label={`عرض ${slide.title}`} className={cn("absolute z-20 flex size-12 items-center justify-center rounded-full border-2 text-xs font-black transition-all duration-300 sm:size-14", NODE_POSITIONS[index], activeIndex === index ? "scale-125 border-orange-300 bg-orange-500 text-white shadow-[0_0_0_8px_rgba(255,102,0,0.14),0_0_28px_rgba(255,102,0,0.55)]" : "border-cyan-200/70 bg-slate-900/85 text-cyan-200 shadow-lg shadow-cyan-950/40 hover:scale-110 hover:border-cyan-100 hover:bg-cyan-300 hover:text-slate-950")}>{index + 1}</button>
-                ))}
-
-                <div className="absolute bottom-7 left-1/2 z-10 flex size-36 -translate-x-1/2 flex-col items-center justify-center rounded-full border border-cyan-200/50 bg-cyan-300/15 text-center shadow-[0_0_0_14px_rgba(34,211,238,0.06),0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md sm:bottom-10 sm:size-44">
-                  <span className="text-xs font-bold text-cyan-200">المحور المركزي</span>
-                  <span className="mt-1 px-3 text-sm font-extrabold leading-6 text-white">مجموعة إيفان الطبية</span>
-                </div>
-                <p className="absolute bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-bold text-slate-400">اضغط على أي نقطة لعرض الخدمة</p>
-              </div>
+              <span className="text-xs font-bold text-slate-400">اضغط باستمرار لإيقاف العرض مؤقتاً</span>
             </div>
-          </article>
+
+            <div className="flex gap-4 overflow-x-auto pb-3" role="tablist" aria-label="قصص التخصصات">
+              {SPECIALTY_STORIES.map((story, index) => {
+                const isActive = storyIndex === index;
+                const isSeen = seenStories.includes(story.id);
+                return (
+                  <button key={story.id} type="button" role="tab" aria-selected={isActive} onClick={() => changeStory(index)} className="group shrink-0 text-center">
+                    <span className={cn("relative block size-[68px] rounded-full p-[3px] transition-transform duration-300 group-hover:scale-105", isActive ? "bg-gradient-to-br from-orange-400 via-orange-500 to-cyan-300 shadow-[0_0_24px_rgba(255,102,0,0.38)]" : isSeen ? "bg-slate-600" : "bg-gradient-to-br from-cyan-300 to-primary") }>
+                      <img src={story.cover} alt="" className="size-full rounded-full border-2 border-[#0b1221] object-cover" />
+                      {isActive && <span className="absolute inset-0 rounded-full border-2 border-orange-200/80 animate-pulse" />}
+                    </span>
+                    <span className={cn("mt-2 block text-xs font-extrabold", isActive ? "text-orange-300" : "text-slate-300")}>{story.shortTitle}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <article
+              className="relative mt-4 overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900 shadow-2xl shadow-black/35"
+              onPointerDown={() => setIsHolding(true)}
+              onPointerUp={() => setIsHolding(false)}
+              onPointerLeave={() => setIsHolding(false)}
+              onPointerCancel={() => setIsHolding(false)}
+            >
+              <div className="absolute inset-x-5 top-5 z-20 flex gap-1.5 sm:inset-x-7 sm:top-7">
+                {progressBars.map((value, index) => <div key={index} className="h-1 flex-1 overflow-hidden rounded-full bg-white/25"><div className="h-full rounded-full bg-orange-400 transition-[width] duration-100" style={{ width: `${value}%` }} /></div>)}
+              </div>
+
+              <div key={`${activeStory.id}-${activeItem.title}`} className="rise-in relative min-h-[620px] sm:min-h-[650px]">
+                <img src={activeItem.image} alt={activeItem.imageAlt} className="absolute inset-0 h-full w-full object-cover opacity-45" />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,15,31,0.96)_0%,rgba(8,15,31,0.84)_42%,rgba(8,15,31,0.18)_100%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_20%,rgba(255,102,0,0.28),transparent_30%),radial-gradient(circle_at_70%_86%,rgba(34,211,238,0.18),transparent_36%)]" />
+
+                <div className="relative z-10 flex min-h-[620px] flex-col justify-end p-6 pt-24 sm:min-h-[650px] sm:p-10 sm:pt-28 lg:max-w-[64%] lg:p-14 lg:pt-32">
+                  <span className="w-fit rounded-full border border-orange-300/25 bg-orange-500/15 px-3 py-1.5 text-xs font-extrabold text-orange-200">{activeItem.eyebrow}</span>
+                  <div className="mt-5 flex items-center gap-3 text-xs font-bold text-cyan-200"><span>{activeStory.title}</span><span className="size-1 rounded-full bg-orange-400" /><span>{itemIndex + 1} من {activeStory.items.length}</span></div>
+                  <h2 className="mt-3 text-4xl font-extrabold tracking-tight text-white sm:text-5xl">{activeItem.title}</h2>
+                  <p className="mt-4 max-w-xl text-sm leading-8 text-slate-200 sm:text-base">{activeItem.description}</p>
+                  <div className="mt-6 flex flex-wrap gap-2">{activeItem.points.map(point => <span key={point} className="rounded-xl border border-cyan-200/15 bg-cyan-300/10 px-3 py-2 text-xs font-bold text-cyan-50">{point}</span>)}</div>
+                  <div className="mt-8 flex flex-wrap items-center gap-3">
+                    <Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-orange-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-400">ابدأ الحجز <ArrowLeft className="size-4" /></Link>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setIsPaused(value => !value); }} className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-xs font-extrabold text-white backdrop-blur-sm transition hover:bg-white/20">
+                      {isPaused || reducedMotion ? <Play className="size-4" /> : <Pause className="size-4" />}{isPaused || reducedMotion ? "تشغيل" : "إيقاف"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" onClick={goPrevious} aria-label="العنصر السابق" className="absolute right-4 top-1/2 z-20 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-slate-950/35 text-white backdrop-blur transition hover:bg-cyan-300 hover:text-slate-950 sm:right-6"><ChevronRight className="size-5" /></button>
+              <button type="button" onClick={goNext} aria-label="العنصر التالي" className="absolute left-4 top-1/2 z-20 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-white/15 bg-slate-950/35 text-white backdrop-blur transition hover:bg-cyan-300 hover:text-slate-950 sm:left-6"><ChevronLeft className="size-5" /></button>
+              <button type="button" onClick={() => { setItemIndex(0); setProgress(0); }} className="absolute left-5 top-5 z-30 hidden size-8 place-items-center rounded-full bg-black/20 text-white/70 transition hover:bg-white/15 hover:text-white sm:grid" aria-label="إعادة القصة من البداية"><X className="size-4" /></button>
+            </article>
+          </div>
         </div>
       </section>
     </PageShell>
