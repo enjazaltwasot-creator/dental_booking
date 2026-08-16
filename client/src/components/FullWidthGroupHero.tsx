@@ -1,9 +1,12 @@
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, Building2, CalendarCheck } from "lucide-react";
 import { Link } from "wouter";
 
 const NATURE_HERO_VIDEO = "/manus-storage/evan-natural-hero_24f8863d.mp4";
 
 export default function FullWidthGroupHero() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <section className="relative isolate min-h-[670px] overflow-hidden border-b border-primary/10 bg-slate-100 sm:min-h-[690px] lg:min-h-[720px]">
       <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 -z-20 h-full w-full object-cover" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
@@ -11,7 +14,21 @@ export default function FullWidthGroupHero() {
       </video>
 
       <div className="container flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20">
-        <div className="w-full max-w-xl rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl">
+        <div className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl">
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] p-px"
+            animate={reduceMotion ? undefined : { backgroundPosition: ["150% 0", "-150% 0"] }}
+            transition={{ duration: 5.8, repeat: Infinity, repeatDelay: 2.4, ease: "easeInOut" }}
+            style={{
+              background: "linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.06) 46%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.06) 54%, transparent 62%)",
+              backgroundSize: "260% 100%",
+              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+              maskComposite: "exclude",
+            }}
+          />
+          <div className="relative z-10">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/45 bg-white/26 px-3 py-1.5 text-xs font-extrabold text-primary shadow-sm">
             <Building2 className="size-3.5" />
             مجموعة إيفان الطبية — ثلاث فروع في الرياض
@@ -37,6 +54,7 @@ export default function FullWidthGroupHero() {
             <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-primary">3</strong><span className="mt-1 block text-[11px] font-extrabold text-slate-900">فروع في الرياض</span></div>
             <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-primary">3</strong><span className="mt-1 block text-[11px] font-extrabold text-slate-900">مجالات تخصصية</span></div>
             <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-primary">1</strong><span className="mt-1 block text-[11px] font-extrabold text-slate-900">رحلة حجز موحّدة</span></div>
+          </div>
           </div>
         </div>
       </div>
