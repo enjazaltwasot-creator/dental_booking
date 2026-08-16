@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import { getBookingReminders, getCrmSyncEvents } from "./db";
+
+let signedAdminSession = "";
 
 function createPublicContext() {
   const cookies: Record<string, unknown>[] = [];
@@ -18,13 +20,24 @@ function createPublicContext() {
   return { ctx, cookies };
 }
 
+async function prepareAdminSession() {
+  const login = createPublicContext();
+  const loginCaller = appRouter.createCaller(login.ctx);
+  await loginCaller.admin.login({ username: "admin", password: "admin123" });
+  signedAdminSession = login.cookies.find(cookie => cookie.name === "admin_session")?.value as string;
+}
+
 function createAdminContext() {
   return {
     user: null,
-    req: { protocol: "https", headers: { cookie: "admin_session=authenticated" } },
+    req: { protocol: "https", headers: { cookie: `admin_session=${signedAdminSession}` } },
     res: { cookie: () => {}, clearCookie: () => {} },
   } as unknown as TrpcContext;
 }
+
+beforeAll(async () => {
+  await prepareAdminSession();
+});
 
 describe("catalog data", () => {
   it("returns the seeded services", async () => {
@@ -115,13 +128,14 @@ describe("booking lifecycle", () => {
     });
     expect(fetched?.patientName).toBe("مريض اختبار آلي");
 
-    const confirmed = await caller.bookings.updateStatus({
+    const adminCaller = appRouter.createCaller(createAdminContext());
+    const confirmed = await adminCaller.bookings.updateStatus({
       referenceNumber: created.referenceNumber,
       status: "confirmed",
     });
     expect(confirmed?.status).toBe("confirmed");
 
-    const cancelled = await caller.bookings.updateStatus({
+    const cancelled = await adminCaller.bookings.updateStatus({
       referenceNumber: created.referenceNumber,
       status: "cancelled",
     });

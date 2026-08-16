@@ -11,6 +11,7 @@ export const users = mysqlTable("users", {
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   username: varchar("username", { length: 100 }).unique(),
   password: text("password"),
+  isActive: boolean("is_active").default(true).notNull(),
 
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -31,6 +32,7 @@ export const services = mysqlTable("services", {
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   duration: int("duration").notNull(), // duration in minutes
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

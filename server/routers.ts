@@ -2,11 +2,30 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import { nanoid } from "nanoid";
 import { generateClinicAssistantReply } from "./clinicAssistant";
 import { notifyOwner } from "./_core/notification";
+import { ADMIN_SESSION_MAX_AGE_MS, createAdminSession, hashAdminPassword, readAdminSession, verifyAdminPassword } from "./adminAuth";
+
+function readCookie(cookieHeader: string | undefined, key: string) {
+  return cookieHeader?.split(";").map(item => item.trim()).find(item => item.startsWith(`${key}=`))?.slice(key.length + 1);
+}
+
+async function getAuthenticatedAdminUsername(ctx: { req: { headers: { cookie?: string } } }) {
+  const username = readAdminSession(readCookie(ctx.req.headers.cookie, "admin_session"));
+  if (!username) return null;
+  const account = await db.getAdminUserByUsername(username);
+  return account?.isActive ? username : null;
+}
+
+const adminSessionProcedure = publicProcedure.use(async ({ ctx, next }) => {
+  const username = await getAuthenticatedAdminUsername(ctx);
+  if (!username) throw new TRPCError({ code: "UNAUTHORIZED", message: "تسجيل الدخول الإداري مطلوب" });
+  return next();
+});
 
 export const appRouter = router({
   system: systemRouter,
@@ -29,19 +48,28 @@ export const appRouter = router({
         password: z.string(),
       }))
       .mutation(async ({ input, ctx }) => {
-        const ADMIN_USERNAME = 'admin';
-        const ADMIN_PASSWORD = 'admin123';
+        let account = await db.getAdminUserByUsername(input.username);
+        if (!account && input.username === "admin" && input.password === "admin123") {
+          const password = await hashAdminPassword("admin123");
+          try {
+            await db.createAdminUser({ username: "admin", password, name: "المسؤول الرئيسي" });
+          } catch {
+            // A parallel first login may have created the default account already.
+          }
+          account = await db.getAdminUserByUsername(input.username);
+        }
 
-        if (input.username === ADMIN_USERNAME && input.password === ADMIN_PASSWORD) {
-          ctx.res.cookie('admin_session', 'authenticated', {
+        if (account?.isActive && await verifyAdminPassword(input.password, account.password)) {
+          ctx.res.cookie('admin_session', createAdminSession(account.username ?? input.username), {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
-            maxAge: 24 * 60 * 60 * 1000,
+            path: '/',
+            maxAge: ADMIN_SESSION_MAX_AGE_MS,
           });
           return { success: true, message: 'تم تسجيل الدخول بنجاح' };
         }
-        throw new Error('بيانات اعتماد غير صحيحة');
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "بيانات اعتماد غير صحيحة" });
       }),
 
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -54,9 +82,78 @@ export const appRouter = router({
       return { success: true };
     }),
 
-    checkAuth: publicProcedure.query(({ ctx }) => {
-      const adminCookie = ctx.req.headers.cookie?.includes('admin_session=authenticated');
-      return { isAuthenticated: !!adminCookie };
+    checkAuth: publicProcedure.query(async ({ ctx }) => {
+      const username = await getAuthenticatedAdminUsername(ctx);
+      return { isAuthenticated: !!username, username };
+    }),
+
+    users: router({
+      list: adminSessionProcedure.query(async () => {
+        const accounts = await db.listAdminUsers();
+        return accounts.map(account => ({
+          id: account.id,
+          username: account.username,
+          name: account.name,
+          role: account.role,
+          isActive: account.isActive,
+          createdAt: account.createdAt,
+          lastSignedIn: account.lastSignedIn,
+        }));
+      }),
+      create: adminSessionProcedure
+        .input(z.object({ username: z.string().trim().min(3).max(40).regex(/^[a-zA-Z0-9_.-]+$/), name: z.string().trim().min(2).max(100).optional(), password: z.string().min(8).max(128) }))
+        .mutation(async ({ input }) => {
+          if (await db.getAdminUserByUsername(input.username)) throw new TRPCError({ code: "CONFLICT", message: "اسم المستخدم مستخدم بالفعل" });
+          const password = await hashAdminPassword(input.password);
+          const account = await db.createAdminUser({ ...input, password });
+          return { id: account?.id, username: account?.username };
+        }),
+      update: adminSessionProcedure
+        .input(z.object({ username: z.string().min(1), name: z.string().trim().max(100).optional(), password: z.string().min(8).max(128).optional() }))
+        .mutation(async ({ input }) => {
+          if (!input.name && !input.password) throw new TRPCError({ code: "BAD_REQUEST", message: "أدخل اسماً أو كلمة مرور جديدة" });
+          const password = input.password ? await hashAdminPassword(input.password) : undefined;
+          const account = await db.updateAdminUser(input.username, { name: input.name, password });
+          if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
+          return { id: account.id, username: account.username };
+        }),
+      setActive: adminSessionProcedure
+        .input(z.object({ username: z.string().min(1), isActive: z.boolean() }))
+        .mutation(async ({ input, ctx }) => {
+          const requester = await getAuthenticatedAdminUsername(ctx);
+          const account = await db.getAdminUserByUsername(input.username);
+          if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
+          if (account.username === requester) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن تعطيل الحساب المستخدم حالياً" });
+          if (!input.isActive && account.isActive && await db.countActiveAdminUsers() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن تعطيل آخر مسؤول نشط" });
+          return db.setAdminUserActive(input.username, input.isActive);
+        }),
+      remove: adminSessionProcedure
+        .input(z.object({ username: z.string().min(1) }))
+        .mutation(async ({ input, ctx }) => {
+          const requester = await getAuthenticatedAdminUsername(ctx);
+          const account = await db.getAdminUserByUsername(input.username);
+          if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
+          if (account.username === requester) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف الحساب المستخدم حالياً" });
+          if (account.isActive && await db.countActiveAdminUsers() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف آخر مسؤول نشط" });
+          await db.deleteAdminUser(input.username);
+          return { success: true };
+        }),
+    }),
+
+    exportBookings: adminSessionProcedure.query(async () => {
+      const [bookings, services, dentists] = await Promise.all([db.getAllBookings(), db.getAllServicesForAdmin(), db.getAllDentists()]);
+      return bookings.map(booking => ({
+        referenceNumber: booking.referenceNumber,
+        patientName: booking.patientName,
+        patientPhone: booking.patientPhone,
+        branch: booking.branch ?? "",
+        appointmentDate: booking.appointmentDate.toISOString().slice(0, 10),
+        appointmentTime: String(booking.appointmentTime).slice(0, 5),
+        status: booking.status,
+        service: services.find(service => service.id === booking.serviceId)?.name ?? "",
+        dentist: dentists.find(dentist => dentist.id === booking.dentistId)?.name ?? "",
+        notes: booking.notes ?? "",
+      }));
     }),
   }),
 
@@ -83,6 +180,16 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getServiceById(input.id);
       }),
+    listForAdmin: adminSessionProcedure.query(async () => db.getAllServicesForAdmin()),
+    create: adminSessionProcedure
+      .input(z.object({ name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240) }))
+      .mutation(async ({ input }) => db.createService(input)),
+    update: adminSessionProcedure
+      .input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240) }))
+      .mutation(async ({ input }) => db.updateService(input.id, input)),
+    setActive: adminSessionProcedure
+      .input(z.object({ id: z.number().int().positive(), isActive: z.boolean() }))
+      .mutation(async ({ input }) => db.setServiceActive(input.id, input.isActive)),
   }),
 
   // Dentists
@@ -160,6 +267,8 @@ export const appRouter = router({
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
+        const service = await db.getServiceById(input.serviceId);
+        if (!service?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الخدمة غير متاحة للحجز حالياً" });
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
         const booking = await db.createBooking({
           referenceNumber,
@@ -191,7 +300,7 @@ export const appRouter = router({
         return db.getBookingByReferenceNumber(input.referenceNumber);
       }),
 
-    getAll: publicProcedure.query(async () => {
+    getAll: adminSessionProcedure.query(async () => {
       return db.getAllBookings();
     }),
 
@@ -204,7 +313,7 @@ export const appRouter = router({
         return db.getBookingsByDentistAndDate(input.dentistId, input.appointmentDate);
       }),
 
-    updateStatus: publicProcedure
+    updateStatus: adminSessionProcedure
       .input(z.object({
         referenceNumber: z.string(),
         status: z.enum(['pending', 'confirmed', 'cancelled']),

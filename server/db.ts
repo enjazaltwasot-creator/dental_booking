@@ -1,6 +1,6 @@
 import { desc, eq, and, gte, lte, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour } from "../drizzle/schema";
+import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,8 +89,73 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getAdminUserByUsername(username: string): Promise<User | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(and(eq(users.username, username), eq(users.role, "admin"))).limit(1);
+  return result[0];
+}
+
+export async function listAdminUsers(): Promise<User[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(users).where(eq(users.role, "admin")).orderBy(desc(users.createdAt));
+}
+
+export async function createAdminUser(input: { username: string; password: string; name?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(users).values({
+    openId: `local:${input.username}`,
+    username: input.username,
+    password: input.password,
+    name: input.name ?? input.username,
+    loginMethod: "local-admin",
+    role: "admin",
+    isActive: true,
+    lastSignedIn: new Date(),
+  });
+  return getAdminUserByUsername(input.username);
+}
+
+export async function updateAdminUser(username: string, input: { name?: string; password?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const account = await getAdminUserByUsername(username);
+  if (!account) return undefined;
+  await db.update(users).set({
+    name: input.name === undefined ? account.name : input.name,
+    password: input.password ?? account.password,
+  }).where(and(eq(users.username, username), eq(users.role, "admin")));
+  return getAdminUserByUsername(username);
+}
+
+export async function setAdminUserActive(username: string, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ isActive }).where(and(eq(users.username, username), eq(users.role, "admin")));
+  return getAdminUserByUsername(username);
+}
+
+export async function deleteAdminUser(username: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(users).where(and(eq(users.username, username), eq(users.role, "admin")));
+}
+
+export async function countActiveAdminUsers() {
+  const accounts = await listAdminUsers();
+  return accounts.filter(account => account.isActive).length;
+}
+
 // Dental services queries
 export async function getAllServices(): Promise<Service[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(services).where(eq(services.isActive, true));
+}
+
+export async function getAllServicesForAdmin(): Promise<Service[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(services);
@@ -101,6 +166,33 @@ export async function getServiceById(id: number): Promise<Service | undefined> {
   if (!db) return undefined;
   const result = await db.select().from(services).where(eq(services.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createService(input: { name: string; description?: string; duration: number; isActive?: boolean }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(services).values({
+    name: input.name,
+    description: input.description,
+    duration: input.duration,
+    isActive: input.isActive ?? true,
+  });
+  const created = await db.select().from(services).where(eq(services.id, Number(result[0].insertId))).limit(1);
+  return created[0];
+}
+
+export async function updateService(id: number, input: { name: string; description?: string; duration: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(services).set(input).where(eq(services.id, id));
+  return getServiceById(id);
+}
+
+export async function setServiceActive(id: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(services).set({ isActive }).where(eq(services.id, id));
+  return getServiceById(id);
 }
 
 // Dentists queries
