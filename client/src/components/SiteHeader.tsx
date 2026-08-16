@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/", label: "الرئيسية" },
+  { href: "/#branches", label: "المجموعة" },
   { href: "/services", label: "خدماتنا" },
   { href: "/doctors", label: "الأطباء" },
   { href: "/branches", label: "فروعنا" },

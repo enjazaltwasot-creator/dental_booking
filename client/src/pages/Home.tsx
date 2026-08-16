@@ -1,22 +1,64 @@
 import { Link } from "wouter";
 import {
   ArrowLeft,
+  ArrowUpLeft,
+  Building2,
   CalendarCheck,
+  CheckCircle2,
+  ChevronLeft,
+  HeartPulse,
   MapPin,
-  Phone,
+  ScanFace,
   ShieldCheck,
   Sparkles,
   Stethoscope,
   Timer,
+  UsersRound,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
-import { BRANCHES, CLINIC } from "@/lib/clinic";
+import { BRANCHES, CLINIC, DEPARTMENTS } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
-const HIGHLIGHTS = [
-  { icon: Timer, title: "حجز في دقائق", text: "اختر الخدمة والطبيب والموعد المناسب لك بخطوات بسيطة." },
-  { icon: ShieldCheck, title: "أطباء معتمدون", text: "نخبة من الأطباء ذوي الخبرة في مختلف التخصصات." },
-  { icon: MapPin, title: "ثلاثة فروع", text: "مواقع استراتيجية في الرياض تسهّل الوصول إليك." },
+const PILLARS = [
+  {
+    icon: Stethoscope,
+    title: "رعاية تخصصية متكاملة",
+    text: "خدمات الأسنان والجلدية والليزر ضمن تجربة علاجية مترابطة.",
+  },
+  {
+    icon: Building2,
+    title: "فروع قريبة منك",
+    text: "ثلاثة مواقع في الرياض، لتختار الفرع الأنسب لموعدك.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "تجربة منظمة وواضحة",
+    text: "رحلة حجز رقمية بسيطة تبدأ من اختيار الخدمة وتنتهي بتأكيد الموعد.",
+  },
+];
+
+const DEPARTMENT_META = [
+  { icon: Stethoscope, tone: "bg-sky-50 text-primary", text: "حلول وقائية وعلاجية وتجميليّة لصحة الفم والأسنان." },
+  { icon: ScanFace, tone: "bg-amber-50 text-amber-700", text: "رعاية متخصصة للبشرة والتجميل بإشراف طبي." },
+  { icon: Sparkles, tone: "bg-emerald-50 text-emerald-700", text: "جلسات ليزر وخدمات حديثة ضمن بيئة مريحة." },
+];
+
+const TRUST_SIGNALS = [
+  {
+    icon: CheckCircle2,
+    title: "وضوح في رحلة الرعاية",
+    text: "تظهر الخدمة والطبيب والموعد بوضوح قبل إرسال طلب الحجز.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "خصوصية بيانات المراجعين",
+    text: "تُستخدم بيانات الحجز بالقدر اللازم لتنسيق الموعد والتواصل بشأنه.",
+  },
+  {
+    icon: MapPin,
+    title: "سهولة الوصول",
+    text: "ثلاثة فروع داخل الرياض تمنحك خيارات أقرب إلى موقعك.",
+  },
 ];
 
 export default function Home() {
@@ -25,193 +67,253 @@ export default function Home() {
 
   return (
     <PageShell>
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border">
-        <div
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(120% 90% at 85% 0%, oklch(0.95 0.04 235) 0%, transparent 55%), radial-gradient(90% 80% at 5% 20%, oklch(0.97 0.03 200) 0%, transparent 60%)",
-          }}
-        />
-        <div className="container grid items-center gap-12 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
-          <div className="rise-in">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-1.5 text-xs font-semibold text-primary shadow-sm">
+      {/* Corporate hero: intentionally content-led, rather than a generic clinic banner. */}
+      <section className="relative isolate overflow-hidden border-b border-border bg-white">
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_85%_20%,rgba(33,105,181,0.12),transparent_28%),radial-gradient(circle_at_5%_85%,rgba(249,115,22,0.11),transparent_24%)]" />
+        <div className="container grid gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:py-20">
+          <div className="order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-xs font-bold text-primary">
               <Sparkles className="size-3.5" />
-              مركز طبي متخصص
-            </span>
-
-            <h1 className="mt-6 text-4xl font-extrabold leading-[1.25] tracking-tight text-foreground sm:text-5xl lg:text-[3.4rem]">
+              منظومة رعاية صحية متخصصة في الرياض
+            </div>
+            <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.22] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               {CLINIC.name}
+              <span className="mt-2 block text-primary">رعاية تُبنى حولك.</span>
             </h1>
-            <p className="mt-3 text-lg font-bold text-primary sm:text-xl">
-              {CLINIC.tagline}
+            <p className="mt-5 max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg">
+              نجمع بين التخصص الطبي وسهولة الوصول إلى الخدمة؛ من خلال ثلاثة فروع ورحلة حجز رقمية واضحة تضع احتياج المراجع أولاً.
             </p>
-            <p className="mt-5 max-w-xl text-[15px] leading-8 text-muted-foreground">
-              {CLINIC.description}
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/booking"
-                className="inline-flex items-center gap-2 rounded-xl bg-accent px-7 py-3.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:shadow-md"
+                className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <CalendarCheck className="size-4" />
-                احجز موعدك الآن
+                ابدأ حجز موعد
               </Link>
-              <Link
-                href="/doctors"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-7 py-3.5 text-sm font-bold text-foreground transition-all duration-200 hover:border-primary/40 hover:shadow-md"
+              <a
+                href="#branches"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-6 py-3.5 text-sm font-bold text-foreground transition-all duration-200 hover:border-primary/30 hover:shadow-sm"
               >
-                تعرّف على أطبائنا
+                استكشف فروع المجموعة
                 <ArrowLeft className="size-4" />
-              </Link>
+              </a>
+            </div>
+            <div className="mt-10 grid max-w-2xl grid-cols-3 divide-x divide-x-reverse divide-border rounded-2xl border border-border bg-white/85 p-4 shadow-sm">
+              <div className="px-3 text-center">
+                <strong className="block text-2xl font-extrabold text-primary">3</strong>
+                <span className="mt-1 block text-xs font-semibold text-muted-foreground">فروع في الرياض</span>
+              </div>
+              <div className="px-3 text-center">
+                <strong className="block text-2xl font-extrabold text-primary">3</strong>
+                <span className="mt-1 block text-xs font-semibold text-muted-foreground">مجالات تخصصية</span>
+              </div>
+              <div className="px-3 text-center">
+                <strong className="block text-2xl font-extrabold text-primary">1</strong>
+                <span className="mt-1 block text-xs font-semibold text-muted-foreground">رحلة حجز موحّدة</span>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-4 rise-in sm:grid-cols-2 lg:grid-cols-1">
-            {HIGHLIGHTS.map(item => (
-              <div
-                key={item.title}
-                className="flex items-start gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md"
-              >
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <item.icon className="size-5" />
-                </span>
-                <div>
-                  <h3 className="text-base font-bold text-foreground">{item.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.text}</p>
+          <div className="order-1 lg:order-2">
+            <div className="relative overflow-hidden rounded-[2rem] bg-primary p-6 text-primary-foreground shadow-xl shadow-primary/15 sm:p-8">
+              <div className="absolute -left-20 -top-24 size-56 rounded-full border-[32px] border-white/10" />
+              <div className="absolute -bottom-28 -right-20 size-64 rounded-full bg-accent/90 blur-2xl" />
+              <div className="relative">
+                <div className="flex items-center justify-between border-b border-white/15 pb-5">
+                  <span className="text-xs font-bold tracking-[0.2em] text-white/70">EVAN MEDICAL GROUP</span>
+                  <span className="grid size-11 place-items-center rounded-2xl bg-white/12">
+                    <HeartPulse className="size-5" />
+                  </span>
+                </div>
+                <div className="py-10">
+                  <p className="text-sm font-semibold text-white/70">رؤيتنا في الرعاية</p>
+                  <h2 className="mt-3 max-w-md text-3xl font-extrabold leading-tight sm:text-4xl">
+                    منظومة صحية إنسانية، قريبة، ومتصلة.
+                  </h2>
+                  <p className="mt-4 max-w-md text-sm leading-7 text-white/75">
+                    صفحة واحدة تفتح لك الطريق إلى فروع المجموعة وخدماتها وفريقها الطبي.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {BRANCHES.map((branch, index) => (
+                    <div key={branch.name} className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
+                      <span className="text-xs font-bold text-accent-foreground">0{index + 1}</span>
+                      <p className="mt-5 text-sm font-bold">{branch.name.replace("فرع ", "")}</p>
+                      <p className="mt-1 text-[11px] text-white/65">الرياض</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Services */}
+      <section className="border-b border-border bg-secondary/45 py-6">
+        <div className="container grid gap-3 md:grid-cols-3">
+          {PILLARS.map((pillar) => (
+            <div key={pillar.title} className="flex items-center gap-3 px-2 py-2">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-primary shadow-sm">
+                <pillar.icon className="size-5" />
+              </span>
+              <div>
+                <h2 className="text-sm font-extrabold text-foreground">{pillar.title}</h2>
+                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{pillar.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="py-12 lg:py-16">
+        <div className="container rounded-[1.75rem] border border-border bg-white p-5 shadow-sm sm:p-7">
+          <div className="grid gap-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
+            <div className="border-b border-border pb-6 lg:border-b-0 lg:border-l lg:pb-0 lg:pl-7">
+              <span className="text-xs font-bold tracking-[0.17em] text-accent">عناصر الثقة</span>
+              <h2 className="mt-3 text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">تجربة طبية تبدأ بالوضوح.</h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">نصمم تجربة المراجع حول معلومات واضحة، خصوصية محترمة، وفروع قريبة.</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {TRUST_SIGNALS.map((signal) => (
+                <article key={signal.title} className="rounded-2xl bg-secondary/60 p-4">
+                  <span className="grid size-10 place-items-center rounded-xl bg-white text-primary shadow-sm">
+                    <signal.icon className="size-5" />
+                  </span>
+                  <h3 className="mt-4 text-sm font-extrabold text-foreground">{signal.title}</h3>
+                  <p className="mt-2 text-xs leading-6 text-muted-foreground">{signal.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The three branch portals are the central holding-company interaction. */}
+      <section id="branches" className="py-16 lg:py-24">
+        <div className="container">
+          <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div className="max-w-2xl">
+              <span className="text-xs font-bold tracking-[0.17em] text-accent">بوابات الفروع</span>
+              <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">
+                اختر الفرع الأقرب،
+                <span className="text-primary"> وابدأ رحلتك من المكان المناسب.</span>
+              </h2>
+              <p className="mt-4 text-[15px] leading-8 text-muted-foreground">
+                في النسخة الكاملة ستكون لكل بوابة صفحة مستقلة تشمل التخصصات والأطباء والخريطة والحجز الخاص بالفرع.
+              </p>
+            </div>
+            <Link href="/branches" className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
+              عرض دليل الفروع
+              <ArrowLeft className="size-4" />
+            </Link>
+          </div>
+
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {BRANCHES.map((branch, index) => {
+              const tones = ["from-sky-50 to-white", "from-emerald-50 to-white", "from-orange-50 to-white"];
+              const marks = ["bg-primary", "bg-emerald-500", "bg-accent"];
+              return (
+                <article key={branch.name} className={`group relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br ${tones[index]} p-7 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md`}>
+                  <span className={`absolute left-0 top-0 h-full w-1 ${marks[index]}`} />
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="grid size-12 place-items-center rounded-2xl bg-white text-primary shadow-sm">
+                      <MapPin className="size-5" />
+                    </span>
+                    <span className="text-xs font-bold text-muted-foreground">0{index + 1}</span>
+                  </div>
+                  <h3 className="mt-8 text-2xl font-extrabold text-foreground">{branch.name}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{branch.city}</p>
+                  <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
+                    <span className="text-xs font-semibold text-muted-foreground">تخصصات وأطباء وحجز</span>
+                    <Link href="/booking" className="inline-flex items-center gap-1 text-sm font-extrabold text-primary transition-transform duration-200 group-hover:-translate-x-1">
+                      استكشف الفرع <ChevronLeft className="size-4" />
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-border bg-slate-950 py-16 text-white lg:py-20">
+        <div className="container grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-orange-300">
+              <CheckCircle2 className="size-3.5" />
+              نطاقات الرعاية
+            </span>
+            <h2 className="mt-5 text-3xl font-extrabold leading-tight sm:text-4xl">
+              من التخصص إلى التجربة، تحت مظلة واحدة.
+            </h2>
+            <p className="mt-4 max-w-md text-[15px] leading-8 text-slate-300">
+              تعرف على محاور الرعاية المتاحة لدى المجموعة، ثم انتقل مباشرة إلى الحجز لاختيار الخدمة والطبيب والموعد.
+            </p>
+            <Link href="/services" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-orange-300 hover:text-orange-200">
+              عرض جميع الخدمات <ArrowUpLeft className="size-4" />
+            </Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
+            {DEPARTMENTS.map((department, index) => {
+              const item = DEPARTMENT_META[index];
+              return (
+                <article key={department} className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 transition-colors duration-200 hover:bg-white/[0.1]">
+                  <span className={`grid size-11 place-items-center rounded-xl ${item.tone}`}>
+                    <item.icon className="size-5" />
+                  </span>
+                  <h3 className="mt-7 text-lg font-extrabold">{department}</h3>
+                  <p className="mt-3 text-sm leading-7 text-slate-300">{item.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 lg:py-20">
-        <div className="container">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-accent">خدماتنا</span>
-              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
-                رعاية شاملة لصحتك وجمالك
-              </h2>
-            </div>
-            <Link href="/services" className="text-sm font-bold text-primary hover:underline">
-              عرض جميع الخدمات
+        <div className="container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <div className="rounded-3xl border border-border bg-secondary/55 p-7 sm:p-9">
+            <span className="grid size-12 place-items-center rounded-2xl bg-white text-primary shadow-sm"><UsersRound className="size-5" /></span>
+            <h2 className="mt-6 text-3xl font-extrabold text-foreground">فريق طبي قريب من احتياجك</h2>
+            <p className="mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
+              يتيح الموقع الوصول إلى الأطباء المتاحين والتخصصات، ثم يربط الحجز بالطبيب والموعد ضمن خطوات واضحة.
+            </p>
+            <Link href="/doctors" className="mt-7 inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white px-5 py-3 text-sm font-extrabold text-primary transition-all duration-200 hover:shadow-sm">
+              تعرّف على الفريق الطبي <ArrowLeft className="size-4" />
             </Link>
           </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {(services ?? []).slice(0, 6).map(service => (
-              <article
-                key={service.id}
-                className="group rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
-              >
-                <span className="grid size-12 place-items-center rounded-xl bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
-                  <Stethoscope className="size-5" />
-                </span>
-                <h3 className="mt-5 text-lg font-bold text-foreground">{service.name}</h3>
-                <p className="mt-2 text-sm leading-7 text-muted-foreground">{service.description}</p>
-                <p className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
-                  <Timer className="size-3.5" />
-                  {service.duration} دقيقة
-                </p>
-              </article>
-            ))}
-
-            {!services && (
-              <>
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="h-52 animate-pulse rounded-2xl border border-border bg-secondary/50" />
-                ))}
-              </>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Doctors */}
-      <section className="border-y border-border bg-secondary/30 py-16 lg:py-20">
-        <div className="container">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-accent">فريقنا</span>
-              <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
-                أطباء متخصصون بخبرة عالية
-              </h2>
-            </div>
-            <Link href="/doctors" className="text-sm font-bold text-primary hover:underline">
-              عرض جميع الأطباء
-            </Link>
-          </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {(dentists ?? []).map(doctor => (
-              <article
-                key={doctor.id}
-                className="rounded-2xl border border-border bg-white p-6 text-center shadow-sm transition-all duration-200 hover:shadow-md"
-              >
-                <span className="mx-auto grid size-16 place-items-center rounded-full bg-primary/10 text-xl font-extrabold text-primary">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(dentists ?? []).slice(0, 4).map((doctor) => (
+              <article key={doctor.id} className="flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-extrabold text-primary">
                   {doctor.name.replace("د.", "").trim().charAt(0)}
                 </span>
-                <h3 className="mt-4 text-base font-bold text-foreground">{doctor.name}</h3>
-                <p className="mt-1 text-sm font-semibold text-primary">{doctor.specialization}</p>
+                <div>
+                  <h3 className="text-sm font-extrabold text-foreground">{doctor.name}</h3>
+                  <p className="mt-1 text-xs font-semibold text-primary">{doctor.specialization}</p>
+                </div>
               </article>
             ))}
+            {!dentists && [0, 1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary" />)}
           </div>
         </div>
       </section>
 
-      {/* Branches */}
-      <section className="py-16 lg:py-20">
-        <div className="container">
-          <div className="text-center">
-            <span className="text-xs font-bold uppercase tracking-widest text-accent">فروعنا</span>
-            <h2 className="mt-2 text-3xl font-extrabold text-foreground sm:text-4xl">
-              نخدمك من ثلاثة مواقع
-            </h2>
-          </div>
-
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {BRANCHES.map(branch => (
-              <article
-                key={branch.name}
-                className="rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
-              >
-                <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
-                  <MapPin className="size-5 text-primary" />
-                  {branch.name}
-                </h3>
-                <p className="mt-2 text-sm text-muted-foreground">{branch.city}</p>
-                <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-foreground" dir="ltr">
-                  <Phone className="size-4 text-primary" />
-                  {branch.phone}
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
       <section className="pb-20">
         <div className="container">
-          <div className="overflow-hidden rounded-3xl border border-border bg-primary px-8 py-14 text-center shadow-sm">
-            <h2 className="text-3xl font-extrabold text-primary-foreground sm:text-4xl">
-              اختيارك الصحيح تجده معنا
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-primary-foreground/85">
-              سجّل موعدك الآن واحصل على استشارة مع نخبة من الأطباء المتخصصين.
-            </p>
-            <Link
-              href="/booking"
-              className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-8 py-3.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:shadow-md"
-            >
-              <CalendarCheck className="size-4" />
-              سجّل موعدك الآن
-            </Link>
+          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-l from-primary to-[#0a497e] px-7 py-12 text-center text-white shadow-lg shadow-primary/15 sm:px-12">
+            <div className="pointer-events-none absolute -left-14 top-1/2 size-48 -translate-y-1/2 rounded-full border-[26px] border-white/10" />
+            <div className="pointer-events-none absolute -right-16 -top-14 size-48 rounded-full bg-accent/80 blur-3xl" />
+            <div className="relative mx-auto max-w-2xl">
+              <p className="text-sm font-bold text-orange-200">الخطوة التالية</p>
+              <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">ابدأ من الفرع الذي يناسبك.</h2>
+              <p className="mt-4 text-[15px] leading-8 text-white/80">اختر الخدمة، ثم الطبيب، ثم الموعد المناسب، وستصل إلى تأكيد حجز واضح برقم مرجعي.</p>
+              <Link href="/booking" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-7 py-3.5 text-sm font-extrabold text-accent-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                <CalendarCheck className="size-4" />
+                احجز موعداً الآن
+              </Link>
+            </div>
           </div>
         </div>
       </section>
