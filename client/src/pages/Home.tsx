@@ -236,8 +236,8 @@ export default function Home() {
             <p className="mt-4 max-w-md text-[15px] leading-8 text-slate-300">
               تعرف على محاور الرعاية المتاحة لدى المجموعة، ثم انتقل مباشرة إلى الحجز لاختيار الخدمة والطبيب والموعد.
             </p>
-            <Link href="/services" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-orange-200 hover:text-orange-100">
-              عرض جميع الخدمات <ArrowUpLeft className="size-4" />
+            <Link href="/specialties" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-orange-200 hover:text-orange-100">
+              استكشف جميع التخصصات <ArrowUpLeft className="size-4" />
             </Link>
           </div>
           <div className="grid gap-4 md:grid-cols-3">

@@ -11,9 +11,9 @@ export default function ServicesList() {
     <PageShell>
       <section className="border-b border-border bg-secondary/30 py-14">
         <div className="container text-center">
-          <span className="inline-flex rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-extrabold text-primary">تخصصات مجموعة إيفان الطبية</span>
-          <h1 className="mt-4 text-3xl font-extrabold text-foreground sm:text-4xl">رعاية متخصصة، ضمن منظومة واحدة</h1>
-          <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-muted-foreground">
+          <span className="rise-in inline-flex rounded-full border border-primary/15 bg-white px-3 py-1 text-xs font-extrabold text-primary">تخصصات مجموعة إيفان الطبية</span>
+          <h1 className="rise-in mt-4 text-3xl font-extrabold text-foreground sm:text-4xl" style={{ animationDelay: "80ms" }}>رعاية متخصصة، ضمن منظومة واحدة</h1>
+          <p className="rise-in mx-auto mt-3 max-w-xl text-[15px] leading-8 text-muted-foreground" style={{ animationDelay: "150ms" }}>
             نعرض التخصصات والخدمات المعلنة للمجموعة بوضوح، لتبدأ من القسم الأنسب ثم تنتقل إلى الحجز.
           </p>
         </div>
@@ -30,13 +30,14 @@ export default function ServicesList() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-3">
-            {SPECIALTIES.map(specialty => (
-              <article key={specialty.id} className="group overflow-hidden rounded-3xl border border-border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+            {SPECIALTIES.map((specialty, index) => (
+              <article key={specialty.id} style={{ animationDelay: `${120 + index * 80}ms` }} className="rise-in group relative overflow-hidden rounded-3xl border border-border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-md">
+                <span className="pointer-events-none absolute inset-x-8 top-0 h-0.5 origin-right scale-x-0 bg-accent transition-transform duration-300 group-hover:scale-x-100" />
                 <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
-                  <img src={specialty.image} alt={specialty.imageAlt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/65 to-transparent" />
-                  <span className="absolute bottom-4 right-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-primary shadow-sm">{specialty.subtitle}</span>
-                  <span className="absolute bottom-4 left-4 text-2xl font-black tracking-tight text-white/85">{specialty.number}</span>
+                  <img src={specialty.image} alt={specialty.imageAlt} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/65 to-transparent transition-opacity duration-300 group-hover:opacity-85" />
+                  <span className="absolute bottom-4 right-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-primary shadow-sm transition-transform duration-300 group-hover:-translate-y-1">{specialty.subtitle}</span>
+                  <span className="absolute bottom-4 left-4 text-2xl font-black tracking-tight text-white/85 transition-transform duration-300 group-hover:-translate-y-1">{specialty.number}</span>
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-extrabold text-foreground">{specialty.title}</h3>
@@ -80,10 +81,11 @@ export default function ServicesList() {
           )}
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {(services ?? []).map(service => (
+            {(services ?? []).map((service, index) => (
               <article
                 key={service.id}
-                className="group flex flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
+                style={{ animationDelay: `${100 + index * 60}ms` }}
+                className="rise-in group flex flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-md"
               >
                 <span className="grid size-12 place-items-center rounded-xl bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground">
                   <Stethoscope className="size-5" />
