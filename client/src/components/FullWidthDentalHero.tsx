@@ -12,11 +12,20 @@ export default function FullWidthDentalHero() {
       <motion.img
         src={DENTAL_HERO_ASSET}
         alt="مشهد ثلاثي الأبعاد لسنّ أبيض يرمز إلى الرعاية السنية المتخصصة"
-        className="absolute inset-0 -z-20 h-full w-full object-cover object-[33%_center] sm:object-[38%_center] lg:object-center"
-        initial={{ scale: 1.04 }}
-        animate={reduceMotion ? undefined : { scale: [1.04, 1.085, 1.04], x: [0, -8, 0], y: [0, 3, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-[33%_center] sm:object-[38%_center] lg:hidden"
+        initial={{ scale: 1.03 }}
+        animate={reduceMotion ? undefined : { scale: [1.03, 1.07, 1.03], x: [0, -5, 0], y: [0, 3, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
       />
+      <motion.div
+        aria-hidden="true"
+        className="absolute -left-8 top-1/2 -z-20 hidden w-[54%] -translate-y-1/2 lg:block"
+        initial={false}
+        animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: [-8, 14, -8], y: [-8, 8, -8], rotate: [-0.55, 0.65, -0.55], scale: [1, 1.025, 1] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <img src={DENTAL_HERO_ASSET} alt="" className="h-auto w-full" />
+      </motion.div>
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-l from-white via-white/74 to-primary/5 lg:via-white/50 lg:to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 -z-10 bg-gradient-to-t from-white/85 to-transparent" />
 
