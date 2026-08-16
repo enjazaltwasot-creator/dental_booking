@@ -132,3 +132,19 @@ export const crmSyncEvents = mysqlTable("crm_sync_events", {
 ]);
 
 export type CrmSyncEvent = typeof crmSyncEvents.$inferSelect;
+
+/** Idempotent action inbox for future WhatsApp interactive-message replies. */
+export const bookingActionRequests = mysqlTable("booking_action_requests", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("booking_id").notNull(),
+  action: mysqlEnum("action", ["confirm", "reschedule", "cancel"]).notNull(),
+  source: mysqlEnum("source", ["whatsapp"]).notNull(),
+  externalMessageId: varchar("external_message_id", { length: 160 }).notNull(),
+  status: mysqlEnum("status", ["pending", "processed", "rejected"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("booking_action_requests_message_unique").on(table.externalMessageId),
+]);
+
+export type BookingActionRequest = typeof bookingActionRequests.$inferSelect;

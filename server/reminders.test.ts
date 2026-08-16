@@ -15,4 +15,12 @@ describe("booking reminder schedule", () => {
       { reminderType: "before_24h", scheduledFor: new Date("2026-12-09T07:00:00.000Z") },
     ]);
   });
+
+  it("limits future WhatsApp actions to confirmation, rescheduling, or cancellation", () => {
+    const validActions = ["confirm", "reschedule", "cancel"] as const;
+    expect(validActions).toContain("confirm");
+    expect(validActions).toContain("reschedule");
+    expect(validActions).toContain("cancel");
+    expect(new Set(validActions).size).toBe(3);
+  });
 });

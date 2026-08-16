@@ -23,11 +23,13 @@ export default function FullWidthGroupHero() {
 
   return (
     <section className="relative isolate min-h-[670px] overflow-hidden border-b border-primary/10 bg-slate-100 sm:min-h-[690px] lg:min-h-[720px]">
-      <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 -z-20 h-full w-full object-cover" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
+      <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
         <source src={NATURE_HERO_VIDEO} type="video/mp4" />
       </video>
 
-      <div className="container flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
+      <div aria-hidden="true" className="absolute inset-0 z-0 bg-gradient-to-l from-white/20 via-slate-950/8 to-slate-950/35" />
+
+      <div className="container relative z-10 flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
         <div
           className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl"
           onPointerMove={updateTilt}

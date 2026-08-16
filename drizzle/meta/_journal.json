@@ -43,6 +43,13 @@
       "when": 1786883928288,
       "tag": "0005_clumsy_paibok",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1786884254930,
+      "tag": "0006_bizarre_falcon",
+      "breakpoints": true
     }
   ]
 }

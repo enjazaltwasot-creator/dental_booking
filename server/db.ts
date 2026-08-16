@@ -1,6 +1,6 @@
 import { desc, eq, and, gte, lte, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, Booking, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour } from "../drizzle/schema";
+import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -243,6 +243,28 @@ export async function getCrmSyncEvents(resourceReference: string): Promise<CrmSy
   const db = await getDb();
   if (!db) return [];
   return db.select().from(crmSyncEvents).where(eq(crmSyncEvents.resourceReference, resourceReference));
+}
+
+export async function queueBookingActionRequest(input: {
+  bookingId: number;
+  action: "confirm" | "reschedule" | "cancel";
+  externalMessageId: string;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(bookingActionRequests).values({
+    bookingId: input.bookingId,
+    action: input.action,
+    source: "whatsapp",
+    externalMessageId: input.externalMessageId,
+    status: "pending",
+  }).onDuplicateKeyUpdate({ set: { externalMessageId: input.externalMessageId } });
+}
+
+export async function getBookingActionRequests(bookingId: number): Promise<BookingActionRequest[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookingActionRequests).where(eq(bookingActionRequests.bookingId, bookingId));
 }
 
 export async function getBookingsByDentistAndDate(dentistId: number, appointmentDate: Date): Promise<Booking[]> {
