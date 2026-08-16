@@ -5,6 +5,8 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { nanoid } from "nanoid";
+import { generateClinicAssistantReply } from "./clinicAssistant";
+import { notifyOwner } from "./_core/notification";
 
 export const appRouter = router({
   system: systemRouter,
@@ -56,6 +58,19 @@ export const appRouter = router({
       const adminCookie = ctx.req.headers.cookie?.includes('admin_session=authenticated');
       return { isAuthenticated: !!adminCookie };
     }),
+  }),
+
+  assistant: router({
+    chat: publicProcedure
+      .input(z.object({
+        messages: z.array(z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string().trim().min(1).max(1500),
+        })).min(1).max(10),
+      }))
+      .mutation(async ({ input }) => ({
+        reply: await generateClinicAssistantReply(input.messages),
+      })),
   }),
 
   // Services
@@ -146,7 +161,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
-        return db.createBooking({
+        const booking = await db.createBooking({
           referenceNumber,
           branch: input.branch,
           dentistId: input.dentistId,
@@ -157,6 +172,16 @@ export const appRouter = router({
           appointmentTime: input.appointmentTime,
           notes: input.notes,
         });
+        await db.createBookingReminderQueue(booking);
+        try {
+          await notifyOwner({
+            title: "طلب حجز جديد — مجموعة إيفان الطبية",
+            content: `تم تسجيل حجز جديد بالرقم ${booking.referenceNumber} في فرع ${input.branch}. الموعد: ${input.appointmentDate.toLocaleDateString("ar-SA")} الساعة ${input.appointmentTime}.`,
+          });
+        } catch (error) {
+          console.warn("[Booking] Owner notification failed", error);
+        }
+        return booking;
       }),
 
     getByReferenceNumber: publicProcedure

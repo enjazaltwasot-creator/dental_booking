@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import {
+  BellRing,
   CalendarClock,
   CheckCircle2,
   Loader2,
@@ -27,6 +28,8 @@ export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [newBookingCount, setNewBookingCount] = useState(0);
+  const knownBookingIds = useRef<Set<number> | null>(null);
 
   const utils = trpc.useUtils();
   const { data: auth, isLoading: checkingAuth } = trpc.admin.checkAuth.useQuery();
@@ -41,7 +44,11 @@ export default function AdminDashboard() {
     isLoading: loadingBookings,
     isFetching,
     refetch,
-  } = trpc.bookings.getAll.useQuery(undefined, { enabled: authed });
+  } = trpc.bookings.getAll.useQuery(undefined, {
+    enabled: authed,
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+  });
 
   const { data: services } = trpc.services.list.useQuery(undefined, { enabled: authed });
   const { data: dentists } = trpc.dentists.list.useQuery(undefined, { enabled: authed });
@@ -60,6 +67,26 @@ export default function AdminDashboard() {
       navigate("/admin-login");
     },
   });
+
+  useEffect(() => {
+    if (!bookings) return;
+    const currentIds = new Set(bookings.map(booking => booking.id));
+    if (!knownBookingIds.current) {
+      knownBookingIds.current = currentIds;
+      return;
+    }
+
+    const arrived = bookings.filter(booking => !knownBookingIds.current?.has(booking.id));
+    knownBookingIds.current = currentIds;
+    if (arrived.length === 0) return;
+
+    setNewBookingCount(current => current + arrived.length);
+    toast.success(
+      arrived.length === 1
+        ? `وصل طلب حجز جديد باسم ${arrived[0].patientName}`
+        : `وصلت ${arrived.length} طلبات حجز جديدة`
+    );
+  }, [bookings]);
 
   const stats = useMemo(() => {
     const list = bookings ?? [];
@@ -104,14 +131,29 @@ export default function AdminDashboard() {
               لوحة إدارة الحجوزات
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => logout.mutate()}
-            className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-foreground transition-all duration-200 hover:shadow-sm"
-          >
-            <LogOut className="size-4" />
-            خروج
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setNewBookingCount(0)}
+              aria-label="عرض تنبيهات الحجوزات"
+              className="relative grid size-10 place-items-center rounded-xl border border-border bg-white text-primary transition-all duration-200 hover:shadow-sm"
+            >
+              <BellRing className="size-4" />
+              {newBookingCount > 0 && (
+                <span className="absolute -end-1 -top-1 grid min-w-5 place-items-center rounded-full bg-accent px-1 text-[10px] font-extrabold leading-5 text-accent-foreground">
+                  {newBookingCount > 9 ? "9+" : newBookingCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => logout.mutate()}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-bold text-foreground transition-all duration-200 hover:shadow-sm"
+            >
+              <LogOut className="size-4" />
+              خروج
+            </button>
+          </div>
         </div>
       </header>
 

@@ -22,6 +22,20 @@
       "when": 1786882220544,
       "tag": "0002_wise_spyke",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1786883564580,
+      "tag": "0003_fair_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1786883654844,
+      "tag": "0004_organic_sally_floyd",
+      "breakpoints": true
     }
   ]
 }

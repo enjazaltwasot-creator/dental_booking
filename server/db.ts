@@ -1,6 +1,6 @@
-import { eq, and, gte, lte, ne } from "drizzle-orm";
+import { desc, eq, and, gte, lte, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, dentists, workingHours, bookings, Booking, Service, Dentist, WorkingHour } from "../drizzle/schema";
+import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, Booking, BookingReminder, Service, Dentist, WorkingHour } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -169,7 +169,52 @@ export async function getBookingByReferenceNumber(referenceNumber: string): Prom
 export async function getAllBookings(): Promise<Booking[]> {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(bookings);
+  return db.select().from(bookings).orderBy(desc(bookings.createdAt));
+}
+
+export type BookingReminderType = "booking_created" | "before_48h" | "before_24h";
+
+function toAppointmentStart(date: Date, timeValue: string): Date {
+  const datePart = date.toISOString().slice(0, 10);
+  const timePart = String(timeValue).slice(0, 5).padEnd(5, "0");
+  return new Date(`${datePart}T${timePart}:00+03:00`);
+}
+
+export function buildBookingReminderSchedule(
+  booking: Pick<Booking, "appointmentDate" | "appointmentTime">,
+  createdAt = new Date()
+): Array<{ reminderType: BookingReminderType; scheduledFor: Date }> {
+  const appointmentStart = toAppointmentStart(booking.appointmentDate, String(booking.appointmentTime));
+  return [
+    { reminderType: "booking_created", scheduledFor: createdAt },
+    { reminderType: "before_48h", scheduledFor: new Date(appointmentStart.getTime() - 48 * 60 * 60 * 1000) },
+    { reminderType: "before_24h", scheduledFor: new Date(appointmentStart.getTime() - 24 * 60 * 60 * 1000) },
+  ];
+}
+
+export async function createBookingReminderQueue(booking: Booking): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const reminderTimes = buildBookingReminderSchedule(booking);
+
+  for (const reminder of reminderTimes) {
+    if (reminder.reminderType !== "booking_created" && reminder.scheduledFor.getTime() <= Date.now()) {
+      continue;
+    }
+    await db.insert(bookingReminders).values({
+      bookingId: booking.id,
+      reminderType: reminder.reminderType,
+      scheduledFor: reminder.scheduledFor,
+      status: "pending",
+    }).onDuplicateKeyUpdate({ set: { scheduledFor: reminder.scheduledFor } });
+  }
+}
+
+export async function getBookingReminders(bookingId: number): Promise<BookingReminder[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookingReminders).where(eq(bookingReminders.bookingId, bookingId));
 }
 
 export async function getBookingsByDentistAndDate(dentistId: number, appointmentDate: Date): Promise<Booking[]> {

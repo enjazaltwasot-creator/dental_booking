@@ -1,0 +1,1 @@
+ALTER TABLE `booking_reminders` MODIFY COLUMN `scheduled_for` datetime NOT NULL;

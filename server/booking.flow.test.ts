@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+import { getBookingReminders } from "./db";
 
 function createPublicContext() {
   const cookies: Record<string, unknown>[] = [];
@@ -94,6 +95,13 @@ describe("booking lifecycle", () => {
     expect(created.referenceNumber).toMatch(/^DENTAL-[A-Za-z0-9_-]{8}$/);
     expect(created.status).toBe("pending");
     expect(created.branch).toBe("mahdiyah");
+
+    const reminders = await getBookingReminders(created.id);
+    expect(reminders.map(reminder => reminder.reminderType).sort()).toEqual([
+      "before_24h",
+      "before_48h",
+      "booking_created",
+    ]);
 
     const fetched = await caller.bookings.getByReferenceNumber({
       referenceNumber: created.referenceNumber,

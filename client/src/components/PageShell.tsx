@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import SiteHeader from "./SiteHeader";
 import SiteFooter from "./SiteFooter";
+import EvanAssistant from "./EvanAssistant";
 
 export default function PageShell({ children }: { children: ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function PageShell({ children }: { children: ReactNode }) {
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <EvanAssistant />
     </div>
   );
 }

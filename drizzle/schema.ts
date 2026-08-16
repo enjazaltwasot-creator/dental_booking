@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, time, date, boolean } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, time, date, boolean, uniqueIndex, datetime } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -93,3 +93,24 @@ export const bookings = mysqlTable("bookings", {
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
+
+/**
+ * Delivery queue for booking reminders. Messages stay pending until an approved
+ * provider (WhatsApp Business API) is connected.
+ */
+export const bookingReminders = mysqlTable("booking_reminders", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("booking_id").notNull(),
+  reminderType: mysqlEnum("reminder_type", ["booking_created", "before_48h", "before_24h"]).notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "skipped", "failed"]).default("pending").notNull(),
+  scheduledFor: datetime("scheduled_for", { mode: "date" }).notNull(),
+  processedAt: timestamp("processed_at"),
+  providerReference: varchar("provider_reference", { length: 160 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("booking_reminders_booking_type_unique").on(table.bookingId, table.reminderType),
+]);
+
+export type BookingReminder = typeof bookingReminders.$inferSelect;
+export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
