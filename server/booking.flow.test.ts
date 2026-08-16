@@ -35,6 +35,9 @@ describe("catalog data", () => {
     expect(services.length).toBeGreaterThan(0);
     expect(services[0]).toHaveProperty("name");
     expect(services[0]).toHaveProperty("duration");
+    expect(services.map(service => service.name)).toEqual(
+      expect.arrayContaining(["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان", "خدمات أسنان أخرى"])
+    );
   });
 
   it("returns the seeded dentists", async () => {

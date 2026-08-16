@@ -75,6 +75,42 @@ export const DEPARTMENTS = [
   "قسم الليزر",
 ] as const;
 
+export const SPECIALTIES = [
+  {
+    id: "dentistry",
+    number: "01",
+    title: "طب الأسنان",
+    subtitle: "قسم الأسنان",
+    description:
+      "رعاية سنية تجمع المسارات العلاجية والتجميلية المتاحة في الموقع، ثم تقودك إلى خطوة حجز واضحة ومباشرة.",
+    highlights: ["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان"],
+    image: "/manus-storage/services-overview_66815dcd.jpg",
+    imageAlt: "طبيب يجري فحصاً للأسنان داخل عيادة",
+  },
+  {
+    id: "dermatology-aesthetics",
+    number: "02",
+    title: "الجلدية والتجميل",
+    subtitle: "قسم الجلدية والتجميل",
+    description:
+      "خدمات مخصصة للعناية بالجلد والتجميل ضمن بيئة طبية منظمة، مع ظهور خيارات تجميلية مثل بروفايلو في الخدمات المعلنة سابقاً.",
+    highlights: ["العناية بالجلد", "استشارات تجميلية", "بروفايلو ضمن الخدمات المعلنة"],
+    image: "/manus-storage/clinic-care_9c78a4bb.jpg",
+    imageAlt: "جلسة عناية تجميلية داخل بيئة طبية",
+  },
+  {
+    id: "laser",
+    number: "03",
+    title: "تقنيات الليزر",
+    subtitle: "قسم الليزر",
+    description:
+      "تقنيات ليزر حديثة تظهر ضمن التخصصات المعلنة للمجموعة، مع تواصل منظم لتحديد الخدمة والفرع والموعد المناسب.",
+    highlights: ["تقنيات الليزر", "ليزر الرجال ضمن الخدمات المعلنة", "تنسيق الموعد حسب الفرع"],
+    image: "/manus-storage/laser-care-neutral_0fe7d79f.png",
+    imageAlt: "مراجع يرتدي نظارات واقية خلال جلسة ليزر داخل عيادة",
+  },
+] as const;
+
 export const STATUS_META: Record<
   "pending" | "confirmed" | "cancelled",
   { label: string; className: string }
