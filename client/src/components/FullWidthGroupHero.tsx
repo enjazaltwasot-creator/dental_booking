@@ -3,7 +3,7 @@ import { ArrowLeft, Building2, CalendarCheck } from "lucide-react";
 import { useState } from "react";
 import { Link } from "wouter";
 
-const NATURE_HERO_VIDEO = "/manus-storage/evan-natural-hero_24f8863d.mp4";
+const NATURE_HERO_VIDEO = "/manus-storage/evan-natural-hero-day-extended_5ec37a01.mp4";
 
 export default function FullWidthGroupHero() {
   const reduceMotion = useReducedMotion();
@@ -27,7 +27,7 @@ export default function FullWidthGroupHero() {
         <source src={NATURE_HERO_VIDEO} type="video/mp4" />
       </video>
 
-      <div aria-hidden="true" className="absolute inset-0 z-0 bg-gradient-to-l from-white/20 via-slate-950/8 to-slate-950/35" />
+      <div aria-hidden="true" className="absolute inset-0 z-0 bg-gradient-to-l from-white/18 via-slate-950/4 to-slate-950/20" />
 
       <div className="container relative z-10 flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
         <div
