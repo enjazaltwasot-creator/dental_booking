@@ -65,12 +65,12 @@ export default function SiteHeader() {
                 aboutOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-1 opacity-0"
               )}
             >
-              <Link href="/#about" onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-extrabold text-primary hover:bg-secondary">
+              <Link href="/#about" onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-extrabold text-primary transition-all duration-200 hover:-translate-x-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-sm focus-visible:-translate-x-0.5 focus-visible:bg-primary focus-visible:text-primary-foreground">
                 عن المجموعة
               </Link>
               <div className="my-1 border-t border-border" />
               {BRANCH_LINKS.map(branch => (
-                <Link key={branch.href} href={branch.href} onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary hover:text-primary">
+                <Link key={branch.href} href={branch.href} onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-foreground transition-all duration-200 hover:-translate-x-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-sm focus-visible:-translate-x-0.5 focus-visible:bg-primary focus-visible:text-primary-foreground">
                   {branch.label}
                 </Link>
               ))}
@@ -130,11 +130,11 @@ export default function SiteHeader() {
             </Link>
             <div className="rounded-lg px-3 py-3 text-[15px] font-extrabold text-foreground">من نحن</div>
             <div className="mr-3 mb-2 border-r-2 border-primary/15 pr-3">
-              <Link href="/#about" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary hover:bg-secondary">
+              <Link href="/#about" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-all duration-200 active:bg-primary active:text-primary-foreground">
                 عن المجموعة
               </Link>
               {BRANCH_LINKS.map(branch => (
-                <Link key={branch.href} href={branch.href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <Link key={branch.href} href={branch.href} onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 active:translate-x-0.5 active:bg-primary active:text-primary-foreground">
                   {branch.label}
                 </Link>
               ))}
