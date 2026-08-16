@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
-import { getBookingReminders } from "./db";
+import { getBookingReminders, getCrmSyncEvents } from "./db";
 
 function createPublicContext() {
   const cookies: Record<string, unknown>[] = [];
@@ -103,6 +103,10 @@ describe("booking lifecycle", () => {
       "booking_created",
     ]);
 
+    const crmEvents = await getCrmSyncEvents(created.referenceNumber);
+    expect(crmEvents).toHaveLength(1);
+    expect(crmEvents[0]).toMatchObject({ eventType: "booking_created", status: "pending" });
+
     const fetched = await caller.bookings.getByReferenceNumber({
       referenceNumber: created.referenceNumber,
     });
@@ -123,10 +127,22 @@ describe("booking lifecycle", () => {
 
   it("removes a booked slot from availability", async () => {
     const caller = appRouter.createCaller(createPublicContext().ctx);
-    // Monday far in the future; avoids reservations created by earlier test runs.
-    const date = "2099-09-21";
+    let date = "";
+    let before: string[] = [];
+    const start = new Date("2099-09-21T00:00:00.000Z");
 
-    const before = await caller.workingHours.availableSlots({ dentistId: 2, date });
+    for (let offset = 0; offset < 120; offset += 1) {
+      const candidate = new Date(start);
+      candidate.setUTCDate(start.getUTCDate() + offset);
+      const candidateDate = candidate.toISOString().slice(0, 10);
+      const slots = await caller.workingHours.availableSlots({ dentistId: 2, date: candidateDate });
+      if (slots.length > 0) {
+        date = candidateDate;
+        before = slots;
+        break;
+      }
+    }
+
     expect(before.length).toBeGreaterThan(0);
 
     const target = before[0];

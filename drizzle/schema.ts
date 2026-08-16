@@ -114,3 +114,21 @@ export const bookingReminders = mysqlTable("booking_reminders", {
 
 export type BookingReminder = typeof bookingReminders.$inferSelect;
 export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
+
+/** Outbox pattern for CRM synchronization; delivery remains disabled until configured. */
+export const crmSyncEvents = mysqlTable("crm_sync_events", {
+  id: int("id").autoincrement().primaryKey(),
+  eventType: mysqlEnum("event_type", ["booking_created"]).notNull(),
+  resourceReference: varchar("resource_reference", { length: 80 }).notNull(),
+  payload: text("payload").notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "failed"]).default("pending").notNull(),
+  attemptCount: int("attempt_count").default(0).notNull(),
+  lastAttemptAt: timestamp("last_attempt_at"),
+  providerReference: varchar("provider_reference", { length: 160 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("crm_sync_events_resource_type_unique").on(table.resourceReference, table.eventType),
+]);
+
+export type CrmSyncEvent = typeof crmSyncEvents.$inferSelect;

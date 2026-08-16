@@ -173,6 +173,7 @@ export const appRouter = router({
           notes: input.notes,
         });
         await db.createBookingReminderQueue(booking);
+        await db.queueCrmBookingCreatedEvent(booking);
         try {
           await notifyOwner({
             title: "طلب حجز جديد — مجموعة إيفان الطبية",
