@@ -6,7 +6,6 @@ import {
   CalendarCheck,
   CheckCircle2,
   ChevronLeft,
-  HeartPulse,
   MapPin,
   ScanFace,
   ShieldCheck,
@@ -16,6 +15,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import InteractiveCareOrbit from "@/components/InteractiveCareOrbit";
 import { BRANCHES, CLINIC, DEPARTMENTS } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
@@ -122,45 +122,7 @@ export default function Home() {
           </div>
 
           <div className="order-1 lg:order-2">
-            <div className="relative overflow-hidden rounded-[2rem] bg-primary p-6 text-primary-foreground shadow-xl shadow-primary/15 sm:p-8">
-              <div className="absolute -left-20 -top-24 size-56 rounded-full border-[32px] border-white/10" />
-              <div className="absolute -bottom-28 -right-20 size-64 rounded-full bg-accent/90 blur-2xl" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between border-b border-white/15 pb-5">
-                  <span className="text-xs font-bold tracking-[0.2em] text-white/70">EVAN MEDICAL GROUP</span>
-                  <span className="grid size-11 place-items-center rounded-2xl bg-white/12">
-                    <HeartPulse className="size-5" />
-                  </span>
-                </div>
-                <div className="relative mt-5 h-40 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-white/15 via-sky-300/10 to-transparent sm:h-48">
-                  <img
-                    src="/manus-storage/evan-3d-care-orbit_e6f66c40.png"
-                    alt="مجسم ثلاثي الأبعاد يرمز إلى رحلة الرعاية المتصلة"
-                    className="absolute inset-0 h-full w-full object-cover object-center drop-shadow-2xl"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-l from-primary/55 via-transparent to-primary/10" />
-                  <span className="absolute bottom-3 right-4 rounded-full border border-white/20 bg-primary/60 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-white/90 backdrop-blur-sm">CONNECTED CARE</span>
-                </div>
-                <div className="py-7 sm:py-8">
-                  <p className="text-sm font-semibold text-white/70">رؤيتنا في الرعاية</p>
-                  <h2 className="mt-3 max-w-md text-3xl font-extrabold leading-tight sm:text-4xl">
-                    منظومة صحية إنسانية، قريبة، ومتصلة.
-                  </h2>
-                  <p className="mt-4 max-w-md text-sm leading-7 text-white/75">
-                    صفحة واحدة تفتح لك الطريق إلى فروع المجموعة وخدماتها وفريقها الطبي.
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {BRANCHES.map((branch, index) => (
-                    <div key={branch.name} className="rounded-2xl border border-white/15 bg-white/10 p-3 backdrop-blur-sm">
-                      <span className="text-xs font-bold text-accent-foreground">0{index + 1}</span>
-                      <p className="mt-5 text-sm font-bold">{branch.name.replace("فرع ", "")}</p>
-                      <p className="mt-1 text-[11px] text-white/65">الرياض</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <InteractiveCareOrbit />
           </div>
         </div>
       </section>
