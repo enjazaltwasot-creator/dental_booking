@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import {
   BellRing,
+  BookOpenCheck,
   CalendarClock,
   CheckCircle2,
+  Layers3,
   Loader2,
   LogOut,
   RefreshCw,
@@ -12,7 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { BRANCHES, LOGO_SRC, STATUS_META, formatDate, getBranchBySlug } from "@/lib/clinic";
+import { BRANCHES, LOGO_SRC, SPECIALTIES, STATUS_META, formatDate, getBranchBySlug } from "@/lib/clinic";
 import { cn } from "@/lib/utils";
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
@@ -128,7 +130,7 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
             <img src={LOGO_SRC} alt="مجموعة عيادات إيفان الطبية" className="h-10 w-auto" />
             <span className="hidden text-sm font-bold text-muted-foreground sm:block">
-              لوحة إدارة الحجوزات
+              لوحة إدارة الحجوزات والمحتوى
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -165,6 +167,56 @@ export default function AdminDashboard() {
           <StatCard label="مؤكدة" value={stats.confirmed} tone="text-emerald-600" />
           <StatCard label="ملغاة" value={stats.cancelled} tone="text-rose-600" />
         </div>
+
+        <section className="mt-8 grid gap-6 xl:grid-cols-[1.35fr_1fr]">
+          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary"><Layers3 className="size-4" /> التخصصات المعلنة</span>
+                <h2 className="mt-2 text-xl font-extrabold text-foreground">محتوى صفحة التخصصات</h2>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">بطاقات مرجعية للتخصصات والصور المستخدمة في واجهة الموقع.</p>
+              </div>
+              <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-extrabold text-primary">{SPECIALTIES.length} تخصصات</span>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {SPECIALTIES.map(specialty => (
+                <article key={specialty.id} className="overflow-hidden rounded-xl border border-border bg-secondary/20">
+                  <img src={specialty.image} alt="" className="h-24 w-full object-cover" />
+                  <div className="p-3">
+                    <p className="text-xs font-extrabold text-primary">{specialty.number}</p>
+                    <h3 className="mt-1 text-sm font-extrabold text-foreground">{specialty.title}</h3>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">{specialty.subtitle}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <span className="inline-flex items-center gap-2 text-sm font-extrabold text-accent"><BookOpenCheck className="size-4" /> خدمات الحجز</span>
+                <h2 className="mt-2 text-xl font-extrabold text-foreground">خيارات قسم الأسنان</h2>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">هذه الخدمات تظهر للمراجع داخل خطوة اختيار الخدمة.</p>
+              </div>
+              <span className="rounded-full bg-accent/10 px-2.5 py-1 text-xs font-extrabold text-accent">{services?.length ?? 0} خدمات</span>
+            </div>
+
+            <div className="mt-4 divide-y divide-border rounded-xl border border-border">
+              {(services ?? []).map(service => (
+                <div key={service.id} className="flex items-center justify-between gap-3 px-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-foreground">{service.name}</p>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{service.description}</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-extrabold text-emerald-700 ring-1 ring-emerald-200">ظاهر للحجز</span>
+                </div>
+              ))}
+              {!services?.length && <p className="px-3 py-6 text-center text-sm text-muted-foreground">جاري تحميل الخدمات...</p>}
+            </div>
+          </div>
+        </section>
 
         {/* Toolbar */}
         <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm sm:flex-row sm:items-center">
