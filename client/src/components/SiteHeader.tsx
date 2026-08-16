@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const NAV_LINKS = [
   { href: "/#vision", label: "رؤيتنا" },
   { href: "/specialties", label: "تخصصاتنا" },
-  { href: "/#doctors", label: "الأطباء" },
+  { href: "/doctors", label: "الأطباء" },
   { href: "/#partners", label: "شركاء النجاح" },
 ];
 

@@ -68,9 +68,6 @@ const GROUP_VALUES = [
 ];
 
 export default function Home() {
-  const { data: services } = trpc.services.list.useQuery();
-  const { data: dentists } = trpc.dentists.list.useQuery();
-
   return (
     <PageShell>
       <FullWidthGroupHero />
@@ -261,27 +258,24 @@ export default function Home() {
         <div className="container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="rounded-3xl border border-border bg-secondary/55 p-7 sm:p-9">
             <span className="grid size-12 place-items-center rounded-2xl bg-white text-primary shadow-sm"><UsersRound className="size-5" /></span>
-            <h2 className="mt-6 text-3xl font-extrabold text-foreground">فريق طبي قريب من احتياجك</h2>
+            <h2 className="mt-6 text-3xl font-extrabold text-foreground">ملفات مهنية لفريقنا الطبي</h2>
             <p className="mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
-              يتيح الموقع الوصول إلى الأطباء المتاحين والتخصصات، ثم يربط الحجز بالطبيب والموعد ضمن خطوات واضحة.
+              نجهّز لكل طبيب ملفاً مهنياً منظماً يعرض التخصص والخبرة والشهادات بعد اعتماد البيانات الرسمية من إدارة المجموعة.
             </p>
             <Link href="/doctors" className="mt-7 inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white px-5 py-3 text-sm font-extrabold text-primary transition-all duration-200 hover:shadow-sm">
               تعرّف على الفريق الطبي <ArrowLeft className="size-4" />
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {(dentists ?? []).slice(0, 4).map((doctor) => (
-              <article key={doctor.id} className="flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md">
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-base font-extrabold text-primary">
-                  {doctor.name.replace("د.", "").trim().charAt(0)}
-                </span>
+            {["01", "02", "03", "04"].map((number) => (
+              <article key={number} className="flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md">
+                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-extrabold text-primary">{number}</span>
                 <div>
-                  <h3 className="text-sm font-extrabold text-foreground">{doctor.name}</h3>
-                  <p className="mt-1 text-xs font-semibold text-primary">{doctor.specialization}</p>
+                  <h3 className="text-sm font-extrabold text-foreground">ملف الطبيب {number}</h3>
+                  <p className="mt-1 text-xs font-semibold text-primary">يُحدّث بعد اعتماد البيانات</p>
                 </div>
               </article>
             ))}
-            {!dentists && [0, 1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-secondary" />)}
           </div>
         </div>
       </section>
