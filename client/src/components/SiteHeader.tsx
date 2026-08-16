@@ -8,7 +8,6 @@ const NAV_LINKS = [
   { href: "/#vision", label: "رؤيتنا" },
   { href: "/#specialties", label: "تخصصاتنا" },
   { href: "/#doctors", label: "الأطباء" },
-  { href: "/#branches", label: "فروعنا" },
   { href: "/#partners", label: "شركاء النجاح" },
 ];
 
