@@ -129,6 +129,7 @@ export async function getWorkingHoursByDentistAndDay(dentistId: number, dayOfWee
 // Bookings queries
 export async function createBooking(booking: {
   referenceNumber: string;
+  branch: string;
   dentistId: number;
   serviceId: number;
   patientName: string;
@@ -142,6 +143,7 @@ export async function createBooking(booking: {
   
   const result = await db.insert(bookings).values({
     referenceNumber: booking.referenceNumber,
+    branch: booking.branch,
     dentistId: booking.dentistId,
     serviceId: booking.serviceId,
     patientName: booking.patientName,

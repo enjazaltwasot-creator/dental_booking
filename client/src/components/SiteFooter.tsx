@@ -28,7 +28,7 @@ export default function SiteFooter() {
           <h3 className="text-base font-bold text-foreground">فروعنا</h3>
           <ul className="mt-4 space-y-3.5 text-sm text-muted-foreground">
             {BRANCHES.map(branch => (
-              <li key={branch.name} className="space-y-1">
+              <li key={branch.slug} className="space-y-1">
                 <span className="flex items-center gap-2 font-semibold text-foreground">
                   <MapPin className="size-4 text-primary" />
                   {branch.name}

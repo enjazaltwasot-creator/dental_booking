@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { Link, useParams } from "wouter";
-import { CalendarDays, CheckCircle2, Clock, Copy, Loader2, Phone, User } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, Copy, Loader2, MapPin, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 import PageShell from "@/components/PageShell";
 import { trpc } from "@/lib/trpc";
-import { STATUS_META, formatDate } from "@/lib/clinic";
+import { STATUS_META, formatDate, getBranchBySlug } from "@/lib/clinic";
 
 export default function BookingConfirmation() {
   const params = useParams<{ reference: string }>();
@@ -20,6 +20,7 @@ export default function BookingConfirmation() {
 
   const service = services?.find(s => s.id === booking?.serviceId);
   const dentist = dentists?.find(d => d.id === booking?.dentistId);
+  const branch = getBranchBySlug(booking?.branch ?? undefined);
   const status = booking ? STATUS_META[booking.status as keyof typeof STATUS_META] : null;
 
   const copyReference = async () => {
@@ -92,6 +93,7 @@ export default function BookingConfirmation() {
                   <Row icon={<Phone className="size-4 text-primary" />} label="رقم الجوال" value={booking.patientPhone} ltr />
                   <Row icon={<CalendarDays className="size-4 text-primary" />} label="التاريخ" value={formatDate(booking.appointmentDate)} />
                   <Row icon={<Clock className="size-4 text-primary" />} label="الوقت" value={String(booking.appointmentTime).slice(0, 5)} ltr />
+                  {branch && <Row icon={<MapPin className="size-4 text-primary" />} label="الفرع" value={branch.name} />}
                   {service && <Row label="الخدمة" value={service.name} />}
                   {dentist && <Row label="الطبيب" value={`${dentist.name} — ${dentist.specialization}`} />}
                   {booking.notes && <Row label="ملاحظات" value={booking.notes} />}

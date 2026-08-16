@@ -81,6 +81,7 @@ describe("booking lifecycle", () => {
     expect(slots.length).toBeGreaterThan(0);
 
     const created = await caller.bookings.create({
+      branch: "mahdiyah",
       dentistId: 1,
       serviceId: 1,
       patientName: "مريض اختبار آلي",
@@ -92,6 +93,7 @@ describe("booking lifecycle", () => {
 
     expect(created.referenceNumber).toMatch(/^DENTAL-[A-Za-z0-9_-]{8}$/);
     expect(created.status).toBe("pending");
+    expect(created.branch).toBe("mahdiyah");
 
     const fetched = await caller.bookings.getByReferenceNumber({
       referenceNumber: created.referenceNumber,
@@ -121,6 +123,7 @@ describe("booking lifecycle", () => {
 
     const target = before[0];
     await caller.bookings.create({
+      branch: "olaya",
       dentistId: 2,
       serviceId: 1,
       patientName: "اختبار التعارض",
@@ -132,6 +135,22 @@ describe("booking lifecycle", () => {
     const after = await caller.workingHours.availableSlots({ dentistId: 2, date });
     expect(after).not.toContain(target);
     expect(after.length).toBe(before.length - 1);
+  });
+
+  it("rejects an unrecognized branch when creating a booking", async () => {
+    const caller = appRouter.createCaller(createPublicContext().ctx);
+
+    await expect(
+      caller.bookings.create({
+        branch: "unknown-branch" as "mahdiyah",
+        dentistId: 1,
+        serviceId: 1,
+        patientName: "اختبار فرع غير صالح",
+        patientPhone: "0522222222",
+        appointmentDate: "2099-09-21",
+        appointmentTime: "09:00",
+      })
+    ).rejects.toThrow();
   });
 });
 

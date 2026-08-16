@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { LOGO_SRC, STATUS_META, formatDate } from "@/lib/clinic";
+import { BRANCHES, LOGO_SRC, STATUS_META, formatDate, getBranchBySlug } from "@/lib/clinic";
 import { cn } from "@/lib/utils";
 
 type StatusFilter = "all" | "pending" | "confirmed" | "cancelled";
@@ -74,11 +74,13 @@ export default function AdminDashboard() {
   const filtered = useMemo(() => {
     const term = search.trim();
     return (bookings ?? []).filter(b => {
+      const branch = getBranchBySlug(b.branch ?? undefined);
       const matchesStatus = filter === "all" || b.status === filter;
       const matchesSearch =
         !term ||
         b.patientName.includes(term) ||
         b.patientPhone.includes(term) ||
+        branch?.name.includes(term) ||
         b.referenceNumber.toLowerCase().includes(term.toLowerCase());
       return matchesStatus && matchesSearch;
     });
@@ -186,6 +188,7 @@ export default function AdminDashboard() {
                     <Th>الرقم المرجعي</Th>
                     <Th>المريض</Th>
                     <Th>الجوال</Th>
+                    <Th>الفرع</Th>
                     <Th>الموعد</Th>
                     <Th>الخدمة</Th>
                     <Th>الطبيب</Th>
@@ -198,6 +201,7 @@ export default function AdminDashboard() {
                     const meta = STATUS_META[booking.status as keyof typeof STATUS_META];
                     const service = services?.find(s => s.id === booking.serviceId);
                     const dentist = dentists?.find(d => d.id === booking.dentistId);
+                    const branch = getBranchBySlug(booking.branch ?? undefined);
                     const busy = updateStatus.isPending;
 
                     return (
@@ -212,6 +216,7 @@ export default function AdminDashboard() {
                         </Td>
                         <Td><span className="font-semibold text-foreground">{booking.patientName}</span></Td>
                         <Td><span dir="ltr" className="block text-right">{booking.patientPhone}</span></Td>
+                        <Td><span className="font-semibold text-foreground">{branch?.shortName ?? "غير محدد"}</span></Td>
                         <Td>
                           <span className="block text-foreground">{formatDate(booking.appointmentDate)}</span>
                           <span dir="ltr" className="block text-xs text-muted-foreground">

@@ -8,10 +8,66 @@ export const CLINIC = {
 } as const;
 
 export const BRANCHES = [
-  { name: "فرع حي المهدية", city: "الرياض - غرب الرياض", phone: "0112345678" },
-  { name: "فرع حي العليا", city: "الرياض - وسط الرياض", phone: "0112345679" },
-  { name: "فرع حي الأحمدية", city: "الرياض - حي الأحمدية (لبن)", phone: "0112345680" },
+  {
+    slug: "mahdiyah",
+    name: "فرع حي المهدية",
+    shortName: "المهدية",
+    city: "الرياض — غرب الرياض",
+    address: "حي المهدية، غرب الرياض",
+    phone: "0112345678",
+    route: "/branches/al-mahdiyah",
+    bookingPath: "/booking?branch=mahdiyah",
+    mapUrl: "https://maps.app.goo.gl/ikvDqxtpXo7NRkXZ9",
+    mapEmbedUrl: "https://www.google.com/maps?q=24.6553724,46.5126144&z=15&output=embed",
+    coordinates: { lat: 24.6553724, lng: 46.5126144 },
+    image: "/manus-storage/evan-mahdiyah-building-enhanced_dec82603.png",
+    galleryImage: undefined,
+    imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي المهدية",
+  },
+  {
+    slug: "olaya",
+    name: "فرع حي العليا",
+    shortName: "العليا",
+    city: "الرياض — وسط الرياض",
+    address: "عماير السيركون، شارع موسى بن نصير، العليا",
+    phone: "0112345679",
+    route: "/branches/al-olaya",
+    bookingPath: "/booking?branch=olaya",
+    mapUrl: "https://maps.app.goo.gl/7J85tT4cWz7aJqjS6",
+    mapEmbedUrl: "https://www.google.com/maps?q=24.7046584,46.6840428&z=15&output=embed",
+    coordinates: { lat: 24.7046584, lng: 46.6840428 },
+    image: "/manus-storage/evan-olaya-building-night-enhanced_2f58024a.png",
+    galleryImage: "/manus-storage/evan-olaya-building-day-enhanced_4ea1abcc.png",
+    imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي العليا",
+  },
+  {
+    slug: "ahmadiyah-laban",
+    name: "فرع حي الأحمدية — لبن",
+    shortName: "الأحمدية — لبن",
+    city: "الرياض — الأحمدية (لبن)",
+    address: "حي الأحمدية، لبن، غرب الرياض",
+    phone: "0112345680",
+    route: "/branches/al-ahmadiyah-laban",
+    bookingPath: "/booking?branch=ahmadiyah-laban",
+    mapUrl: "https://maps.app.goo.gl/ZroSiioybrMx1UiA8",
+    mapEmbedUrl: "https://www.google.com/maps?q=24.6310446,46.6094759&z=15&output=embed",
+    coordinates: { lat: 24.6310446, lng: 46.6094759 },
+    image: "/manus-storage/evan-ahmadiyah-building-enhanced_1a2b3264.png",
+    galleryImage: undefined,
+    imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي الأحمدية لبن",
+  },
 ] as const;
+
+export type Branch = (typeof BRANCHES)[number];
+export type BranchSlug = Branch["slug"];
+
+export function getBranchBySlug(slug: string | undefined) {
+  return BRANCHES.find(branch => branch.slug === slug);
+}
+
+export function getBranchByRouteSegment(segment: string | undefined) {
+  return BRANCHES.find(branch => branch.route === `/branches/${segment}`);
+}
 
 export const DEPARTMENTS = [
   "قسم الأسنان",

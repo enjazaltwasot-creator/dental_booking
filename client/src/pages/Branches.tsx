@@ -1,8 +1,7 @@
-import { MapPin, Phone, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation, Phone } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { BRANCHES } from "@/lib/clinic";
-
-const BRANCH_ANCHORS = ["mahdiyah", "olaya", "ahmadiyah"] as const;
+import { Link } from "wouter";
 
 export default function Branches() {
   return (
@@ -18,12 +17,13 @@ export default function Branches() {
 
       <section className="py-14">
         <div className="container grid gap-5 md:grid-cols-3">
-          {BRANCHES.map((branch, index) => (
+          {BRANCHES.map(branch => (
             <article
-              key={branch.name}
-              id={BRANCH_ANCHORS[index]}
-              className="rounded-2xl border border-border bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-md"
+              key={branch.slug}
+              className="group overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
             >
+              <img src={branch.image} alt={branch.imageAlt} className="aspect-[4/3] w-full object-cover" />
+              <div className="p-6">
               <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
                 <MapPin className="size-5 text-primary" />
                 {branch.name}
@@ -34,10 +34,11 @@ export default function Branches() {
                   <Phone className="size-4 text-primary" />
                   {branch.phone}
                 </p>
-                <p className="flex items-center gap-2">
-                  <Clock className="size-4 text-primary" />
-                  السبت - الخميس، 9:00 صباحاً - 5:00 مساءً
-                </p>
+              </div>
+              <div className="mt-5 flex items-center justify-between gap-3">
+                <a href={branch.mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"><Navigation className="size-3.5" />الموقع</a>
+                <Link href={branch.route} className="inline-flex items-center gap-1 text-sm font-extrabold text-primary transition-transform duration-200 group-hover:-translate-x-1">استكشف الفرع <ArrowLeft className="size-4" /></Link>
+              </div>
               </div>
             </article>
           ))}

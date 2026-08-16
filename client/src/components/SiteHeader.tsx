@@ -12,9 +12,9 @@ const NAV_LINKS = [
 ];
 
 const BRANCH_LINKS = [
-  { href: "/branches#mahdiyah", label: "فرع المهدية" },
-  { href: "/branches#olaya", label: "فرع العليا" },
-  { href: "/branches#ahmadiyah", label: "فرع الأحمدية — لبن" },
+  { href: "/branches/al-mahdiyah", label: "فرع المهدية" },
+  { href: "/branches/al-olaya", label: "فرع العليا" },
+  { href: "/branches/al-ahmadiyah-laban", label: "فرع الأحمدية — لبن" },
 ];
 
 export default function SiteHeader() {
@@ -52,7 +52,7 @@ export default function SiteHeader() {
               aria-expanded={aboutOpen}
               className={cn(
                 "inline-flex items-center gap-1 rounded-lg px-3 py-2 text-[15px] font-medium transition-colors duration-200 lg:px-4",
-                location === "/#about" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                location === "/about" ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               من نحن
@@ -64,7 +64,7 @@ export default function SiteHeader() {
                 aboutOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-1 opacity-0"
               )}
             >
-              <Link href="/#about" onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-extrabold text-primary transition-all duration-200 hover:-translate-x-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-sm focus-visible:-translate-x-0.5 focus-visible:bg-primary focus-visible:text-primary-foreground">
+              <Link href="/about" onClick={() => setAboutOpen(false)} className="block rounded-xl px-3 py-2 text-sm font-extrabold text-primary transition-all duration-200 hover:-translate-x-0.5 hover:bg-primary hover:text-primary-foreground hover:shadow-sm focus-visible:-translate-x-0.5 focus-visible:bg-primary focus-visible:text-primary-foreground">
                 عن المجموعة
               </Link>
               <div className="my-1 border-t border-border" />
@@ -129,7 +129,7 @@ export default function SiteHeader() {
             </Link>
             <div className="rounded-lg px-3 py-3 text-[15px] font-extrabold text-foreground">من نحن</div>
             <div className="mr-3 mb-2 border-r-2 border-primary/15 pr-3">
-              <Link href="/#about" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-all duration-200 active:bg-primary active:text-primary-foreground">
+              <Link href="/about" onClick={() => setOpen(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-primary transition-all duration-200 active:bg-primary active:text-primary-foreground">
                 عن المجموعة
               </Link>
               {BRANCH_LINKS.map(branch => (

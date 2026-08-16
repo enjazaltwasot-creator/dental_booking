@@ -1,18 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Loader2, Timer } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Check, Loader2, MapPin, Timer } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { toDateInputValue } from "@/lib/clinic";
+import { BRANCHES, BranchSlug, getBranchBySlug, toDateInputValue } from "@/lib/clinic";
 
-const STEPS = ["الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
+const STEPS = ["الفرع", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
 
 export default function BookingForm() {
   const [, navigate] = useLocation();
   const [step, setStep] = useState(0);
 
+  const [branchSlug, setBranchSlug] = useState<BranchSlug | null>(() => {
+    const queryBranch = new URLSearchParams(window.location.search).get("branch");
+    return getBranchBySlug(queryBranch ?? undefined)?.slug ?? null;
+  });
   const [serviceId, setServiceId] = useState<number | null>(null);
   const [dentistId, setDentistId] = useState<number | null>(null);
   const [date, setDate] = useState("");
@@ -22,6 +26,7 @@ export default function BookingForm() {
   const [notes, setNotes] = useState("");
 
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
+  const selectedBranch = getBranchBySlug(branchSlug ?? undefined);
 
   const { data: services, isLoading: loadingServices } = trpc.services.list.useQuery();
   const { data: dentists, isLoading: loadingDentists } = trpc.dentists.list.useQuery();
@@ -45,6 +50,7 @@ export default function BookingForm() {
   });
 
   const canContinue = [
+    Boolean(branchSlug),
     Boolean(serviceId),
     Boolean(dentistId),
     Boolean(date) && Boolean(time),
@@ -52,8 +58,9 @@ export default function BookingForm() {
   ][step];
 
   const handleSubmit = () => {
-    if (!serviceId || !dentistId || !date || !time) return;
+    if (!branchSlug || !serviceId || !dentistId || !date || !time) return;
     createBooking.mutate({
+      branch: branchSlug,
       serviceId,
       dentistId,
       appointmentDate: date,
@@ -70,7 +77,7 @@ export default function BookingForm() {
         <div className="container text-center">
           <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">احجز موعدك</h1>
           <p className="mx-auto mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
-            أربع خطوات بسيطة تفصلك عن موعدك مع نخبة من الأطباء.
+            ابدأ باختيار الفرع، ثم أكمل خطوات الحجز حتى تأكيد موعدك.
           </p>
         </div>
       </section>
@@ -118,8 +125,47 @@ export default function BookingForm() {
           </ol>
 
           <div className="mt-8 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-            {/* Step 1 — Service */}
+            {selectedBranch && step > 0 && (
+              <div className="mb-6 flex items-center gap-3 rounded-xl border border-primary/10 bg-primary/5 px-4 py-3">
+                <span className="grid size-9 place-items-center rounded-lg bg-white text-primary shadow-sm"><Building2 className="size-4" /></span>
+                <div>
+                  <p className="text-xs font-bold text-primary">الفرع المختار</p>
+                  <p className="mt-0.5 text-sm font-extrabold text-foreground">{selectedBranch.name}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 1 — Branch */}
             {step === 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-foreground">اختر الفرع</h2>
+                <p className="mt-1 text-sm text-muted-foreground">ابدأ من الفرع الأقرب إليك، وسيتم حفظه مع طلب الحجز.</p>
+                <div className="mt-6 grid gap-3">
+                  {BRANCHES.map(branch => (
+                    <button
+                      key={branch.slug}
+                      type="button"
+                      onClick={() => setBranchSlug(branch.slug)}
+                      className={cn(
+                        "flex items-center justify-between gap-4 rounded-xl border p-4 text-right transition-all duration-200",
+                        branchSlug === branch.slug
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-white hover:border-primary/40 hover:shadow-sm"
+                      )}
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><MapPin className="size-5" /></span>
+                        <span><span className="block font-bold text-foreground">{branch.name}</span><span className="mt-0.5 block text-sm text-muted-foreground">{branch.city}</span></span>
+                      </span>
+                      <span className="text-xs font-bold text-primary">اختيار</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 2 — Service */}
+            {step === 1 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر الخدمة</h2>
                 <p className="mt-1 text-sm text-muted-foreground">حدّد الخدمة التي ترغب بحجزها.</p>
@@ -167,11 +213,11 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 2 — Doctor */}
-            {step === 1 && (
+            {/* Step 3 — Doctor */}
+            {step === 2 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر الطبيب</h2>
-                <p className="mt-1 text-sm text-muted-foreground">اختر الطبيب المناسب لحالتك.</p>
+                <p className="mt-1 text-sm text-muted-foreground">اختر الطبيب المناسب من القائمة المتاحة حالياً؛ الفرع المختار سيُحفظ مع طلبك.</p>
 
                 {loadingDentists && (
                   <div className="mt-6 space-y-3">
@@ -209,8 +255,8 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 3 — Date & time */}
-            {step === 2 && (
+            {/* Step 4 — Date & time */}
+            {step === 3 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر التاريخ والوقت</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -273,8 +319,8 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 4 — Patient details */}
-            {step === 3 && (
+            {/* Step 5 — Patient details */}
+            {step === 4 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">بياناتك</h2>
                 <p className="mt-1 text-sm text-muted-foreground">سنستخدم هذه البيانات لتأكيد موعدك.</p>

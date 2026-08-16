@@ -135,6 +135,7 @@ export const appRouter = router({
   bookings: router({
     create: publicProcedure
       .input(z.object({
+        branch: z.enum(['mahdiyah', 'olaya', 'ahmadiyah-laban']),
         dentistId: z.number(),
         serviceId: z.number(),
         patientName: z.string().min(1),
@@ -147,6 +148,7 @@ export const appRouter = router({
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
         return db.createBooking({
           referenceNumber,
+          branch: input.branch,
           dentistId: input.dentistId,
           serviceId: input.serviceId,
           patientName: input.patientName,

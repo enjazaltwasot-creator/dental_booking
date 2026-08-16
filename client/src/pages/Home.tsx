@@ -184,7 +184,7 @@ export default function Home() {
                 <span className="text-primary"> وابدأ رحلتك من المكان المناسب.</span>
               </h2>
               <p className="mt-4 text-[15px] leading-8 text-muted-foreground">
-                في النسخة الكاملة ستكون لكل بوابة صفحة مستقلة تشمل التخصصات والأطباء والخريطة والحجز الخاص بالفرع.
+                لكل فرع صفحة مستقلة تشمل صورة المبنى، الموقع عبر خرائط Google، ونقطة حجز موجهة للفرع المختار.
               </p>
             </div>
             <Link href="/branches" className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
@@ -210,7 +210,7 @@ export default function Home() {
                   <p className="mt-2 text-sm text-muted-foreground">{branch.city}</p>
                   <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
                     <span className="text-xs font-semibold text-muted-foreground">تخصصات وأطباء وحجز</span>
-                    <Link href="/booking" className="inline-flex items-center gap-1 text-sm font-extrabold text-primary transition-transform duration-200 group-hover:-translate-x-1">
+                    <Link href={branch.route} className="inline-flex items-center gap-1 text-sm font-extrabold text-primary transition-transform duration-200 group-hover:-translate-x-1">
                       استكشف الفرع <ChevronLeft className="size-4" />
                     </Link>
                   </div>

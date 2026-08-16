@@ -78,6 +78,7 @@ export type InsertWorkingHour = typeof workingHours.$inferInsert;
 export const bookings = mysqlTable("bookings", {
   id: int("id").autoincrement().primaryKey(),
   referenceNumber: varchar("reference_number", { length: 20 }).notNull().unique(),
+  branch: varchar("branch", { length: 64 }),
   dentistId: int("dentist_id").notNull(),
   serviceId: int("service_id").notNull(),
   patientName: varchar("patient_name", { length: 100 }).notNull(),

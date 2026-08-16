@@ -15,6 +15,13 @@
       "when": 1785699516144,
       "tag": "0001_pink_colossus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786882220544,
+      "tag": "0002_wise_spyke",
+      "breakpoints": true
     }
   ]
 }
