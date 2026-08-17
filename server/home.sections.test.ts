@@ -15,4 +15,13 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain('id="faq"');
     expect(home).toContain("const FAQS");
   });
+
+  it("يستخدم طبقات عالية التباين لنصوص البطاقة الزجاجية في الافتتاحية", () => {
+    const hero = readFileSync(join(process.cwd(), "client/src/components/FullWidthGroupHero.tsx"), "utf8");
+
+    expect(hero).toContain("bg-slate-950/22");
+    expect(hero).toContain("text-white drop-shadow");
+    expect(hero).toContain("text-white/92");
+    expect(hero).toContain("text-white/85");
+  });
 });

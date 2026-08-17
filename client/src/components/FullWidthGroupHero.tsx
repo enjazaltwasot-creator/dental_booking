@@ -29,7 +29,7 @@ export default function FullWidthGroupHero() {
 
       <div className="container relative z-10 flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
         <div
-          className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/35 bg-white/8 p-6 text-right shadow-xl shadow-slate-950/20 backdrop-blur-[2px] sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl"
+          className="relative w-full max-w-xl overflow-hidden rounded-[1.75rem] border border-white/30 bg-slate-950/22 p-6 text-right shadow-2xl shadow-slate-950/35 backdrop-blur-xl sm:p-8 lg:mr-0 lg:ml-auto lg:max-w-2xl"
           onPointerMove={updateTilt}
           onPointerLeave={() => {
             setTilt({ x: 0, y: 0 });
@@ -54,25 +54,26 @@ export default function FullWidthGroupHero() {
               maskComposite: "exclude",
             }}
           />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-slate-950/58 via-slate-900/32 to-primary/20" />
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-0"
             style={{
-              background: `radial-gradient(260px circle at ${glow.x}% ${glow.y}%, rgba(255,255,255,0.24), rgba(255,255,255,0.05) 30%, transparent 68%)`,
+              background: `radial-gradient(260px circle at ${glow.x}% ${glow.y}%, rgba(56,189,248,0.22), rgba(249,115,22,0.08) 34%, transparent 68%)`,
               opacity: glow.active && !reduceMotion ? 1 : 0,
               transition: "opacity 220ms ease-out, background 120ms ease-out",
             }}
           />
           <div className="relative z-10">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/45 bg-white/26 px-3 py-1.5 text-xs font-extrabold text-primary shadow-sm">
-            <Building2 className="size-3.5" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-extrabold text-white shadow-sm shadow-slate-950/20">
+            <Building2 className="size-3.5 text-orange-200" />
             مجموعة إيفان الطبية — ثلاث فروع في الرياض
           </span>
-          <h1 className="mt-5 text-4xl font-extrabold leading-[1.14] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          <h1 className="mt-5 text-4xl font-extrabold leading-[1.14] tracking-tight text-white drop-shadow-[0_4px_16px_rgba(2,6,23,0.62)] sm:text-5xl lg:text-6xl">
             رعاية متكاملة،
-            <span className="mt-2 block text-primary">أقرب إلى احتياجك.</span>
+            <span className="mt-2 block text-sky-200">أقرب إلى احتياجك.</span>
           </h1>
-          <p className="mt-5 max-w-xl rounded-xl border border-white/25 bg-white/10 px-4 py-3 text-[15px] font-semibold leading-8 text-slate-950 shadow-[0_1px_0_rgba(255,255,255,0.72)] sm:text-lg">
+          <p className="mt-5 max-w-xl rounded-xl border border-white/15 bg-black/15 px-4 py-3 text-[15px] font-semibold leading-8 text-white/92 shadow-sm shadow-slate-950/20 sm:text-lg">
             منظومة طبية تجمع التخصصات والفروع وتجربة حجز موحّدة، لتصل إلى الخدمة والطبيب والموعد المناسب من مكان واحد.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -80,15 +81,15 @@ export default function FullWidthGroupHero() {
               <CalendarCheck className="size-4" />
               احجز موعدك الآن
             </Link>
-            <a href="#branches" className="inline-flex items-center gap-2 rounded-xl border border-primary/15 bg-white px-6 py-3.5 text-sm font-extrabold text-primary shadow-sm transition-all duration-200 hover:border-primary/35 hover:shadow-md">
+            <a href="#branches" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/95 px-6 py-3.5 text-sm font-extrabold text-primary shadow-sm transition-all duration-200 hover:bg-white hover:shadow-md">
               استكشف فروعنا
               <ArrowLeft className="size-4" />
             </a>
           </div>
-          <div className="mt-8 grid max-w-md grid-cols-3 divide-x divide-x-reverse divide-white/25 rounded-2xl border border-white/35 bg-white/18 p-3 shadow-sm backdrop-blur-[2px]">
-            <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-primary">3</strong><span className="mt-1 block text-[11px] font-extrabold text-slate-900">فروع في الرياض</span></div>
-            <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-primary">3</strong><span className="mt-1 block text-[11px] font-extrabold text-slate-900">مجالات تخصصية</span></div>
-            <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-primary">1</strong><span className="mt-1 block text-[11px] font-extrabold text-slate-900">رحلة حجز موحّدة</span></div>
+          <div className="mt-8 grid max-w-md grid-cols-3 divide-x divide-x-reverse divide-white/15 rounded-2xl border border-white/20 bg-white/8 p-3 shadow-sm shadow-slate-950/20 backdrop-blur-md">
+            <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">3</strong><span className="mt-1 block text-[11px] font-extrabold text-white/85">فروع في الرياض</span></div>
+            <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">3</strong><span className="mt-1 block text-[11px] font-extrabold text-white/85">مجالات تخصصية</span></div>
+            <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">1</strong><span className="mt-1 block text-[11px] font-extrabold text-white/85">رحلة حجز موحّدة</span></div>
           </div>
           </div>
         </div>
