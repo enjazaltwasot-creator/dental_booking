@@ -117,8 +117,8 @@ export default function Home() {
       <section id="about" className="relative overflow-hidden py-16 lg:py-24">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_5%_50%,rgba(249,115,22,0.1),transparent_24%),radial-gradient(circle_at_95%_20%,rgba(2,132,199,0.1),transparent_26%)]" />
         <div className="container">
-          <div className="mx-auto max-w-2xl">
-            <div className="relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
+          <div className="mx-auto max-w-3xl">
+            <div className="relative overflow-hidden rounded-[2rem] bg-primary p-8 text-white shadow-xl shadow-primary/15 sm:p-12 lg:p-14">
             <div className="absolute -right-20 -top-16 size-52 rounded-full border-[30px] border-white/10" />
             <div className="absolute -bottom-24 -left-12 size-52 rounded-full bg-accent/90 blur-2xl" />
             <div className="relative">

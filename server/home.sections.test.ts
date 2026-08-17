@@ -24,7 +24,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).not.toContain('text-accent">من نحن</span>');
     expect(home).not.toContain("const GROUP_VALUES");
     expect(home).not.toContain("وجهة طبية تجمع التخصص وسهولة الوصول.");
-    expect(home).toContain("mx-auto max-w-2xl");
+    expect(home).toContain("mx-auto max-w-3xl");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
