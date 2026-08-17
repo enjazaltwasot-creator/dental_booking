@@ -16,12 +16,18 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("const FAQS");
   });
 
-  it("يستخدم طبقات عالية التباين لنصوص البطاقة الزجاجية في الافتتاحية", () => {
+  it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
     const hero = readFileSync(join(process.cwd(), "client/src/components/FullWidthGroupHero.tsx"), "utf8");
 
-    expect(hero).toContain("bg-slate-950/22");
+    expect(hero).toContain("EVAN_HERO_LOGO");
+    expect(hero).toContain('img src={EVAN_HERO_LOGO}');
+    expect(hero).toContain("lg:from-slate-950/78");
+    expect(hero).not.toContain("bg-slate-950/22");
     expect(hero).toContain("text-white drop-shadow");
-    expect(hero).toContain("text-white/92");
-    expect(hero).toContain("text-white/85");
+    expect(hero).toContain("border-r-2 border-accent");
+    expect(hero).toContain("text-white/90");
+    expect(hero).toContain("function AnimatedWords");
+    expect(hero).toContain("useReducedMotion");
+    expect(hero).toContain("text=\"رعاية متكاملة،\"");
   });
 });
