@@ -32,10 +32,11 @@ export default function Partners() {
           </div>
           <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {PARTNERS.map((partner, index) => (
-              <article key={partner.id} className="group relative flex min-h-48 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border bg-white px-4 py-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-xl hover:shadow-primary/10 sm:min-h-52 sm:px-5">
-                <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-l from-transparent via-primary/35 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <img src={partner.logo} alt={`شعار ${partner.name}`} className="h-24 w-full object-contain transition-transform duration-300 group-hover:scale-[1.055] sm:h-28" loading={index < 8 ? "eager" : "lazy"} />
-                <h3 className="mt-5 text-[11px] font-extrabold tracking-[0.08em] text-muted-foreground" dir="ltr">{partner.name}</h3>
+              <article key={partner.id} className="group relative flex min-h-48 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border bg-white px-4 py-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:bg-primary/[0.025] hover:shadow-xl hover:shadow-primary/15 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-52 sm:px-5">
+                <div className="pointer-events-none absolute -inset-x-10 -top-12 h-24 rotate-[-18deg] bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-0 transition-all duration-500 group-hover:translate-x-16 group-hover:opacity-70 motion-reduce:hidden" />
+                <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-l from-transparent via-primary/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <img src={partner.logo} alt={`شعار ${partner.name}`} className="relative h-24 w-full object-contain transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-[1.09] motion-reduce:transform-none motion-reduce:transition-none sm:h-28" loading={index < 8 ? "eager" : "lazy"} />
+                <h3 className="relative mt-5 text-[11px] font-extrabold tracking-[0.08em] text-muted-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none" dir="ltr">{partner.name}</h3>
               </article>
             ))}
           </div>
