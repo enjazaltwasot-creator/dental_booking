@@ -60,6 +60,14 @@ describe("catalog data", () => {
     expect(dentists.length).toBeGreaterThan(0);
     expect(dentists[0]).toHaveProperty("specialization");
   });
+
+  it("returns branch services with an explicit clinical department", async () => {
+    const caller = appRouter.createCaller(createPublicContext().ctx);
+    const services = await caller.services.listForBranch({ branch: "mahdiyah" });
+
+    expect(services.length).toBeGreaterThan(0);
+    expect(services.every(service => ["dentistry", "dermatology", "laser"].includes(service.department))).toBe(true);
+  });
 });
 
 describe("availability", () => {
