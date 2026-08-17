@@ -24,4 +24,15 @@ describe("بيانات شركاء النجاح", () => {
     expect(home).not.toContain('id="partners"');
     expect(home).not.toContain("PARTNERS.map");
   });
+
+  it("يوفر شريطاً دواراً تلقائياً مع تحكم يدوي واحترام تقليل الحركة", () => {
+    const root = process.cwd();
+    const partnersPage = readFileSync(join(root, "client/src/pages/Partners.tsx"), "utf8");
+
+    expect(partnersPage).toContain("setInterval(() => carouselApi.scrollNext(), 3600)");
+    expect(partnersPage).toContain("prefers-reduced-motion: reduce");
+    expect(partnersPage).toContain("CarouselPrevious");
+    expect(partnersPage).toContain("CarouselNext");
+    expect(partnersPage).toContain("setIsPaused");
+  });
 });

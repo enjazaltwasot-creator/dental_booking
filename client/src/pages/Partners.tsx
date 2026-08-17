@@ -1,9 +1,40 @@
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, Building2, CalendarCheck, Handshake, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Building2, CalendarCheck, Handshake, Pause, Play, ShieldCheck } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { PARTNERS } from "@/lib/clinic";
 
 export default function Partners() {
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [isPaused, setIsPaused] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncPreference = () => setReduceMotion(preference.matches);
+    syncPreference();
+    preference.addEventListener("change", syncPreference);
+    return () => preference.removeEventListener("change", syncPreference);
+  }, []);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const updateCurrentSlide = () => setCurrentSlide(carouselApi.selectedScrollSnap());
+    updateCurrentSlide();
+    carouselApi.on("select", updateCurrentSlide);
+    return () => {
+      carouselApi.off("select", updateCurrentSlide);
+    };
+  }, [carouselApi]);
+
+  useEffect(() => {
+    if (!carouselApi || isPaused || reduceMotion) return;
+    const interval = window.setInterval(() => carouselApi.scrollNext(), 3600);
+    return () => window.clearInterval(interval);
+  }, [carouselApi, isPaused, reduceMotion]);
+
   return (
     <PageShell>
       <section className="relative overflow-hidden bg-primary py-20 text-white sm:py-28">
@@ -30,17 +61,37 @@ export default function Partners() {
             <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">شركاء يلتقون حول جودة التجربة.</h2>
             <p className="mt-4 text-[15px] leading-8 text-muted-foreground">استعرض العلامات ضمن معرض منسق يضع وضوح كل شعار وتوازنه البصري في المقام الأول.</p>
           </div>
-          <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {PARTNERS.map((partner, index) => (
-              <article key={partner.id} className="group relative flex min-h-48 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border bg-white px-4 py-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:bg-primary/[0.025] hover:shadow-xl hover:shadow-primary/15 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-52 sm:px-5">
-                <div className="pointer-events-none absolute -inset-x-10 -top-12 h-24 rotate-[-18deg] bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-0 transition-all duration-500 group-hover:translate-x-16 group-hover:opacity-70 motion-reduce:hidden" />
-                <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-l from-transparent via-primary/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <img src={partner.logo} alt={`شعار ${partner.name}`} className="relative h-24 w-full object-contain transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-[1.09] motion-reduce:transform-none motion-reduce:transition-none sm:h-28" loading={index < 8 ? "eager" : "lazy"} />
-                <h3 className="relative mt-5 text-[11px] font-extrabold tracking-[0.08em] text-muted-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none" dir="ltr">{partner.name}</h3>
-              </article>
-            ))}
+          <Carousel
+            setApi={setCarouselApi}
+            opts={{ align: "start", loop: true, direction: "rtl" }}
+            className="mt-10 px-1 sm:px-12"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocusCapture={() => setIsPaused(true)}
+            onBlurCapture={() => setIsPaused(false)}
+          >
+            <CarouselContent>
+              {PARTNERS.map((partner, index) => (
+                <CarouselItem key={partner.id} className="basis-[82%] sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                  <article className="group relative flex min-h-48 flex-col items-center justify-center overflow-hidden rounded-3xl border border-border bg-white px-4 py-6 text-center shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/30 hover:bg-primary/[0.025] hover:shadow-xl hover:shadow-primary/15 motion-reduce:transform-none motion-reduce:transition-none sm:min-h-52 sm:px-5">
+                    <div className="pointer-events-none absolute -inset-x-10 -top-12 h-24 rotate-[-18deg] bg-gradient-to-r from-transparent via-white/90 to-transparent opacity-0 transition-all duration-500 group-hover:translate-x-16 group-hover:opacity-70 motion-reduce:hidden" />
+                    <div className="pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-l from-transparent via-primary/45 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <img src={partner.logo} alt={`شعار ${partner.name}`} className="relative h-24 w-full object-contain transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-[1.09] motion-reduce:transform-none motion-reduce:transition-none sm:h-28" loading={index < 8 ? "eager" : "lazy"} />
+                    <h3 className="relative mt-5 text-[11px] font-extrabold tracking-[0.08em] text-muted-foreground transition-colors duration-300 group-hover:text-primary motion-reduce:transition-none" dir="ltr">{partner.name}</h3>
+                  </article>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="right-2 left-auto border-primary/15 bg-white text-primary shadow-lg hover:bg-primary hover:text-white sm:right-auto sm:-left-3" />
+            <CarouselNext className="right-auto left-2 border-primary/15 bg-white text-primary shadow-lg hover:bg-primary hover:text-white sm:left-auto sm:-right-3" />
+          </Carousel>
+          <div className="mt-7 flex items-center justify-center gap-4">
+            <button type="button" onClick={() => setIsPaused((value) => !value)} className="inline-flex size-9 items-center justify-center rounded-full border border-primary/15 text-primary transition-colors hover:bg-primary hover:text-white" aria-label={isPaused || reduceMotion ? "تشغيل التمرير التلقائي" : "إيقاف التمرير التلقائي"}>
+              {isPaused || reduceMotion ? <Play className="size-4" /> : <Pause className="size-4" />}
+            </button>
+            <span className="text-xs font-extrabold text-muted-foreground" dir="ltr">{String(currentSlide + 1).padStart(2, "0")} / {String(PARTNERS.length).padStart(2, "0")}</span>
           </div>
-          <p className="mx-auto mt-7 max-w-3xl text-center text-xs leading-6 text-muted-foreground">تُعرض الشعارات بالأصول المتاحة للمجموعة وبنسب عرض موحّدة لتسهيل قراءتها على مختلف الشاشات.</p>
+          <p className="mx-auto mt-5 max-w-3xl text-center text-xs leading-6 text-muted-foreground">يتحرك المعرض تلقائياً كل عدة ثوانٍ، ويتوقف عند التمرير أو التركيز على الشعارات. يمكن التنقل يدوياً من الأسهم.</p>
         </div>
       </section>
 
