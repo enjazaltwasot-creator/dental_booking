@@ -35,5 +35,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(hero).toContain("function AnimatedWords");
     expect(hero).toContain("useReducedMotion");
     expect(hero).toContain("text=\"رعاية متكاملة،\"");
+    expect(hero).toContain("delay: 0.92");
+    expect(hero).toContain("delay: 1.04");
   });
 });
