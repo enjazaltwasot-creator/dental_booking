@@ -102,7 +102,7 @@ export async function listAdminUsers(): Promise<User[]> {
   return db.select().from(users).where(eq(users.role, "admin")).orderBy(desc(users.createdAt));
 }
 
-export async function createAdminUser(input: { username: string; password: string; name?: string }) {
+export async function createAdminUser(input: { username: string; password: string; name?: string; permission?: "full_access" | "operations" | "bookings" }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.insert(users).values({
@@ -113,6 +113,7 @@ export async function createAdminUser(input: { username: string; password: strin
     loginMethod: "local-admin",
     role: "admin",
     isActive: true,
+    adminPermission: input.permission ?? "bookings",
     lastSignedIn: new Date(),
   });
   return getAdminUserByUsername(input.username);
@@ -146,6 +147,18 @@ export async function deleteAdminUser(username: string) {
 export async function countActiveAdminUsers() {
   const accounts = await listAdminUsers();
   return accounts.filter(account => account.isActive).length;
+}
+
+export async function countActiveFullAccessAdmins() {
+  const accounts = await listAdminUsers();
+  return accounts.filter(account => account.isActive && account.adminPermission === "full_access").length;
+}
+
+export async function setAdminUserPermission(username: string, adminPermission: "full_access" | "operations" | "bookings") {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(users).set({ adminPermission }).where(and(eq(users.username, username), eq(users.role, "admin")));
+  return getAdminUserByUsername(username);
 }
 
 // Dental services queries

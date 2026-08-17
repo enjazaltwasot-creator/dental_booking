@@ -16,10 +16,10 @@ function createContext(cookie?: string) {
   return { ctx, cookies };
 }
 
-async function createAdminCaller() {
+async function createAdminCaller(username = "admin", password = "admin123") {
   const loginContext = createContext();
   const loginCaller = appRouter.createCaller(loginContext.ctx);
-  await loginCaller.admin.login({ username: "admin", password: "admin123" });
+  await loginCaller.admin.login({ username, password });
   const token = loginContext.cookies.find(cookie => cookie.name === "admin_session")?.value;
   const caller = appRouter.createCaller(createContext(`admin_session=${token}`).ctx);
   return caller;
@@ -56,6 +56,28 @@ describe("admin tools", () => {
 
     const afterRemove = await caller.admin.users.list();
     expect(afterRemove.some(account => account.username === username)).toBe(false);
+  });
+
+  it("assigns permissions and restricts account management to the full-access administrator", async () => {
+    const fullAccess = await createAdminCaller();
+    const username = `operations_${nanoid(8)}`;
+    const password = "operations-pass-123";
+    await fullAccess.admin.users.create({ username, name: "مدير تشغيل اختبار", password, permission: "operations" });
+
+    const accounts = await fullAccess.admin.users.list();
+    expect(accounts.find(account => account.username === username)?.permission).toBe("operations");
+
+    const operations = await createAdminCaller(username, password);
+    await expect(operations.admin.users.list()).rejects.toThrow();
+    const service = (await operations.services.listForAdmin())[0];
+    await expect(operations.services.setActive({ id: service.id, isActive: service.isActive })).resolves.toBeDefined();
+
+    await fullAccess.admin.users.setPermission({ username, permission: "bookings" });
+    expect((await fullAccess.admin.users.list()).find(account => account.username === username)?.permission).toBe("bookings");
+    const bookingOnly = await createAdminCaller(username, password);
+    await expect(bookingOnly.services.setActive({ id: service.id, isActive: service.isActive })).rejects.toThrow();
+    await expect(bookingOnly.bookings.getAll()).resolves.toBeInstanceOf(Array);
+    await fullAccess.admin.users.remove({ username });
   });
 
   it("allows an administrator to pause and restore a booking service", async () => {

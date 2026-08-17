@@ -21,9 +21,31 @@ async function getAuthenticatedAdminUsername(ctx: { req: { headers: { cookie?: s
   return account?.isActive ? username : null;
 }
 
+type AdminPermission = "full_access" | "operations" | "bookings";
+
+async function getAuthenticatedAdmin(ctx: { req: { headers: { cookie?: string } } }): Promise<{ username: string; permission: AdminPermission } | null> {
+  const username = await getAuthenticatedAdminUsername(ctx);
+  if (!username) return null;
+  const account = await db.getAdminUserByUsername(username);
+  if (!account?.isActive) return null;
+  return { username, permission: account.adminPermission };
+}
+
 const adminSessionProcedure = publicProcedure.use(async ({ ctx, next }) => {
   const username = await getAuthenticatedAdminUsername(ctx);
   if (!username) throw new TRPCError({ code: "UNAUTHORIZED", message: "تسجيل الدخول الإداري مطلوب" });
+  return next();
+});
+
+const operationsProcedure = adminSessionProcedure.use(async ({ ctx, next }) => {
+  const admin = await getAuthenticatedAdmin(ctx);
+  if (!admin || admin.permission === "bookings") throw new TRPCError({ code: "FORBIDDEN", message: "لا تملك صلاحية إدارة الفروع والخدمات" });
+  return next();
+});
+
+const fullAccessProcedure = adminSessionProcedure.use(async ({ ctx, next }) => {
+  const admin = await getAuthenticatedAdmin(ctx);
+  if (!admin || admin.permission !== "full_access") throw new TRPCError({ code: "FORBIDDEN", message: "لا تملك صلاحية إدارة الحسابات" });
   return next();
 });
 
@@ -52,7 +74,7 @@ export const appRouter = router({
         if (!account && input.username === "admin" && input.password === "admin123") {
           const password = await hashAdminPassword("admin123");
           try {
-            await db.createAdminUser({ username: "admin", password, name: "المسؤول الرئيسي" });
+            await db.createAdminUser({ username: "admin", password, name: "المسؤول الرئيسي", permission: "full_access" });
           } catch {
             // A parallel first login may have created the default account already.
           }
@@ -83,12 +105,12 @@ export const appRouter = router({
     }),
 
     checkAuth: publicProcedure.query(async ({ ctx }) => {
-      const username = await getAuthenticatedAdminUsername(ctx);
-      return { isAuthenticated: !!username, username };
+      const admin = await getAuthenticatedAdmin(ctx);
+      return { isAuthenticated: !!admin, username: admin?.username ?? null, permission: admin?.permission ?? null };
     }),
 
     users: router({
-      list: adminSessionProcedure.query(async () => {
+      list: fullAccessProcedure.query(async () => {
         const accounts = await db.listAdminUsers();
         return accounts.map(account => ({
           id: account.id,
@@ -96,19 +118,20 @@ export const appRouter = router({
           name: account.name,
           role: account.role,
           isActive: account.isActive,
+          permission: account.adminPermission,
           createdAt: account.createdAt,
           lastSignedIn: account.lastSignedIn,
         }));
       }),
-      create: adminSessionProcedure
-        .input(z.object({ username: z.string().trim().min(3).max(40).regex(/^[a-zA-Z0-9_.-]+$/), name: z.string().trim().min(2).max(100).optional(), password: z.string().min(8).max(128) }))
+      create: fullAccessProcedure
+        .input(z.object({ username: z.string().trim().min(3).max(40).regex(/^[a-zA-Z0-9_.-]+$/), name: z.string().trim().min(2).max(100).optional(), password: z.string().min(8).max(128), permission: z.enum(["full_access", "operations", "bookings"]).default("bookings") }))
         .mutation(async ({ input }) => {
           if (await db.getAdminUserByUsername(input.username)) throw new TRPCError({ code: "CONFLICT", message: "اسم المستخدم مستخدم بالفعل" });
           const password = await hashAdminPassword(input.password);
-          const account = await db.createAdminUser({ ...input, password });
+          const account = await db.createAdminUser({ username: input.username, name: input.name, password, permission: input.permission });
           return { id: account?.id, username: account?.username };
         }),
-      update: adminSessionProcedure
+      update: fullAccessProcedure
         .input(z.object({ username: z.string().min(1), name: z.string().trim().max(100).optional(), password: z.string().min(8).max(128).optional() }))
         .mutation(async ({ input }) => {
           if (!input.name && !input.password) throw new TRPCError({ code: "BAD_REQUEST", message: "أدخل اسماً أو كلمة مرور جديدة" });
@@ -117,26 +140,36 @@ export const appRouter = router({
           if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
           return { id: account.id, username: account.username };
         }),
-      setActive: adminSessionProcedure
+      setActive: fullAccessProcedure
         .input(z.object({ username: z.string().min(1), isActive: z.boolean() }))
         .mutation(async ({ input, ctx }) => {
           const requester = await getAuthenticatedAdminUsername(ctx);
           const account = await db.getAdminUserByUsername(input.username);
           if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
           if (account.username === requester) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن تعطيل الحساب المستخدم حالياً" });
-          if (!input.isActive && account.isActive && await db.countActiveAdminUsers() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن تعطيل آخر مسؤول نشط" });
+          if (!input.isActive && account.isActive && account.adminPermission === "full_access" && await db.countActiveFullAccessAdmins() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن تعطيل آخر مسؤول كامل الصلاحيات" });
           return db.setAdminUserActive(input.username, input.isActive);
         }),
-      remove: adminSessionProcedure
+      remove: fullAccessProcedure
         .input(z.object({ username: z.string().min(1) }))
         .mutation(async ({ input, ctx }) => {
           const requester = await getAuthenticatedAdminUsername(ctx);
           const account = await db.getAdminUserByUsername(input.username);
           if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
           if (account.username === requester) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف الحساب المستخدم حالياً" });
-          if (account.isActive && await db.countActiveAdminUsers() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف آخر مسؤول نشط" });
+          if (account.isActive && account.adminPermission === "full_access" && await db.countActiveFullAccessAdmins() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف آخر مسؤول كامل الصلاحيات" });
           await db.deleteAdminUser(input.username);
           return { success: true };
+        }),
+      setPermission: fullAccessProcedure
+        .input(z.object({ username: z.string().min(1), permission: z.enum(["full_access", "operations", "bookings"]) }))
+        .mutation(async ({ input, ctx }) => {
+          const requester = await getAuthenticatedAdminUsername(ctx);
+          const account = await db.getAdminUserByUsername(input.username);
+          if (!account) throw new TRPCError({ code: "NOT_FOUND", message: "المستخدم غير موجود" });
+          if (account.username === requester && input.permission !== "full_access") throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن خفض صلاحيات الحساب المستخدم حالياً" });
+          if (account.adminPermission === "full_access" && input.permission !== "full_access" && account.isActive && await db.countActiveFullAccessAdmins() <= 1) throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن خفض صلاحيات آخر مسؤول كامل الصلاحيات" });
+          return db.setAdminUserPermission(input.username, input.permission);
         }),
     }),
 
@@ -203,16 +236,16 @@ export const appRouter = router({
         return db.getServiceById(input.id);
       }),
     listForAdmin: adminSessionProcedure.query(async () => db.getAllServicesForAdmin()),
-    create: adminSessionProcedure
+    create: operationsProcedure
       .input(z.object({ name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240), department: z.enum(["dentistry", "dermatology", "laser"]).default("dentistry") }))
       .mutation(async ({ input }) => db.createService(input)),
-    update: adminSessionProcedure
+    update: operationsProcedure
       .input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240), department: z.enum(["dentistry", "dermatology", "laser"]) }))
       .mutation(async ({ input }) => { const { id, ...values } = input; return db.updateService(id, values); }),
-    setActive: adminSessionProcedure
+    setActive: operationsProcedure
       .input(z.object({ id: z.number().int().positive(), isActive: z.boolean() }))
       .mutation(async ({ input }) => db.setServiceActive(input.id, input.isActive)),
-    remove: adminSessionProcedure
+    remove: operationsProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         const result = await db.deleteServiceIfUnused(input.id);
@@ -225,16 +258,16 @@ export const appRouter = router({
   branches: router({
     list: publicProcedure.query(() => db.getActiveBranches()),
     listForAdmin: adminSessionProcedure.query(() => db.getAllBranches()),
-    create: adminSessionProcedure.input(z.object({ slug: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(async ({ input }) => {
+    create: operationsProcedure.input(z.object({ slug: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(async ({ input }) => {
       if (await db.getBranchBySlug(input.slug)) throw new TRPCError({ code: "CONFLICT", message: "رمز الفرع مستخدم بالفعل" });
       return db.createBranch(input);
     }),
-    update: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(({ input }) => {
+    update: operationsProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(({ input }) => {
       const { id, ...values } = input;
       return db.updateBranch(id, values);
     }),
-    setActive: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setBranchActive(input.id, input.isActive)),
-    remove: adminSessionProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+    setActive: operationsProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setBranchActive(input.id, input.isActive)),
+    remove: operationsProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
       const result = await db.deleteBranchIfUnused(input.id);
       if (result === "not_found") throw new TRPCError({ code: "NOT_FOUND", message: "الفرع غير موجود" });
       if (result === "in_use") throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف فرع مرتبط بحجوزات سابقة؛ أوقفه بدلاً من ذلك" });
@@ -244,7 +277,7 @@ export const appRouter = router({
 
   branchSpecialties: router({
     listForAdmin: adminSessionProcedure.query(() => db.getAllBranchSpecialties()),
-    setActive: adminSessionProcedure.input(z.object({ branchId: z.number().int().positive(), department: z.enum(["dentistry", "dermatology", "laser"]), isActive: z.boolean() })).mutation(({ input }) => db.setBranchSpecialtyActive(input.branchId, input.department, input.isActive)),
+    setActive: operationsProcedure.input(z.object({ branchId: z.number().int().positive(), department: z.enum(["dentistry", "dermatology", "laser"]), isActive: z.boolean() })).mutation(({ input }) => db.setBranchSpecialtyActive(input.branchId, input.department, input.isActive)),
   }),
 
   // Dentists

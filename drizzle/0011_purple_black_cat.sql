@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `admin_permission` enum('full_access','operations','bookings') DEFAULT 'full_access' NOT NULL;

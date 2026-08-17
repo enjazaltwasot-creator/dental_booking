@@ -39,6 +39,11 @@ const DEPARTMENTS = [
   { value: "dermatology", label: "الجلدية" },
   { value: "laser", label: "الليزر" },
 ] as const;
+const PERMISSIONS = [
+  { value: "full_access", label: "مدير عام" },
+  { value: "operations", label: "مدير تشغيل" },
+  { value: "bookings", label: "موظف حجوزات" },
+] as const;
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -49,7 +54,7 @@ export default function AdminDashboard() {
   const [newBookingCount, setNewBookingCount] = useState(0);
   const [serviceDraft, setServiceDraft] = useState<{ id: number; name: string; description: string; duration: number; department: "dentistry" | "dermatology" | "laser" }>({ id: 0, name: "", description: "", duration: 45, department: "dentistry" });
   const [branchDraft, setBranchDraft] = useState({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" });
-  const [userDraft, setUserDraft] = useState({ username: "", name: "", password: "" });
+  const [userDraft, setUserDraft] = useState<{ username: string; name: string; password: string; permission?: "full_access" | "operations" | "bookings" }>({ username: "", name: "", password: "", permission: "bookings" });
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
   const knownBookingIds = useRef<Set<number> | null>(null);
@@ -57,6 +62,8 @@ export default function AdminDashboard() {
   const utils = trpc.useUtils();
   const { data: auth, isLoading: checkingAuth } = trpc.admin.checkAuth.useQuery();
   const authed = auth?.isAuthenticated ?? false;
+  const permission = auth?.permission ?? "bookings";
+  const canManageUsers = permission === "full_access";
   const { data: bookings, isLoading: loadingBookings, isFetching, refetch } = trpc.bookings.getAll.useQuery(undefined, {
     enabled: authed,
     refetchInterval: 5_000,
@@ -66,7 +73,7 @@ export default function AdminDashboard() {
   const { data: branches } = trpc.branches.listForAdmin.useQuery(undefined, { enabled: authed });
   const { data: branchSpecialties } = trpc.branchSpecialties.listForAdmin.useQuery(undefined, { enabled: authed });
   const { data: dentists } = trpc.dentists.list.useQuery(undefined, { enabled: authed });
-  const { data: adminUsers } = trpc.admin.users.list.useQuery(undefined, { enabled: authed });
+  const { data: adminUsers } = trpc.admin.users.list.useQuery(undefined, { enabled: authed && canManageUsers });
   const { data: conversations } = trpc.assistant.conversations.list.useQuery({ limit: 20 }, { enabled: authed });
   const { data: conversationMessages } = trpc.assistant.conversations.messages.useQuery({ conversationId: selectedConversationId ?? 0 }, { enabled: authed && selectedConversationId !== null });
   const exportBookings = trpc.admin.exportBookings.useQuery(undefined, { enabled: false });
@@ -136,7 +143,7 @@ export default function AdminDashboard() {
   const createAdminUser = trpc.admin.users.create.useMutation({
     onSuccess: async () => {
       await utils.admin.users.list.invalidate();
-      setUserDraft({ username: "", name: "", password: "" });
+      setUserDraft({ username: "", name: "", password: "", permission: "bookings" });
       setEditingUser(null);
       toast.success("تمت إضافة المستخدم الإداري");
     },
@@ -145,7 +152,7 @@ export default function AdminDashboard() {
   const updateAdminUser = trpc.admin.users.update.useMutation({
     onSuccess: async () => {
       await utils.admin.users.list.invalidate();
-      setUserDraft({ username: "", name: "", password: "" });
+      setUserDraft({ username: "", name: "", password: "", permission: "bookings" });
       setEditingUser(null);
       toast.success("تم تحديث الحساب الإداري");
     },
@@ -164,6 +171,10 @@ export default function AdminDashboard() {
       toast.success("تم حذف المستخدم الإداري");
     },
     onError: error => toast.error(error.message || "تعذر حذف المستخدم"),
+  });
+  const setAdminPermission = trpc.admin.users.setPermission.useMutation({
+    onSuccess: async () => { await utils.admin.users.list.invalidate(); toast.success("تم تحديث صلاحيات الحساب"); },
+    onError: error => toast.error(error.message || "تعذر تحديث الصلاحيات"),
   });
 
   useEffect(() => {
@@ -238,7 +249,7 @@ export default function AdminDashboard() {
       return;
     }
     if (userDraft.password.length < 8) return toast.error("كلمة مرور من 8 أحرف مطلوبة");
-    createAdminUser.mutate({ username: userDraft.username.trim(), name: userDraft.name.trim() || undefined, password: userDraft.password });
+    createAdminUser.mutate({ username: userDraft.username.trim(), name: userDraft.name.trim() || undefined, password: userDraft.password, permission: userDraft.permission });
   };
   const downloadBookings = async () => {
     const result = await exportBookings.refetch();
@@ -298,6 +309,7 @@ export default function AdminDashboard() {
             <div className="flex items-start justify-between gap-4"><div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary"><UserCog className="size-4" />المستخدمون الإداريون</span><h2 className="mt-2 text-xl font-extrabold text-foreground">التحكم في الوصول</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">إضافة مسؤولين، تعطيل الوصول، أو حذف الحسابات غير المستخدمة مع حماية آخر مسؤول نشط.</p></div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-extrabold text-primary">{adminUsers?.filter(user => user.isActive).length ?? 0} نشط</span></div>
             <div className="mt-4 divide-y divide-border rounded-xl border border-border">{(adminUsers ?? []).map(user => <div key={user.id} className="flex items-center justify-between gap-3 px-3 py-3"><div className="min-w-0"><p className="truncate text-sm font-bold text-foreground">{user.name || user.username || "مسؤول"}</p><p dir="ltr" className="mt-0.5 text-xs text-muted-foreground">{user.username || "OAuth admin"}</p></div><div className="flex items-center gap-1.5"><span className={cn("rounded-full px-2 py-1 text-[10px] font-extrabold ring-1", user.isActive ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-secondary text-muted-foreground ring-border")}>{user.isActive ? "نشط" : "معطل"}</span>{user.username && <button type="button" onClick={() => { setEditingUser(user.username ?? null); setUserDraft({ username: user.username ?? "", name: user.name ?? "", password: "" }); }} className="grid size-8 place-items-center rounded-lg bg-secondary text-secondary-foreground transition-all hover:shadow-sm" aria-label="تعديل الحساب"><Pencil className="size-3.5" /></button>}{user.username && <button type="button" disabled={setAdminUserActive.isPending} onClick={() => setAdminUserActive.mutate({ username: user.username ?? "", isActive: !user.isActive })} className="grid size-8 place-items-center rounded-lg bg-secondary text-secondary-foreground transition-all hover:shadow-sm" aria-label={user.isActive ? "تعطيل المستخدم" : "تفعيل المستخدم"}><Power className="size-3.5" /></button>}{user.username && <button type="button" disabled={removeAdminUser.isPending} onClick={() => { if (window.confirm(`حذف المستخدم ${user.username}؟`)) removeAdminUser.mutate({ username: user.username ?? "" }); }} className="grid size-8 place-items-center rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-200 transition-all hover:shadow-sm" aria-label="حذف المستخدم"><Trash2 className="size-3.5" /></button>}</div></div>)}{!adminUsers?.length && <p className="px-3 py-6 text-center text-sm text-muted-foreground">جاري تحميل المستخدمين...</p>}</div>
             <form onSubmit={submitUser} className="mt-4 grid gap-2 rounded-xl bg-secondary/50 p-3 sm:grid-cols-[1fr_1fr_1fr_auto]"><input value={userDraft.username} disabled={!!editingUser} onChange={event => setUserDraft(current => ({ ...current, username: event.target.value }))} placeholder="اسم المستخدم" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary disabled:bg-secondary disabled:text-muted-foreground" /><input value={userDraft.name} onChange={event => setUserDraft(current => ({ ...current, name: event.target.value }))} placeholder="الاسم الظاهر" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input type="password" value={userDraft.password} onChange={event => setUserDraft(current => ({ ...current, password: event.target.value }))} placeholder={editingUser ? "كلمة مرور جديدة (اختياري)" : "كلمة مرور (8 أحرف+)"} className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><div className="flex gap-2"><button type="submit" disabled={createAdminUser.isPending || updateAdminUser.isPending} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground transition-all hover:shadow-sm"><UserPlus className="size-3.5" />{editingUser ? "حفظ" : "إضافة"}</button>{editingUser && <button type="button" onClick={() => { setEditingUser(null); setUserDraft({ username: "", name: "", password: "" }); }} className="rounded-lg border border-border bg-white px-3 text-xs font-bold text-muted-foreground">إلغاء</button>}</div></form>
+            {canManageUsers && <div className="mt-4 rounded-xl border border-border bg-secondary/35 p-3"><p className="text-xs font-extrabold text-foreground">مستوى الصلاحية</p><p className="mt-1 text-xs leading-5 text-muted-foreground">مدير عام: كل الأدوات. مدير تشغيل: الفروع والخدمات. موظف حجوزات: متابعة الحجوزات فقط.</p><div className="mt-3 space-y-2">{(adminUsers ?? []).filter(user => user.username).map(user => <div key={`permission-${user.id}`} className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 ring-1 ring-border"><span className="truncate text-xs font-bold text-foreground">{user.name || user.username}</span><select value={user.permission} disabled={setAdminPermission.isPending} onChange={event => setAdminPermission.mutate({ username: user.username ?? "", permission: event.target.value as "full_access" | "operations" | "bookings" })} className="rounded-md border border-border bg-white px-2 py-1 text-xs font-bold text-primary outline-none focus:border-primary">{PERMISSIONS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div>)}</div></div>}
           </div>
           <div className="rounded-2xl border border-border bg-primary p-5 text-primary-foreground shadow-sm"><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary-foreground/90"><Download className="size-4" />تصدير البيانات</span><h2 className="mt-2 text-xl font-extrabold">ملف الحجوزات التشغيلي</h2><p className="mt-2 text-sm leading-6 text-primary-foreground/75">تنزيل CSV منظم يتضمن بيانات المراجع والفرع والخدمة والطبيب والموعد والحالة، للاستخدام التشغيلي أو الاستيراد لاحقاً في CRM.</p><button type="button" onClick={downloadBookings} disabled={exportBookings.isFetching} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-extrabold text-primary transition-all hover:shadow-md disabled:opacity-70"><Download className="size-4" />{exportBookings.isFetching ? "جارٍ تجهيز الملف..." : "تصدير الحجوزات CSV"}</button><p className="mt-3 text-xs leading-5 text-primary-foreground/65">يُطلب تسجيل دخول إداري صالح قبل إنشاء الملف، ولا يتاح التصدير للعامة.</p></div>
         </section>
