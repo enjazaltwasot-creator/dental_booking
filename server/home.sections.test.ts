@@ -12,5 +12,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).not.toContain("PARTNERS.map");
     expect(home).not.toContain("DEPARTMENTS.map");
     expect(home).not.toContain("ملفات مهنية لفريقنا الطبي");
+    expect(home).toContain('id="faq"');
+    expect(home).toContain("const FAQS");
   });
 });

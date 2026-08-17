@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   ChevronLeft,
+  CircleHelp,
   MapPin,
   ShieldCheck,
   Sparkles,
@@ -13,6 +14,7 @@ import {
   Timer,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import FullWidthGroupHero from "@/components/FullWidthGroupHero";
 import { BRANCHES, CLINIC } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
@@ -57,6 +59,25 @@ const GROUP_VALUES = [
   "تخصصات مترابطة ضمن تجربة رعاية واحدة",
   "حجز رقمي واضح يبدأ من احتياج المراجع",
   "فروع قريبة تمنحك مرونة أكبر في اختيار الموعد",
+];
+
+const FAQS = [
+  {
+    question: "كيف أحجز موعداً؟",
+    answer: "ابدأ باختيار الفرع، ثم الخدمة والطبيب والموعد المتاح، وأدخل بيانات التواصل لإرسال طلب الحجز.",
+  },
+  {
+    question: "كيف أختار الفرع الأنسب؟",
+    answer: "يمكنك مراجعة مواقع الفروع الثلاثة من دليل الفروع، أو البدء بالفرع الأقرب ثم إكمال الحجز من صفحته مباشرة.",
+  },
+  {
+    question: "هل يمكنني اختيار الطبيب؟",
+    answer: "نعم، تظهر لك خيارات الأطباء المتاحة بعد اختيار الفرع والخدمة، ثم تختار الوقت المناسب من المواعيد المعروضة.",
+  },
+  {
+    question: "ماذا أحصل عليه بعد إرسال الطلب؟",
+    answer: "تظهر لك صفحة تأكيد تتضمن رقماً مرجعياً للحجز. تبقى حالة الموعد معلقة إلى حين مراجعته من إدارة المواعيد.",
+  },
 ];
 
 export default function Home() {
@@ -209,6 +230,28 @@ export default function Home() {
                 </article>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="border-t border-primary/10 bg-secondary/35 py-16 lg:py-20">
+        <div className="container grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+          <div className="rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-9">
+            <span className="grid size-12 place-items-center rounded-2xl bg-white/10 text-orange-200"><CircleHelp className="size-6" /></span>
+            <span className="mt-7 block text-xs font-extrabold tracking-[0.17em] text-orange-200">أسئلة شائعة</span>
+            <h2 className="mt-3 text-3xl font-extrabold leading-tight">كل ما تحتاج معرفته قبل الحجز.</h2>
+            <p className="mt-4 text-[15px] leading-8 text-white/75">إجابات عملية وسريعة تساعدك على اختيار الفرع والخدمة والموعد بوضوح.</p>
+            <Link href="/booking" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-extrabold text-accent-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">ابدأ الحجز <ArrowLeft className="size-4" /></Link>
+          </div>
+          <div className="rounded-[2rem] border border-border bg-white px-6 shadow-sm sm:px-8">
+            <Accordion type="single" collapsible defaultValue="faq-1">
+              {FAQS.map((item, index) => (
+                <AccordionItem key={item.question} value={`faq-${index + 1}`} className="border-border">
+                  <AccordionTrigger className="py-6 text-right text-[15px] font-extrabold text-foreground hover:no-underline sm:text-base">{item.question}</AccordionTrigger>
+                  <AccordionContent className="max-w-2xl text-right text-sm leading-7 text-muted-foreground">{item.answer}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         </div>
       </section>
