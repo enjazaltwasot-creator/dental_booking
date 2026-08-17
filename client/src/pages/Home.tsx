@@ -144,8 +144,7 @@ export default function Home() {
             </div>
           </div>
           <div className="lg:pr-6">
-            <span className="text-xs font-bold tracking-[0.17em] text-accent">من نحن</span>
-            <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">وجهة طبية تجمع التخصص وسهولة الوصول.</h2>
+            <h2 className="text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">وجهة طبية تجمع التخصص وسهولة الوصول.</h2>
             <p className="mt-5 max-w-2xl text-[15px] leading-8 text-muted-foreground">
               {CLINIC.name} تجمع خدمات طب الأسنان والجلدية والليزر ضمن رحلة علاجية منظمة، وتمنح المراجع بوابة واحدة للوصول إلى تخصصاته وفروعه وموعده المناسب.
             </p>

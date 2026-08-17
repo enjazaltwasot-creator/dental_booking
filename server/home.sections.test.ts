@@ -21,6 +21,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("0{index + 1} / 03");
     expect(home).toContain("care-step-in");
     expect(home).toContain("620 + index * 170");
+    expect(home).not.toContain('text-accent">من نحن</span>');
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
