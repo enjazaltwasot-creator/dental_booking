@@ -212,6 +212,22 @@
     animation: vision-rise 580ms var(--ease-out-soft) both;
   }
 
+  @keyframes trust-rise {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .trust-copy-item,
+  .trust-card {
+    animation: trust-rise 560ms var(--ease-out-soft) both;
+  }
+
   .page-section-reveal {
     opacity: 0;
     transform: translateY(18px);
@@ -308,6 +324,27 @@
   .vision-value > span {
     transition: transform 240ms var(--ease-out-soft);
   }
+
+  .trust-card {
+    transition:
+      transform 240ms var(--ease-out-soft),
+      background-color 240ms var(--ease-out-soft),
+      box-shadow 240ms var(--ease-out-soft);
+  }
+
+  .trust-card:hover {
+    transform: translateY(-5px);
+    background-color: color-mix(in oklch, white 84%, var(--secondary));
+    box-shadow: 0 16px 28px color-mix(in oklch, var(--primary) 13%, transparent);
+  }
+
+  .trust-card:hover > span {
+    transform: rotate(-7deg) scale(1.08);
+  }
+
+  .trust-card > span {
+    transition: transform 240ms var(--ease-out-soft);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -316,7 +353,9 @@
   }
 
   .vision-copy-item,
-  .vision-value {
+  .vision-value,
+  .trust-copy-item,
+  .trust-card {
     animation: none;
   }
 }

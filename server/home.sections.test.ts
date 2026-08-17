@@ -28,6 +28,8 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("care-card group");
     expect(home).toContain("home-vision");
     expect(home).toContain("vision-value");
+    expect(home).toContain("trust-section");
+    expect(home).toContain("trust-card");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {

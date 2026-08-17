@@ -172,17 +172,17 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-12 lg:py-16">
+      <section className="trust-section py-12 lg:py-16">
         <div className="container rounded-[1.75rem] border border-border bg-white p-5 shadow-sm sm:p-7">
           <div className="grid gap-7 lg:grid-cols-[0.72fr_1.28fr] lg:items-center">
             <div className="border-b border-border pb-6 lg:border-b-0 lg:border-l lg:pb-0 lg:pl-7">
-              <span className="text-xs font-bold tracking-[0.17em] text-accent">عناصر الثقة</span>
-              <h2 className="mt-3 text-2xl font-extrabold leading-tight text-foreground sm:text-3xl">تجربة طبية تبدأ بالوضوح.</h2>
-              <p className="mt-3 text-sm leading-7 text-muted-foreground">نصمم تجربة المراجع حول معلومات واضحة، خصوصية محترمة، وفروع قريبة.</p>
+              <span className="trust-copy-item text-xs font-bold tracking-[0.17em] text-accent" style={{ animationDelay: "70ms" }}>عناصر الثقة</span>
+              <h2 className="trust-copy-item mt-3 text-2xl font-extrabold leading-tight text-foreground sm:text-3xl" style={{ animationDelay: "150ms" }}>تجربة طبية تبدأ بالوضوح.</h2>
+              <p className="trust-copy-item mt-3 text-sm leading-7 text-muted-foreground" style={{ animationDelay: "230ms" }}>نصمم تجربة المراجع حول معلومات واضحة، خصوصية محترمة، وفروع قريبة.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
-              {TRUST_SIGNALS.map((signal) => (
-                <article key={signal.title} className="rounded-2xl bg-secondary/60 p-4">
+              {TRUST_SIGNALS.map((signal, index) => (
+                <article key={signal.title} className="trust-card rounded-2xl bg-secondary/60 p-4" style={{ animationDelay: `${290 + index * 110}ms` }}>
                   <span className="grid size-10 place-items-center rounded-xl bg-white text-primary shadow-sm">
                     <signal.icon className="size-5" />
                   </span>
