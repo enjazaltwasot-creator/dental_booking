@@ -16,7 +16,7 @@ import {
 import PageShell from "@/components/PageShell";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import FullWidthGroupHero from "@/components/FullWidthGroupHero";
-import { BRANCHES, CLINIC } from "@/lib/clinic";
+import { BRANCHES } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
 const PILLARS = [
@@ -59,12 +59,6 @@ const TRUST_SIGNALS = [
     title: "سهولة الوصول",
     text: "ثلاثة فروع داخل الرياض تمنحك خيارات أقرب إلى موقعك.",
   },
-];
-
-const GROUP_VALUES = [
-  "تخصصات مترابطة ضمن تجربة رعاية واحدة",
-  "حجز رقمي واضح يبدأ من احتياج المراجع",
-  "فروع قريبة تمنحك مرونة أكبر في اختيار الموعد",
 ];
 
 const FAQS = [
@@ -122,8 +116,9 @@ export default function Home() {
 
       <section id="about" className="relative overflow-hidden py-16 lg:py-24">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_5%_50%,rgba(249,115,22,0.1),transparent_24%),radial-gradient(circle_at_95%_20%,rgba(2,132,199,0.1),transparent_26%)]" />
-        <div className="container grid gap-8 lg:grid-cols-[0.84fr_1.16fr] lg:items-center">
-          <div className="relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
+        <div className="container">
+          <div className="mx-auto max-w-2xl">
+            <div className="relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
             <div className="absolute -right-20 -top-16 size-52 rounded-full border-[30px] border-white/10" />
             <div className="absolute -bottom-24 -left-12 size-52 rounded-full bg-accent/90 blur-2xl" />
             <div className="relative">
@@ -143,19 +138,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="lg:pr-6">
-            <h2 className="text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">وجهة طبية تجمع التخصص وسهولة الوصول.</h2>
-            <p className="mt-5 max-w-2xl text-[15px] leading-8 text-muted-foreground">
-              {CLINIC.name} تجمع خدمات طب الأسنان والجلدية والليزر ضمن رحلة علاجية منظمة، وتمنح المراجع بوابة واحدة للوصول إلى تخصصاته وفروعه وموعده المناسب.
-            </p>
-            <div className="mt-8 space-y-3">
-              {GROUP_VALUES.map((value, index) => (
-                <div key={value} className="flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 shadow-sm">
-                  <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-accent text-xs font-extrabold text-accent-foreground">0{index + 1}</span>
-                  <span className="text-sm font-bold text-foreground">{value}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       </section>
