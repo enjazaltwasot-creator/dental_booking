@@ -30,6 +30,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("vision-value");
     expect(home).toContain("trust-section");
     expect(home).toContain("trust-card");
+    expect(home).toContain("trust-card-sheen");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {

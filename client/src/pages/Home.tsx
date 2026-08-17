@@ -182,12 +182,13 @@ export default function Home() {
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               {TRUST_SIGNALS.map((signal, index) => (
-                <article key={signal.title} className="trust-card rounded-2xl bg-secondary/60 p-4" style={{ animationDelay: `${290 + index * 110}ms` }}>
-                  <span className="grid size-10 place-items-center rounded-xl bg-white text-primary shadow-sm">
+                <article key={signal.title} className="trust-card relative overflow-hidden rounded-2xl border border-transparent bg-secondary/60 p-4" style={{ animationDelay: `${290 + index * 110}ms` }}>
+                  <span aria-hidden="true" className="trust-card-sheen pointer-events-none absolute inset-y-0 -left-1/2 w-1/3" />
+                  <span className="relative grid size-10 place-items-center rounded-xl bg-white text-primary shadow-sm">
                     <signal.icon className="size-5" />
                   </span>
-                  <h3 className="mt-4 text-sm font-extrabold text-foreground">{signal.title}</h3>
-                  <p className="mt-2 text-xs leading-6 text-muted-foreground">{signal.text}</p>
+                  <h3 className="relative mt-4 text-sm font-extrabold text-foreground">{signal.title}</h3>
+                  <p className="relative mt-2 text-xs leading-6 text-muted-foreground">{signal.text}</p>
                 </article>
               ))}
             </div>

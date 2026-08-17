@@ -329,13 +329,22 @@
     transition:
       transform 240ms var(--ease-out-soft),
       background-color 240ms var(--ease-out-soft),
+      border-color 240ms var(--ease-out-soft),
       box-shadow 240ms var(--ease-out-soft);
   }
 
+  .trust-card-sheen {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(-150%);
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, white 72%, transparent), transparent);
+    transition: transform 560ms var(--ease-out-soft), opacity 180ms var(--ease-out-soft);
+  }
+
   .trust-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-6px) scale(1.012);
+    border-color: color-mix(in oklch, var(--primary) 22%, transparent);
     background-color: color-mix(in oklch, white 84%, var(--secondary));
-    box-shadow: 0 16px 28px color-mix(in oklch, var(--primary) 13%, transparent);
+    box-shadow: 0 18px 30px color-mix(in oklch, var(--primary) 17%, transparent);
   }
 
   .trust-card:hover > span {
@@ -344,6 +353,11 @@
 
   .trust-card > span {
     transition: transform 240ms var(--ease-out-soft);
+  }
+
+  .trust-card:hover .trust-card-sheen {
+    opacity: 0.8;
+    transform: skewX(-18deg) translateX(520%);
   }
 }
 
