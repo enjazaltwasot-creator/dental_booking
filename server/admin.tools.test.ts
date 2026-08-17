@@ -73,6 +73,18 @@ describe("admin tools", () => {
     expect(publicAfterRestore.some(service => service.id === target!.id)).toBe(true);
   });
 
+  it("allows deletion of an unused service and branch through protected admin tools", async () => {
+    const caller = await createAdminCaller();
+    const service = await caller.services.create({ name: `خدمة حذف ${nanoid(6)}`, description: "خدمة اختبار للحذف", duration: 30, department: "dentistry" });
+    await caller.services.remove({ id: service.id });
+    expect((await caller.services.listForAdmin()).some(item => item.id === service.id)).toBe(false);
+
+    const slug = `delete-branch-${nanoid(6).toLowerCase().replace(/_/g, "a")}`;
+    const branch = await caller.branches.create({ slug, name: "فرع حذف اختبار", shortName: "فرع حذف", city: "الرياض", address: "عنوان اختبار", phone: "0110000000" });
+    await caller.branches.remove({ id: branch.id });
+    expect((await caller.branches.listForAdmin()).some(item => item.id === branch.id)).toBe(false);
+  });
+
   it("allows an administrator to manage branches without exposing paused branches publicly", async () => {
     const caller = await createAdminCaller();
     const existing = await caller.branches.listForAdmin();

@@ -196,6 +196,17 @@ export async function setServiceActive(id: number, isActive: boolean) {
   return getServiceById(id);
 }
 
+export async function deleteServiceIfUnused(id: number): Promise<"deleted" | "in_use" | "not_found"> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const service = await getServiceById(id);
+  if (!service) return "not_found";
+  const linkedBookings = await db.select({ id: bookings.id }).from(bookings).where(eq(bookings.serviceId, id)).limit(1);
+  if (linkedBookings.length) return "in_use";
+  await db.delete(services).where(eq(services.id, id));
+  return "deleted";
+}
+
 export async function getAllBranches(): Promise<BranchRecord[]> {
   const db = await getDb();
   if (!db) return [];
@@ -230,6 +241,18 @@ export async function setBranchActive(id: number, isActive: boolean) {
   if (!db) throw new Error("Database not available");
   await db.update(branches).set({ isActive }).where(eq(branches.id, id));
   return (await db.select().from(branches).where(eq(branches.id, id)).limit(1))[0];
+}
+
+export async function deleteBranchIfUnused(id: number): Promise<"deleted" | "in_use" | "not_found"> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const branch = (await db.select().from(branches).where(eq(branches.id, id)).limit(1))[0];
+  if (!branch) return "not_found";
+  const linkedBookings = await db.select({ id: bookings.id }).from(bookings).where(eq(bookings.branch, branch.slug)).limit(1);
+  if (linkedBookings.length) return "in_use";
+  await db.delete(branchSpecialties).where(eq(branchSpecialties.branchId, id));
+  await db.delete(branches).where(eq(branches.id, id));
+  return "deleted";
 }
 export async function getAllBranchSpecialties(): Promise<BranchSpecialty[]> {
   const db = await getDb();

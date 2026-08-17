@@ -212,6 +212,14 @@ export const appRouter = router({
     setActive: adminSessionProcedure
       .input(z.object({ id: z.number().int().positive(), isActive: z.boolean() }))
       .mutation(async ({ input }) => db.setServiceActive(input.id, input.isActive)),
+    remove: adminSessionProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        const result = await db.deleteServiceIfUnused(input.id);
+        if (result === "not_found") throw new TRPCError({ code: "NOT_FOUND", message: "الخدمة غير موجودة" });
+        if (result === "in_use") throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف خدمة مرتبطة بحجوزات سابقة؛ أوقفها بدلاً من ذلك" });
+        return { success: true };
+      }),
   }),
 
   branches: router({
@@ -226,6 +234,12 @@ export const appRouter = router({
       return db.updateBranch(id, values);
     }),
     setActive: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setBranchActive(input.id, input.isActive)),
+    remove: adminSessionProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+      const result = await db.deleteBranchIfUnused(input.id);
+      if (result === "not_found") throw new TRPCError({ code: "NOT_FOUND", message: "الفرع غير موجود" });
+      if (result === "in_use") throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف فرع مرتبط بحجوزات سابقة؛ أوقفه بدلاً من ذلك" });
+      return { success: true };
+    }),
   }),
 
   branchSpecialties: router({
