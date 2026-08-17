@@ -25,7 +25,7 @@ export default function BookingForm() {
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const { data: branches, isLoading: loadingBranches } = trpc.branches.list.useQuery();
   const selectedBranch = (branches ?? []).find(branch => branch.slug === branchSlug);
-  const { data: services, isLoading: loadingServices } = trpc.services.list.useQuery();
+  const { data: services, isLoading: loadingServices } = trpc.services.listForBranch.useQuery({ branch: branchSlug ?? "unselected" }, { enabled: Boolean(branchSlug) });
   const { data: dentists, isLoading: loadingDentists } = trpc.dentists.list.useQuery();
 
   const { data: slots, isFetching: loadingSlots } = trpc.workingHours.availableSlots.useQuery(
@@ -40,6 +40,9 @@ export default function BookingForm() {
   useEffect(() => {
     if (branchSlug && branches && !selectedBranch) setBranchSlug(null);
   }, [branchSlug, branches, selectedBranch]);
+  useEffect(() => {
+    if (serviceId && services && !services.some(service => service.id === serviceId)) setServiceId(null);
+  }, [serviceId, services]);
 
   const createBooking = trpc.bookings.create.useMutation({
     onSuccess: booking => {

@@ -1,6 +1,6 @@
-import { asc, desc, eq, and, gte, lte, ne } from "drizzle-orm";
+import { asc, desc, eq, and, gte, lte, ne, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, branches, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord } from "../drizzle/schema";
+import { InsertUser, users, services, branches, branchSpecialties, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord, BranchSpecialty } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -168,20 +168,21 @@ export async function getServiceById(id: number): Promise<Service | undefined> {
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function createService(input: { name: string; description?: string; duration: number; isActive?: boolean }) {
+export async function createService(input: { name: string; description?: string; duration: number; department: "dentistry" | "dermatology" | "laser"; isActive?: boolean }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(services).values({
     name: input.name,
     description: input.description,
     duration: input.duration,
+    department: input.department,
     isActive: input.isActive ?? true,
   });
   const created = await db.select().from(services).where(eq(services.id, Number(result[0].insertId))).limit(1);
   return created[0];
 }
 
-export async function updateService(id: number, input: { name: string; description?: string; duration: number }) {
+export async function updateService(id: number, input: { name: string; description?: string; duration: number; department: "dentistry" | "dermatology" | "laser" }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(services).set(input).where(eq(services.id, id));
@@ -214,7 +215,9 @@ export async function createBranch(input: { slug: string; name: string; shortNam
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(branches).values({ ...input, isActive: true });
-  return (await db.select().from(branches).where(eq(branches.id, Number(result[0].insertId))).limit(1))[0];
+  const branchId = Number(result[0].insertId);
+  await db.insert(branchSpecialties).values((["dentistry", "dermatology", "laser"] as const).map(department => ({ branchId, department, isActive: true })));
+  return (await db.select().from(branches).where(eq(branches.id, branchId)).limit(1))[0];
 }
 export async function updateBranch(id: number, input: { name: string; shortName: string; city: string; address?: string; phone?: string }) {
   const db = await getDb();
@@ -227,6 +230,31 @@ export async function setBranchActive(id: number, isActive: boolean) {
   if (!db) throw new Error("Database not available");
   await db.update(branches).set({ isActive }).where(eq(branches.id, id));
   return (await db.select().from(branches).where(eq(branches.id, id)).limit(1))[0];
+}
+export async function getAllBranchSpecialties(): Promise<BranchSpecialty[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(branchSpecialties).orderBy(asc(branchSpecialties.branchId));
+}
+export async function getBranchSpecialties(branchId: number): Promise<BranchSpecialty[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(branchSpecialties).where(eq(branchSpecialties.branchId, branchId));
+}
+export async function setBranchSpecialtyActive(branchId: number, department: "dentistry" | "dermatology" | "laser", isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(branchSpecialties).set({ isActive }).where(and(eq(branchSpecialties.branchId, branchId), eq(branchSpecialties.department, department)));
+  return getBranchSpecialties(branchId);
+}
+export async function getServicesForBranch(slug: string): Promise<Service[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const branch = await getBranchBySlug(slug);
+  if (!branch?.isActive) return [];
+  const activeDepartments = (await getBranchSpecialties(branch.id)).filter(item => item.isActive).map(item => item.department);
+  if (!activeDepartments.length) return [];
+  return db.select().from(services).where(and(eq(services.isActive, true), inArray(services.department, activeDepartments)));
 }
 
 // Dentists queries

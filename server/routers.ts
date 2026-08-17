@@ -196,6 +196,7 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return db.getAllServices();
     }),
+    listForBranch: publicProcedure.input(z.object({ branch: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/) })).query(({ input }) => db.getServicesForBranch(input.branch)),
     getById: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
@@ -203,11 +204,11 @@ export const appRouter = router({
       }),
     listForAdmin: adminSessionProcedure.query(async () => db.getAllServicesForAdmin()),
     create: adminSessionProcedure
-      .input(z.object({ name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240) }))
+      .input(z.object({ name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240), department: z.enum(["dentistry", "dermatology", "laser"]).default("dentistry") }))
       .mutation(async ({ input }) => db.createService(input)),
     update: adminSessionProcedure
-      .input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240) }))
-      .mutation(async ({ input }) => db.updateService(input.id, input)),
+      .input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(100), description: z.string().trim().max(1000).optional(), duration: z.number().int().min(5).max(240), department: z.enum(["dentistry", "dermatology", "laser"]) }))
+      .mutation(async ({ input }) => { const { id, ...values } = input; return db.updateService(id, values); }),
     setActive: adminSessionProcedure
       .input(z.object({ id: z.number().int().positive(), isActive: z.boolean() }))
       .mutation(async ({ input }) => db.setServiceActive(input.id, input.isActive)),
@@ -225,6 +226,11 @@ export const appRouter = router({
       return db.updateBranch(id, values);
     }),
     setActive: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setBranchActive(input.id, input.isActive)),
+  }),
+
+  branchSpecialties: router({
+    listForAdmin: adminSessionProcedure.query(() => db.getAllBranchSpecialties()),
+    setActive: adminSessionProcedure.input(z.object({ branchId: z.number().int().positive(), department: z.enum(["dentistry", "dermatology", "laser"]), isActive: z.boolean() })).mutation(({ input }) => db.setBranchSpecialtyActive(input.branchId, input.department, input.isActive)),
   }),
 
   // Dentists
@@ -305,6 +311,7 @@ export const appRouter = router({
         const [service, branch] = await Promise.all([db.getServiceById(input.serviceId), db.getBranchBySlug(input.branch)]);
         if (!service?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الخدمة غير متاحة للحجز حالياً" });
         if (!branch?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الفرع غير متاح للحجز حالياً" });
+        if (!(await db.getBranchSpecialties(branch.id)).some(item => item.department === service.department && item.isActive)) throw new TRPCError({ code: "BAD_REQUEST", message: "هذه الخدمة غير متاحة في الفرع المختار حالياً" });
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
         const booking = await db.createBooking({
           referenceNumber,

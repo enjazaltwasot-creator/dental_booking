@@ -32,6 +32,7 @@ export const services = mysqlTable("services", {
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   duration: int("duration").notNull(), // duration in minutes
+  department: mysqlEnum("department", ["dentistry", "dermatology", "laser"]).default("dentistry").notNull(),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -54,6 +55,17 @@ export const branches = mysqlTable("branches", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 export type BranchRecord = typeof branches.$inferSelect;
+
+/** Per-branch availability for the three declared clinical departments. */
+export const branchSpecialties = mysqlTable("branch_specialties", {
+  id: int("id").autoincrement().primaryKey(),
+  branchId: int("branch_id").notNull(),
+  department: mysqlEnum("department", ["dentistry", "dermatology", "laser"]).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [uniqueIndex("branch_specialties_branch_department_unique").on(table.branchId, table.department)]);
+export type BranchSpecialty = typeof branchSpecialties.$inferSelect;
 
 /**
  * Dentists table

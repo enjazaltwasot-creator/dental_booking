@@ -71,6 +71,13 @@
       "when": 1786936068108,
       "tag": "0009_thankful_major_mapleleaf",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1786937742795,
+      "tag": "0010_dashing_vanisher",
+      "breakpoints": true
     }
   ]
 }
