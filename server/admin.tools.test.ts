@@ -84,7 +84,7 @@ describe("admin tools", () => {
     expect(publicWhilePaused.some(branch => branch.id === target!.id)).toBe(false);
     await caller.branches.setActive({ id: target!.id, isActive: true });
 
-    const slug = `test-branch-${nanoid(6).toLowerCase()}`;
+    const slug = `test-branch-${nanoid(6).toLowerCase().replace(/_/g, "a")}`;
     const created = await caller.branches.create({ slug, name: "فرع اختبار الإدارة", shortName: "فرع اختبار", city: "الرياض", address: "عنوان اختبار", phone: "0110000000" });
     expect((await caller.branches.list()).some(branch => branch.id === created.id)).toBe(true);
     await caller.branches.setActive({ id: created.id, isActive: false });

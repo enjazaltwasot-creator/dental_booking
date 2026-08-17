@@ -230,6 +230,45 @@
     transform: rotate(-5deg) scale(1.08);
     box-shadow: 0 14px 28px color-mix(in oklch, var(--primary) 24%, transparent);
   }
+
+  .care-card {
+    transition:
+      transform 360ms var(--ease-out-soft),
+      box-shadow 360ms var(--ease-out-soft);
+    will-change: transform;
+  }
+
+  .care-card-glow {
+    opacity: 0.18;
+    background: radial-gradient(circle at 18% 72%, color-mix(in oklch, var(--accent) 58%, transparent), transparent 30%);
+    transition: opacity 360ms var(--ease-out-soft), transform 480ms var(--ease-out-soft);
+  }
+
+  .care-card-sheen {
+    opacity: 0;
+    transform: skewX(-18deg) translateX(-150%);
+    background: linear-gradient(90deg, transparent, color-mix(in oklch, white 24%, transparent), transparent);
+    transition: transform 650ms var(--ease-out-soft), opacity 220ms var(--ease-out-soft);
+  }
+
+  .care-card:hover {
+    transform: translateY(-7px) scale(1.008);
+    box-shadow: 0 28px 52px color-mix(in oklch, var(--primary) 32%, transparent);
+  }
+
+  .care-card:hover .care-card-glow {
+    opacity: 0.74;
+    transform: scale(1.12);
+  }
+
+  .care-card:hover .care-card-sheen {
+    opacity: 1;
+    transform: skewX(-18deg) translateX(520%);
+  }
+
+  .care-card:hover .care-step-in strong {
+    text-shadow: 0 0 18px color-mix(in oklch, white 45%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

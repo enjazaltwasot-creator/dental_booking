@@ -25,6 +25,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).not.toContain("const GROUP_VALUES");
     expect(home).not.toContain("وجهة طبية تجمع التخصص وسهولة الوصول.");
     expect(home).toContain("mx-auto max-w-3xl");
+    expect(home).toContain("care-card group");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
