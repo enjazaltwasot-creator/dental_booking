@@ -104,11 +104,11 @@ export default function Home() {
       <section id="about" className="relative overflow-hidden py-16 lg:py-24">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_5%_50%,rgba(249,115,22,0.1),transparent_24%),radial-gradient(circle_at_95%_20%,rgba(2,132,199,0.1),transparent_26%)]" />
         <div className="container grid gap-8 lg:grid-cols-[0.84fr_1.16fr] lg:items-center">
-          <div className="relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
+          <div className="group relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
             <div className="absolute -right-20 -top-16 size-52 rounded-full border-[30px] border-white/10" />
             <div className="absolute -bottom-24 -left-12 size-52 rounded-full bg-accent/90 blur-2xl" />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[48%] overflow-hidden opacity-[0.17] [mask-image:linear-gradient(to_right,#000_0%,#000_72%,transparent_100%)]">
-              <img src="/manus-storage/evan-brand-mark-watermark_a819a58f.png" alt="" className="absolute left-0 top-1/2 h-[15rem] max-w-none -translate-y-1/2 -rotate-6 brightness-0 invert sm:h-[18rem]" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[48%] overflow-hidden [mask-image:linear-gradient(to_right,#000_0%,#000_72%,transparent_100%)]">
+              <img src="/manus-storage/evan-brand-mark-watermark_a819a58f.png" alt="" className="absolute left-0 top-1/2 h-[15rem] max-w-none -translate-y-1/2 -rotate-6 brightness-0 invert opacity-[0.17] transition-[transform,opacity,filter] duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:md:group-hover:scale-105 motion-safe:md:group-hover:rotate-0 motion-safe:md:group-hover:opacity-[0.28] motion-reduce:transition-none sm:h-[18rem]" />
             </div>
             <div className="relative">
               <span className="text-xs font-bold tracking-[0.18em] text-orange-200">EVAN GROUP</span>
