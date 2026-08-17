@@ -220,7 +220,10 @@ export const appRouter = router({
       if (await db.getBranchBySlug(input.slug)) throw new TRPCError({ code: "CONFLICT", message: "رمز الفرع مستخدم بالفعل" });
       return db.createBranch(input);
     }),
-    update: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(({ input }) => db.updateBranch(input.id, input)),
+    update: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(({ input }) => {
+      const { id, ...values } = input;
+      return db.updateBranch(id, values);
+    }),
     setActive: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setBranchActive(input.id, input.isActive)),
   }),
 
