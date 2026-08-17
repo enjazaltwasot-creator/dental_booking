@@ -144,16 +144,16 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="vision" className="border-y border-primary/10 bg-primary py-14 text-white lg:py-18">
+      <section id="vision" className="home-vision border-y border-primary/10 bg-primary py-14 text-white lg:py-18">
         <div className="container grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-orange-200">
+            <span className="vision-copy-item inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold text-orange-200" style={{ animationDelay: "70ms" }}>
               <Sparkles className="size-3.5" />
               رؤيتنا
             </span>
-            <h2 className="mt-5 max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl">أن تكون الرعاية الطبية الأكثر وضوحاً وقرباً من احتياج المراجع.</h2>
-            <p className="mt-4 max-w-2xl text-[15px] leading-8 text-white/75">نترجم هذه الرؤية إلى خطوات عملية: تخصصات محددة، فروع سهلة الوصول، ومواعيد يمكن إدارتها بسلاسة.</p>
-            <Link href="/vision" className="mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-orange-200 transition-colors hover:text-orange-100">
+            <h2 className="vision-copy-item mt-5 max-w-2xl text-3xl font-extrabold leading-tight sm:text-4xl" style={{ animationDelay: "150ms" }}>أن تكون الرعاية الطبية الأكثر وضوحاً وقرباً من احتياج المراجع.</h2>
+            <p className="vision-copy-item mt-4 max-w-2xl text-[15px] leading-8 text-white/75" style={{ animationDelay: "230ms" }}>نترجم هذه الرؤية إلى خطوات عملية: تخصصات محددة، فروع سهلة الوصول، ومواعيد يمكن إدارتها بسلاسة.</p>
+            <Link href="/vision" className="vision-copy-item mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-orange-200 transition-colors hover:text-orange-100" style={{ animationDelay: "310ms" }}>
               تعرّف على رؤيتنا <ArrowUpLeft className="size-4" />
             </Link>
           </div>
@@ -162,8 +162,8 @@ export default function Home() {
               ["وضوح", "تعرف مسار الحجز قبل أن تبدأ."],
               ["قرب", "تصل إلى الفرع الأنسب لك بسهولة."],
               ["اهتمام", "تنتقل من الخدمة إلى الطبيب والموعد ضمن تجربة واحدة."],
-            ].map(([title, text]) => (
-              <div key={title} className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-4">
+            ].map(([title, text], index) => (
+              <div key={title} className="vision-value flex items-center gap-4 rounded-2xl border border-white/15 bg-white/10 p-4" style={{ animationDelay: `${330 + index * 110}ms` }}>
                 <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-accent text-sm font-extrabold text-accent-foreground">✦</span>
                 <div><h3 className="text-sm font-extrabold">{title}</h3><p className="mt-1 text-xs leading-5 text-white/70">{text}</p></div>
               </div>
