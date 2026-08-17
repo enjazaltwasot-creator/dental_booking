@@ -107,6 +107,7 @@ export default function Home() {
           <div className="relative overflow-hidden rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-10">
             <div className="absolute -right-20 -top-16 size-52 rounded-full border-[30px] border-white/10" />
             <div className="absolute -bottom-24 -left-12 size-52 rounded-full bg-accent/90 blur-2xl" />
+            <img src="/manus-storage/evan-logo_076a049e.webp" alt="" aria-hidden="true" className="pointer-events-none absolute bottom-5 left-5 z-0 h-24 w-44 -rotate-6 object-contain opacity-[0.18] brightness-0 invert sm:bottom-6 sm:left-6 sm:h-28 sm:w-52" />
             <div className="relative">
               <span className="text-xs font-bold tracking-[0.18em] text-orange-200">EVAN GROUP</span>
               <p className="mt-12 max-w-sm text-3xl font-extrabold leading-tight sm:text-4xl">الرعاية ليست خدمة منفصلة، بل منظومة متكاملة.</p>

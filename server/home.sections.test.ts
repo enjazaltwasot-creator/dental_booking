@@ -14,6 +14,9 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).not.toContain("ملفات مهنية لفريقنا الطبي");
     expect(home).toContain('id="faq"');
     expect(home).toContain("const FAQS");
+    expect(home).toContain('src="/manus-storage/evan-logo_076a049e.webp"');
+    expect(home).toContain("bottom-5 left-5");
+    expect(home).toContain("opacity-[0.18] brightness-0 invert");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
