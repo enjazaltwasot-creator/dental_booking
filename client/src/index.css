@@ -173,6 +173,29 @@
     animation: pillar-spotlight-in 620ms var(--ease-out-soft) both;
   }
 
+  @keyframes care-step-in {
+    0% {
+      opacity: 0;
+      transform: translateY(12px);
+      filter: blur(3px);
+    }
+    62% {
+      opacity: 1;
+      transform: translateY(-2px);
+      filter: blur(0);
+      text-shadow: 0 0 18px color-mix(in oklch, white 46%, transparent);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  .care-step-in {
+    animation: care-step-in 540ms var(--ease-out-soft) both;
+  }
+
   .page-section-reveal {
     opacity: 0;
     transform: translateY(18px);
@@ -206,5 +229,11 @@
   .pillar-spotlight:hover .pillar-icon {
     transform: rotate(-5deg) scale(1.08);
     box-shadow: 0 14px 28px color-mix(in oklch, var(--primary) 24%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .care-step-in {
+    animation: none;
   }
 }

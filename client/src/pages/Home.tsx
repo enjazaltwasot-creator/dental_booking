@@ -130,9 +130,16 @@ export default function Home() {
               <span className="text-xs font-bold tracking-[0.18em] text-orange-200">EVAN GROUP</span>
               <p className="mt-12 max-w-sm text-3xl font-extrabold leading-tight sm:text-4xl">الرعاية ليست خدمة منفصلة، بل منظومة متكاملة.</p>
               <div className="mt-12 grid grid-cols-3 gap-2 border-t border-white/15 pt-5">
-                <div><strong className="block text-xl font-extrabold">01</strong><span className="text-xs text-white/70">المجموعة</span></div>
-                <div><strong className="block text-xl font-extrabold">02</strong><span className="text-xs text-white/70">الفروع</span></div>
-                <div><strong className="block text-xl font-extrabold">03</strong><span className="text-xs text-white/70">الرعاية</span></div>
+                {[
+                  ["01", "المجموعة"],
+                  ["02", "الفروع"],
+                  ["03", "الرعاية"],
+                ].map(([number, label], index) => (
+                  <div key={number} className="care-step-in" style={{ animationDelay: `${620 + index * 170}ms` }}>
+                    <strong className="block text-xl font-extrabold tracking-[0.08em]">{number}</strong>
+                    <span className="text-xs text-white/70">{label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
