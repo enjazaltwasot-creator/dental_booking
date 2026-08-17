@@ -213,6 +213,17 @@ export const appRouter = router({
       .mutation(async ({ input }) => db.setServiceActive(input.id, input.isActive)),
   }),
 
+  branches: router({
+    list: publicProcedure.query(() => db.getActiveBranches()),
+    listForAdmin: adminSessionProcedure.query(() => db.getAllBranches()),
+    create: adminSessionProcedure.input(z.object({ slug: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(async ({ input }) => {
+      if (await db.getBranchBySlug(input.slug)) throw new TRPCError({ code: "CONFLICT", message: "رمز الفرع مستخدم بالفعل" });
+      return db.createBranch(input);
+    }),
+    update: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(({ input }) => db.updateBranch(input.id, input)),
+    setActive: adminSessionProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setBranchActive(input.id, input.isActive)),
+  }),
+
   // Dentists
   dentists: router({
     list: publicProcedure.query(async () => {
@@ -278,7 +289,7 @@ export const appRouter = router({
   bookings: router({
     create: publicProcedure
       .input(z.object({
-        branch: z.enum(['mahdiyah', 'olaya', 'ahmadiyah-laban']),
+        branch: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/),
         dentistId: z.number(),
         serviceId: z.number(),
         patientName: z.string().min(1),
@@ -288,8 +299,9 @@ export const appRouter = router({
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const service = await db.getServiceById(input.serviceId);
+        const [service, branch] = await Promise.all([db.getServiceById(input.serviceId), db.getBranchBySlug(input.branch)]);
         if (!service?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الخدمة غير متاحة للحجز حالياً" });
+        if (!branch?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الفرع غير متاح للحجز حالياً" });
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
         const booking = await db.createBooking({
           referenceNumber,

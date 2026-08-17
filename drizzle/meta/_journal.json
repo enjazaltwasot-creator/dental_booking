@@ -64,6 +64,13 @@
       "when": 1786901643463,
       "tag": "0008_nasty_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1786936068108,
+      "tag": "0009_thankful_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

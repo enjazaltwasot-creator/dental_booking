@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import {
   BellRing,
   BookOpenCheck,
+  Building2,
   CalendarClock,
   CheckCircle2,
   Download,
@@ -40,6 +41,7 @@ export default function AdminDashboard() {
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [newBookingCount, setNewBookingCount] = useState(0);
   const [serviceDraft, setServiceDraft] = useState({ id: 0, name: "", description: "", duration: 45 });
+  const [branchDraft, setBranchDraft] = useState({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" });
   const [userDraft, setUserDraft] = useState({ username: "", name: "", password: "" });
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
@@ -54,6 +56,7 @@ export default function AdminDashboard() {
     refetchIntervalInBackground: false,
   });
   const { data: services } = trpc.services.listForAdmin.useQuery(undefined, { enabled: authed });
+  const { data: branches } = trpc.branches.listForAdmin.useQuery(undefined, { enabled: authed });
   const { data: dentists } = trpc.dentists.list.useQuery(undefined, { enabled: authed });
   const { data: adminUsers } = trpc.admin.users.list.useQuery(undefined, { enabled: authed });
   const { data: conversations } = trpc.assistant.conversations.list.useQuery({ limit: 20 }, { enabled: authed });
@@ -68,6 +71,8 @@ export default function AdminDashboard() {
     await Promise.all([
       utils.services.list.invalidate(),
       utils.services.listForAdmin.invalidate(),
+      utils.branches.list.invalidate(),
+      utils.branches.listForAdmin.invalidate(),
       utils.admin.users.list.invalidate(),
       utils.bookings.getAll.invalidate(),
       utils.assistant.conversations.list.invalidate(),
@@ -110,6 +115,9 @@ export default function AdminDashboard() {
     },
     onError: error => toast.error(error.message || "تعذر تحديث حالة الخدمة"),
   });
+  const createBranch = trpc.branches.create.useMutation({ onSuccess: async () => { await refreshAdminData(); setBranchDraft({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" }); toast.success("تمت إضافة الفرع وفتحه للحجز"); }, onError: error => toast.error(error.message || "تعذرت إضافة الفرع") });
+  const updateBranch = trpc.branches.update.useMutation({ onSuccess: async () => { await refreshAdminData(); setBranchDraft({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" }); toast.success("تم تحديث الفرع"); }, onError: error => toast.error(error.message || "تعذر تحديث الفرع") });
+  const setBranchActive = trpc.branches.setActive.useMutation({ onSuccess: async (_, variables) => { await refreshAdminData(); toast.success(variables.isActive ? "أصبح الفرع متاحاً للحجز" : "تم إيقاف الفرع عن الحجز"); }, onError: error => toast.error(error.message || "تعذر تحديث حالة الفرع") });
   const createAdminUser = trpc.admin.users.create.useMutation({
     onSuccess: async () => {
       await utils.admin.users.list.invalidate();
@@ -181,6 +189,13 @@ export default function AdminDashboard() {
     if (serviceDraft.id) updateService.mutate({ id: serviceDraft.id, ...input });
     else createService.mutate(input);
   };
+  const submitBranch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const input = { slug: branchDraft.slug.trim().toLowerCase(), name: branchDraft.name.trim(), shortName: branchDraft.shortName.trim(), city: branchDraft.city.trim(), address: branchDraft.address.trim() || undefined, phone: branchDraft.phone.trim() || undefined };
+    if (!input.name || !input.shortName || !input.city || (!branchDraft.id && !/^[a-z0-9-]{3,64}$/.test(input.slug))) return toast.error("أدخل بيانات الفرع ورمزاً إنجليزياً صالحاً");
+    if (branchDraft.id) updateBranch.mutate({ id: branchDraft.id, name: input.name, shortName: input.shortName, city: input.city, address: input.address, phone: input.phone });
+    else createBranch.mutate(input);
+  };
   const submitUser = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!userDraft.username.trim()) return toast.error("اسم المستخدم مطلوب");
@@ -229,6 +244,12 @@ export default function AdminDashboard() {
             <div className="mt-4 divide-y divide-border rounded-xl border border-border">{(services ?? []).map(service => <div key={service.id} className="flex items-center justify-between gap-3 px-3 py-3"><div className="min-w-0"><p className="truncate text-sm font-bold text-foreground">{service.name}</p><p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{service.description || "دون وصف"} · {service.duration} دقيقة</p></div><div className="flex shrink-0 items-center gap-1.5"><button type="button" onClick={() => setServiceDraft({ id: service.id, name: service.name, description: service.description ?? "", duration: service.duration })} className="grid size-8 place-items-center rounded-lg bg-secondary text-secondary-foreground transition-all hover:shadow-sm" aria-label={`تعديل ${service.name}`}><Pencil className="size-3.5" /></button><button type="button" disabled={setServiceActive.isPending} onClick={() => setServiceActive.mutate({ id: service.id, isActive: !service.isActive })} className={cn("rounded-lg px-2 py-1.5 text-[10px] font-extrabold ring-1 transition-all hover:shadow-sm", service.isActive ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200")}>{service.isActive ? "ظاهر للحجز" : "موقوف"}</button></div></div>)}{!services?.length && <p className="px-3 py-6 text-center text-sm text-muted-foreground">جاري تحميل الخدمات...</p>}</div>
             <form onSubmit={submitService} className="mt-4 grid gap-2 rounded-xl bg-secondary/50 p-3 sm:grid-cols-[1.15fr_1.4fr_.55fr_auto]"><input value={serviceDraft.name} onChange={event => setServiceDraft(current => ({ ...current, name: event.target.value }))} placeholder="اسم الخدمة" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={serviceDraft.description} onChange={event => setServiceDraft(current => ({ ...current, description: event.target.value }))} placeholder="وصف مختصر" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input type="number" min="5" max="240" value={serviceDraft.duration} onChange={event => setServiceDraft(current => ({ ...current, duration: Number(event.target.value) }))} aria-label="مدة الخدمة بالدقائق" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><div className="flex gap-2"><button type="submit" disabled={createService.isPending || updateService.isPending} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground transition-all hover:shadow-sm"><Plus className="size-3.5" />{serviceDraft.id ? "حفظ" : "إضافة"}</button>{serviceDraft.id > 0 && <button type="button" onClick={() => setServiceDraft({ id: 0, name: "", description: "", duration: 45 })} className="rounded-lg border border-border bg-white px-3 text-xs font-bold text-muted-foreground">إلغاء</button>}</div></form>
           </div>
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-border bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4"><div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary"><Building2 className="size-4" />الفروع</span><h2 className="mt-2 text-xl font-extrabold text-foreground">إدارة الفروع والتشغيل</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">أضف فرعاً أو عدّل بياناته أو أوقف الحجز فيه دون التأثير على الحجوزات المسجلة سابقاً.</p></div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-extrabold text-primary">{branches?.filter(branch => branch.isActive).length ?? 0} نشط</span></div>
+          <div className="mt-4 divide-y divide-border rounded-xl border border-border">{(branches ?? []).map(branch => <div key={branch.id} className="flex items-center justify-between gap-3 px-3 py-3"><div className="min-w-0"><p className="truncate text-sm font-bold text-foreground">{branch.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{branch.city} · <span dir="ltr">{branch.slug}</span></p></div><div className="flex shrink-0 items-center gap-1.5"><button type="button" onClick={() => setBranchDraft({ id: branch.id, slug: branch.slug, name: branch.name, shortName: branch.shortName, city: branch.city, address: branch.address ?? "", phone: branch.phone ?? "" })} className="grid size-8 place-items-center rounded-lg bg-secondary text-secondary-foreground transition-all hover:shadow-sm" aria-label={`تعديل ${branch.name}`}><Pencil className="size-3.5" /></button><button type="button" disabled={setBranchActive.isPending} onClick={() => setBranchActive.mutate({ id: branch.id, isActive: !branch.isActive })} className={cn("rounded-lg px-2 py-1.5 text-[10px] font-extrabold ring-1 transition-all hover:shadow-sm", branch.isActive ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200")}>{branch.isActive ? "ظاهر للحجز" : "موقوف"}</button></div></div>)}{!branches?.length && <p className="px-3 py-6 text-center text-sm text-muted-foreground">جاري تحميل الفروع...</p>}</div>
+          <form onSubmit={submitBranch} className="mt-4 grid gap-2 rounded-xl bg-secondary/50 p-3 sm:grid-cols-2 lg:grid-cols-[.8fr_1.2fr_1fr_1fr_1.3fr_1fr_auto]"><input value={branchDraft.slug} disabled={branchDraft.id > 0} onChange={event => setBranchDraft(current => ({ ...current, slug: event.target.value }))} placeholder="رمز الفرع" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary disabled:bg-secondary" /><input value={branchDraft.name} onChange={event => setBranchDraft(current => ({ ...current, name: event.target.value }))} placeholder="اسم الفرع" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.shortName} onChange={event => setBranchDraft(current => ({ ...current, shortName: event.target.value }))} placeholder="الاسم المختصر" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.city} onChange={event => setBranchDraft(current => ({ ...current, city: event.target.value }))} placeholder="المدينة / المنطقة" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.address} onChange={event => setBranchDraft(current => ({ ...current, address: event.target.value }))} placeholder="العنوان" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.phone} onChange={event => setBranchDraft(current => ({ ...current, phone: event.target.value }))} placeholder="رقم الهاتف" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><div className="flex gap-2"><button type="submit" disabled={createBranch.isPending || updateBranch.isPending} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground transition-all hover:shadow-sm"><Plus className="size-3.5" />{branchDraft.id ? "حفظ" : "إضافة"}</button>{branchDraft.id > 0 && <button type="button" onClick={() => setBranchDraft({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" })} className="rounded-lg border border-border bg-white px-3 text-xs font-bold text-muted-foreground">إلغاء</button>}</div></form>
         </section>
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_1fr]">

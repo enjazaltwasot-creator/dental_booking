@@ -72,4 +72,22 @@ describe("admin tools", () => {
     const publicAfterRestore = await caller.services.list();
     expect(publicAfterRestore.some(service => service.id === target!.id)).toBe(true);
   });
+
+  it("allows an administrator to manage branches without exposing paused branches publicly", async () => {
+    const caller = await createAdminCaller();
+    const existing = await caller.branches.listForAdmin();
+    const target = existing[0];
+    expect(target).toBeDefined();
+
+    await caller.branches.setActive({ id: target!.id, isActive: false });
+    const publicWhilePaused = await caller.branches.list();
+    expect(publicWhilePaused.some(branch => branch.id === target!.id)).toBe(false);
+    await caller.branches.setActive({ id: target!.id, isActive: true });
+
+    const slug = `test-branch-${nanoid(6).toLowerCase()}`;
+    const created = await caller.branches.create({ slug, name: "فرع اختبار الإدارة", shortName: "فرع اختبار", city: "الرياض", address: "عنوان اختبار", phone: "0110000000" });
+    expect((await caller.branches.list()).some(branch => branch.id === created.id)).toBe(true);
+    await caller.branches.setActive({ id: created.id, isActive: false });
+    expect((await caller.branches.list()).some(branch => branch.id === created.id)).toBe(false);
+  });
 });

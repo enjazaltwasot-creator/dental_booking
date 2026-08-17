@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Building2, Check, Loader2, MapPin, Timer } from 
 import PageShell from "@/components/PageShell";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
-import { BRANCHES, BranchSlug, getBranchBySlug, toDateInputValue } from "@/lib/clinic";
+import { toDateInputValue } from "@/lib/clinic";
 
 const STEPS = ["الفرع", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
 
@@ -13,10 +13,7 @@ export default function BookingForm() {
   const [, navigate] = useLocation();
   const [step, setStep] = useState(0);
 
-  const [branchSlug, setBranchSlug] = useState<BranchSlug | null>(() => {
-    const queryBranch = new URLSearchParams(window.location.search).get("branch");
-    return getBranchBySlug(queryBranch ?? undefined)?.slug ?? null;
-  });
+  const [branchSlug, setBranchSlug] = useState<string | null>(() => new URLSearchParams(window.location.search).get("branch"));
   const [serviceId, setServiceId] = useState<number | null>(null);
   const [dentistId, setDentistId] = useState<number | null>(null);
   const [date, setDate] = useState("");
@@ -26,8 +23,8 @@ export default function BookingForm() {
   const [notes, setNotes] = useState("");
 
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
-  const selectedBranch = getBranchBySlug(branchSlug ?? undefined);
-
+  const { data: branches, isLoading: loadingBranches } = trpc.branches.list.useQuery();
+  const selectedBranch = (branches ?? []).find(branch => branch.slug === branchSlug);
   const { data: services, isLoading: loadingServices } = trpc.services.list.useQuery();
   const { data: dentists, isLoading: loadingDentists } = trpc.dentists.list.useQuery();
 
@@ -39,6 +36,10 @@ export default function BookingForm() {
   useEffect(() => {
     setTime("");
   }, [dentistId, date]);
+
+  useEffect(() => {
+    if (branchSlug && branches && !selectedBranch) setBranchSlug(null);
+  }, [branchSlug, branches, selectedBranch]);
 
   const createBooking = trpc.bookings.create.useMutation({
     onSuccess: booking => {
@@ -141,7 +142,9 @@ export default function BookingForm() {
                 <h2 className="text-xl font-bold text-foreground">اختر الفرع</h2>
                 <p className="mt-1 text-sm text-muted-foreground">ابدأ من الفرع الأقرب إليك، وسيتم حفظه مع طلب الحجز.</p>
                 <div className="mt-6 grid gap-3">
-                  {BRANCHES.map(branch => (
+                  {loadingBranches && <p className="rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">جاري تحميل الفروع...</p>}
+                  {!loadingBranches && !(branches?.length) && <p className="rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد فروع متاحة للحجز حالياً.</p>}
+                  {(branches ?? []).map(branch => (
                     <button
                       key={branch.slug}
                       type="button"

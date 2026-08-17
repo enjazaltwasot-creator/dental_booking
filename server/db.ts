@@ -1,6 +1,6 @@
 import { asc, desc, eq, and, gte, lte, ne } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User } from "../drizzle/schema";
+import { InsertUser, users, services, branches, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -193,6 +193,40 @@ export async function setServiceActive(id: number, isActive: boolean) {
   if (!db) throw new Error("Database not available");
   await db.update(services).set({ isActive }).where(eq(services.id, id));
   return getServiceById(id);
+}
+
+export async function getAllBranches(): Promise<BranchRecord[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(branches).orderBy(asc(branches.id));
+}
+export async function getActiveBranches(): Promise<BranchRecord[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.id));
+}
+export async function getBranchBySlug(slug: string): Promise<BranchRecord | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  return (await db.select().from(branches).where(eq(branches.slug, slug)).limit(1))[0];
+}
+export async function createBranch(input: { slug: string; name: string; shortName: string; city: string; address?: string; phone?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(branches).values({ ...input, isActive: true });
+  return (await db.select().from(branches).where(eq(branches.id, Number(result[0].insertId))).limit(1))[0];
+}
+export async function updateBranch(id: number, input: { name: string; shortName: string; city: string; address?: string; phone?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(branches).set(input).where(eq(branches.id, id));
+  return (await db.select().from(branches).where(eq(branches.id, id)).limit(1))[0];
+}
+export async function setBranchActive(id: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(branches).set({ isActive }).where(eq(branches.id, id));
+  return (await db.select().from(branches).where(eq(branches.id, id)).limit(1))[0];
 }
 
 // Dentists queries

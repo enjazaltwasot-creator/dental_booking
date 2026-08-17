@@ -40,6 +40,21 @@ export const services = mysqlTable("services", {
 export type Service = typeof services.$inferSelect;
 export type InsertService = typeof services.$inferInsert;
 
+/** Branches are managed from the admin panel; pausing preserves historical bookings. */
+export const branches = mysqlTable("branches", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 64 }).notNull().unique(),
+  name: varchar("name", { length: 140 }).notNull(),
+  shortName: varchar("short_name", { length: 100 }).notNull(),
+  city: varchar("city", { length: 140 }).notNull(),
+  address: text("address"),
+  phone: varchar("phone", { length: 20 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type BranchRecord = typeof branches.$inferSelect;
+
 /**
  * Dentists table
  */
