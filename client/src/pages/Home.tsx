@@ -37,6 +37,12 @@ const PILLARS = [
   },
 ];
 
+const PILLAR_STYLES = [
+  { glow: "from-sky-100/90 via-white to-white", icon: "bg-primary text-white", line: "bg-primary" },
+  { glow: "from-orange-100/85 via-white to-white", icon: "bg-accent text-accent-foreground", line: "bg-accent" },
+  { glow: "from-cyan-100/90 via-white to-white", icon: "bg-cyan-600 text-white", line: "bg-cyan-600" },
+];
+
 const TRUST_SIGNALS = [
   {
     icon: CheckCircle2,
@@ -85,19 +91,32 @@ export default function Home() {
     <PageShell>
       <FullWidthGroupHero />
 
-      <section className="border-b border-border bg-secondary/45 py-6">
+      <section className="relative z-20 -mt-7 border-b border-border/70 bg-white/80 pb-5 pt-0 backdrop-blur-sm sm:-mt-10 sm:pb-7">
         <div className="container grid gap-3 md:grid-cols-3">
-          {PILLARS.map((pillar) => (
-            <div key={pillar.title} className="flex items-center gap-3 px-2 py-2">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-primary shadow-sm">
-                <pillar.icon className="size-5" />
-              </span>
-              <div>
-                <h2 className="text-sm font-extrabold text-foreground">{pillar.title}</h2>
-                <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{pillar.text}</p>
-              </div>
-            </div>
-          ))}
+          {PILLARS.map((pillar, index) => {
+            const style = PILLAR_STYLES[index];
+            return (
+              <article
+                key={pillar.title}
+                className={`pillar-spotlight group relative overflow-hidden rounded-[1.4rem] border border-white/90 bg-gradient-to-br ${style.glow} px-5 py-4 shadow-lg shadow-primary/10 transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:md:hover:-translate-y-2 motion-safe:md:hover:shadow-xl motion-safe:md:hover:shadow-primary/15`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <span aria-hidden="true" className={`absolute inset-y-0 right-0 w-1 ${style.line}`} />
+                <span aria-hidden="true" className="absolute -left-8 -top-8 size-24 rounded-full border border-primary/10 bg-white/50" />
+                <div className="relative flex items-center gap-4">
+                  <span className={`pillar-icon grid size-12 shrink-0 place-items-center rounded-2xl shadow-lg shadow-primary/15 transition-[transform,box-shadow] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] ${style.icon}`}>
+                    <pillar.icon className="size-5" strokeWidth={2.3} />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-extrabold tracking-[0.2em] text-primary/60">0{index + 1} / 03</span>
+                    <h2 className="mt-0.5 text-[15px] font-extrabold text-foreground">{pillar.title}</h2>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{pillar.text}</p>
+                  </div>
+                </div>
+                <span aria-hidden="true" className="absolute bottom-0 left-5 h-px w-0 bg-primary/35 transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] motion-safe:md:group-hover:w-16" />
+              </article>
+            );
+          })}
         </div>
       </section>
 

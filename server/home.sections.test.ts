@@ -20,6 +20,9 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("brightness-0 invert");
     expect(home).toContain("motion-safe:md:group-hover:scale-105");
     expect(home).toContain("motion-reduce:transition-none");
+    expect(home).toContain("const PILLAR_STYLES");
+    expect(home).toContain("pillar-spotlight");
+    expect(home).toContain("0{index + 1} / 03");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
