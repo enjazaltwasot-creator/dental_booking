@@ -7,16 +7,14 @@ import {
   CheckCircle2,
   ChevronLeft,
   MapPin,
-  ScanFace,
   ShieldCheck,
   Sparkles,
   Stethoscope,
   Timer,
-  UsersRound,
 } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import FullWidthGroupHero from "@/components/FullWidthGroupHero";
-import { BRANCHES, CLINIC, DEPARTMENTS, PARTNERS } from "@/lib/clinic";
+import { BRANCHES, CLINIC } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
 const PILLARS = [
@@ -35,12 +33,6 @@ const PILLARS = [
     title: "تجربة منظمة وواضحة",
     text: "رحلة حجز رقمية بسيطة تبدأ من اختيار الخدمة وتنتهي بتأكيد الموعد.",
   },
-];
-
-const DEPARTMENT_META = [
-  { icon: Stethoscope, tone: "bg-sky-50 text-primary", text: "حلول وقائية وعلاجية وتجميليّة لصحة الفم والأسنان." },
-  { icon: ScanFace, tone: "bg-amber-50 text-amber-700", text: "رعاية متخصصة للبشرة والتجميل بإشراف طبي." },
-  { icon: Sparkles, tone: "bg-emerald-50 text-emerald-700", text: "جلسات ليزر وخدمات حديثة ضمن بيئة مريحة." },
 ];
 
 const TRUST_SIGNALS = [
@@ -218,88 +210,6 @@ export default function Home() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      <section id="specialties" className="relative overflow-hidden border-y border-primary/10 bg-primary py-16 text-white lg:py-20">
-        <div className="pointer-events-none absolute -left-16 top-0 size-72 rounded-full bg-accent/20 blur-3xl" />
-        <div className="pointer-events-none absolute -right-28 bottom-0 size-80 rounded-full border-[42px] border-white/5" />
-        <div className="container grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-bold text-orange-200">
-              <CheckCircle2 className="size-3.5" />
-              تخصصاتنا
-            </span>
-            <h2 className="mt-5 text-3xl font-extrabold leading-tight sm:text-4xl">
-              من التخصص إلى التجربة، تحت مظلة واحدة.
-            </h2>
-            <p className="mt-4 max-w-md text-[15px] leading-8 text-slate-300">
-              تعرف على محاور الرعاية المتاحة لدى المجموعة، ثم انتقل مباشرة إلى الحجز لاختيار الخدمة والطبيب والموعد.
-            </p>
-            <Link href="/specialties" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-orange-200 hover:text-orange-100">
-              استكشف جميع التخصصات <ArrowUpLeft className="size-4" />
-            </Link>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {DEPARTMENTS.map((department, index) => {
-              const item = DEPARTMENT_META[index];
-              return (
-                <article key={department} className="rounded-2xl border border-white/15 bg-white/[0.1] p-5 backdrop-blur-sm transition-colors duration-200 hover:bg-white/[0.16]">
-                  <span className={`grid size-11 place-items-center rounded-xl ${item.tone}`}>
-                    <item.icon className="size-5" />
-                  </span>
-                  <h3 className="mt-7 text-lg font-extrabold">{department}</h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-300">{item.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section id="doctors" className="py-16 lg:py-20">
-        <div className="container grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-          <div className="rounded-3xl border border-border bg-secondary/55 p-7 sm:p-9">
-            <span className="grid size-12 place-items-center rounded-2xl bg-white text-primary shadow-sm"><UsersRound className="size-5" /></span>
-            <h2 className="mt-6 text-3xl font-extrabold text-foreground">ملفات مهنية لفريقنا الطبي</h2>
-            <p className="mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
-              نجهّز لكل طبيب ملفاً مهنياً منظماً يعرض التخصص والخبرة والشهادات بعد اعتماد البيانات الرسمية من إدارة المجموعة.
-            </p>
-            <Link href="/doctors" className="mt-7 inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white px-5 py-3 text-sm font-extrabold text-primary transition-all duration-200 hover:shadow-sm">
-              تعرّف على الفريق الطبي <ArrowLeft className="size-4" />
-            </Link>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {["01", "02", "03", "04"].map((number) => (
-              <article key={number} className="flex items-center gap-4 rounded-2xl border border-border bg-white p-5 shadow-sm transition-all duration-200 hover:shadow-md">
-                <span className="grid size-12 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-extrabold text-primary">{number}</span>
-                <div>
-                  <h3 className="text-sm font-extrabold text-foreground">ملف الطبيب {number}</h3>
-                  <p className="mt-1 text-xs font-semibold text-primary">يُحدّث بعد اعتماد البيانات</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="partners" className="border-y border-primary/10 bg-secondary/45 py-16 lg:py-20">
-        <div className="container">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.17em] text-accent"><Building2 className="size-4" /> شركاء النجاح</span>
-            <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">نجاحنا يبدأ من كل علاقة تخدم المراجع.</h2>
-            <p className="mt-4 text-[15px] leading-8 text-muted-foreground">ننظر إلى الرعاية كعمل جماعي يجمع الفريق الطبي والتشغيلي والجهات المتعاونة ضمن تجربة مراجع واضحة ومنظمة.</p>
-            <Link href="/partners" className="mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-primary transition-colors hover:text-accent">استكشف صفحة الشركاء <ArrowLeft className="size-4" /></Link>
-          </div>
-          <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {PARTNERS.map((partner) => (
-              <article key={partner.id} className="group flex min-h-36 flex-col items-center justify-center rounded-2xl border border-border bg-white px-4 py-5 text-center shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-md">
-                <img src={partner.logo} alt={`شعار ${partner.name}`} className="h-16 w-full object-contain transition-transform duration-200 group-hover:scale-[1.03]" loading="lazy" />
-                <h3 className="mt-3 text-xs font-bold text-muted-foreground" dir="ltr">{partner.name}</h3>
-              </article>
-            ))}
-          </div>
-          <p className="mt-5 text-xs leading-6 text-muted-foreground">تُعرض الشعارات كما وردت في الصورة المنشورة ضمن موقع إيفان السابق. ولا يُضاف أي شعار لم يمكن التحقق من اسمه بوضوح.</p>
         </div>
       </section>
 

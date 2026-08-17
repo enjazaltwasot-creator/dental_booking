@@ -12,7 +12,7 @@ describe("بيانات شركاء النجاح", () => {
     expect(PARTNERS.map(partner => partner.id)).not.toContain("medical-symbol");
   });
 
-  it("يربط صفحة الشركاء المستقلة بالتنقل والمسار العام", () => {
+  it("يبقي صفحة الشركاء المستقلة مرتبطة بالتنقل والمسار العام دون قسم مكرر بالرئيسية", () => {
     const root = process.cwd();
     const app = readFileSync(join(root, "client/src/App.tsx"), "utf8");
     const header = readFileSync(join(root, "client/src/components/SiteHeader.tsx"), "utf8");
@@ -20,6 +20,7 @@ describe("بيانات شركاء النجاح", () => {
 
     expect(app).toContain('path="/partners" component={Partners}');
     expect(header).toContain('{ href: "/partners", label: "شركاء النجاح" }');
-    expect(home).toContain('href="/partners"');
+    expect(home).not.toContain('id="partners"');
+    expect(home).not.toContain("PARTNERS.map");
   });
 });
