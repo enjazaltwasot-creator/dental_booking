@@ -76,22 +76,21 @@ export const DEPARTMENTS = [
 ] as const;
 
 export const PARTNERS = [
-  { id: "madfoum", name: "مدفوم", logo: "/manus-storage/partner-madfoum_88567bf6.png" },
-  { id: "aac", name: "AAC", logo: "/manus-storage/partner-aac_72641aa7.png" },
-  { id: "splendor", name: "Splendor X by Lumenis", logo: "/manus-storage/partner-splendor_3aed0c4e.png" },
-  { id: "deka", name: "DEKA", logo: "/manus-storage/partner-deka_bda2c71c.png" },
-  { id: "aesthetic-pioneers", name: "Aesthetic Pioneers", logo: "/manus-storage/partner-aesthetic-pioneers_b399125c.png" },
-  { id: "emc", name: "EMC", logo: "/manus-storage/partner-emc_b18928e6.png" },
-  { id: "promoitalia", name: "Promoitalia", logo: "/manus-storage/partner-promoitalia_f0b65cc3.png" },
-  { id: "kuos-mint", name: "Kuo's MINT Lift", logo: "/manus-storage/partner-kuos-mint_0ecc61c7.png" },
-  { id: "exosmart", name: "exosmart", logo: "/manus-storage/partner-exosmart_606db3a4.png" },
-  { id: "euromi", name: "Euromi", logo: "/manus-storage/partner-euromi_93569519.png" },
-  { id: "magellan", name: "magellan", logo: "/manus-storage/partner-magellan_692151bb.png" },
-  { id: "anteage-md", name: "AnteAGE MD", logo: "/manus-storage/partner-anteage-md_ed564b1e.png" },
-  { id: "clearcaps", name: "clearcaps", logo: "/manus-storage/partner-clearcaps_b74491d6.png" },
-  { id: "ame", name: "AME", logo: "/manus-storage/partner-ame_e86fdbc7.png" },
-  { id: "teoxane", name: "Teoxane", logo: "/manus-storage/partner-teoxane_231122fd.png" },
-  { id: "nabota", name: "Nabota", logo: "/manus-storage/partner-nabota_2adc1ad0.png" },
+  { id: "aesthetic-pioneers", name: "Aesthetic Pioneers", logo: "/manus-storage/aesthetic-pioneers_c0b1848f.webp" },
+  { id: "ame", name: "AME International", logo: "/manus-storage/ame_a717f941.webp" },
+  { id: "euromi", name: "Euromi", logo: "/manus-storage/euromi_dffc98b5.webp" },
+  { id: "mint-lift", name: "MINT Lift", logo: "/manus-storage/mint-lift_89389cf6.webp" },
+  { id: "exosmart", name: "exosmart", logo: "/manus-storage/exosmart_23541996.webp" },
+  { id: "teoxane", name: "Teoxane", logo: "/manus-storage/teoxane_7571099b.webp" },
+  { id: "clearcaps", name: "clearcaps", logo: "/manus-storage/clearcaps_1489ca7a.webp" },
+  { id: "magellan", name: "Magellan", logo: "/manus-storage/magellan_931d6a62.webp" },
+  { id: "anteage-md", name: "AnteAGE MD", logo: "/manus-storage/anteage-md_c04a4a43.webp" },
+  { id: "deka", name: "DEKA", logo: "/manus-storage/deka_2ddcc173.webp" },
+  { id: "kuos", name: "Kuo's Professional", logo: "/manus-storage/kuos_c0551d1b.webp" },
+  { id: "nabota", name: "Nabota", logo: "/manus-storage/nabota_a7ac23a0.webp" },
+  { id: "promoitalia", name: "Promoitalia", logo: "/manus-storage/promoitalia_284ffb1a.webp" },
+  { id: "splendor-x", name: "Splendor X", logo: "/manus-storage/splendor-x_b983233c.webp" },
+  { id: "madfu", name: "مدفوع", logo: "/manus-storage/madfu_37d05cad.webp" },
 ] as const;
 
 export const SPECIALTIES = [
