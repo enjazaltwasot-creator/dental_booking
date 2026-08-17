@@ -289,6 +289,7 @@ export default function Home() {
             <span className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.17em] text-accent"><Building2 className="size-4" /> شركاء النجاح</span>
             <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">نجاحنا يبدأ من كل علاقة تخدم المراجع.</h2>
             <p className="mt-4 text-[15px] leading-8 text-muted-foreground">ننظر إلى الرعاية كعمل جماعي يجمع الفريق الطبي والتشغيلي والجهات المتعاونة ضمن تجربة مراجع واضحة ومنظمة.</p>
+            <Link href="/partners" className="mt-6 inline-flex items-center gap-2 text-sm font-extrabold text-primary transition-colors hover:text-accent">استكشف صفحة الشركاء <ArrowLeft className="size-4" /></Link>
           </div>
           <div className="mt-9 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
             {PARTNERS.map((partner) => (

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { PARTNERS } from "../client/src/lib/clinic";
 
 describe("بيانات شركاء النجاح", () => {
@@ -8,5 +10,16 @@ describe("بيانات شركاء النجاح", () => {
     expect(PARTNERS.every(partner => partner.logo.startsWith("/manus-storage/partner-"))).toBe(true);
     expect(PARTNERS.map(partner => partner.id)).not.toContain("arabic-medical-partner");
     expect(PARTNERS.map(partner => partner.id)).not.toContain("medical-symbol");
+  });
+
+  it("يربط صفحة الشركاء المستقلة بالتنقل والمسار العام", () => {
+    const root = process.cwd();
+    const app = readFileSync(join(root, "client/src/App.tsx"), "utf8");
+    const header = readFileSync(join(root, "client/src/components/SiteHeader.tsx"), "utf8");
+    const home = readFileSync(join(root, "client/src/pages/Home.tsx"), "utf8");
+
+    expect(app).toContain('path="/partners" component={Partners}');
+    expect(header).toContain('{ href: "/partners", label: "شركاء النجاح" }');
+    expect(home).toContain('href="/partners"');
   });
 });
