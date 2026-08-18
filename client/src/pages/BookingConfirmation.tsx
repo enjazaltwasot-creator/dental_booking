@@ -60,17 +60,26 @@ export default function BookingConfirmation() {
 
           {booking && (
             <div className="rise-in overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
-              <div className="border-b border-border bg-emerald-50/60 px-6 py-10 text-center sm:px-10">
-                <span className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+              <div className="relative overflow-hidden border-b border-border bg-emerald-50/60 px-6 py-10 text-center sm:px-10">
+                <span className="confirmation-spark confirmation-spark-one" aria-hidden="true">✦</span>
+                <span className="confirmation-spark confirmation-spark-two" aria-hidden="true">✦</span>
+                <span className="confirmation-check relative z-10 mx-auto grid size-16 place-items-center rounded-full bg-emerald-100 text-emerald-600">
                   <CheckCircle2 className="size-8" />
                 </span>
-                <h1 className="mt-5 text-2xl font-extrabold text-foreground">تم استلام حجزك</h1>
+                <h1 className="confirmation-title relative z-10 mt-5 text-2xl font-extrabold text-foreground">تم استلام حجزك بنجاح</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  سيتواصل معك فريق العيادة لتأكيد الموعد.
+                  حفظنا تفاصيل موعدك، وسيتواصل معك فريق العيادة لتأكيده.
                 </p>
               </div>
 
               <div className="px-6 py-8 sm:px-10">
+                <div className="confirmation-summary-grid mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <SummaryCell label="الفرع" value={branch?.name ?? "قيد التحديد"} />
+                  <SummaryCell label="الخدمة" value={service?.name ?? "قيد التحديد"} />
+                  <SummaryCell label="الطبيب" value={dentist?.name ?? "قيد التحديد"} />
+                  <SummaryCell label="الموعد" value={`${formatDate(booking.appointmentDate)} · ${String(booking.appointmentTime).slice(0, 5)}`} />
+                </div>
+
                 <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5 text-center">
                   <span className="text-xs font-semibold text-muted-foreground">الرقم المرجعي</span>
                   <div className="mt-2 flex items-center justify-center gap-3">
@@ -128,6 +137,15 @@ export default function BookingConfirmation() {
         </div>
       </section>
     </PageShell>
+  );
+}
+
+function SummaryCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="confirmation-summary-cell rounded-xl border border-border bg-white p-3 text-right shadow-sm">
+      <span className="block text-[11px] font-bold text-muted-foreground">{label}</span>
+      <span className="mt-1 block line-clamp-2 text-xs font-extrabold leading-5 text-foreground">{value}</span>
+    </div>
   );
 }
 

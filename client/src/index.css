@@ -228,6 +228,44 @@
     animation: trust-rise 560ms var(--ease-out-soft) both;
   }
 
+  @keyframes confirmation-check-pop {
+    0% { opacity: 0; transform: scale(0.82); }
+    62% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes confirmation-spark {
+    0%, 100% { opacity: 0; transform: translateY(7px) scale(0.72) rotate(0deg); }
+    40% { opacity: 0.76; transform: translateY(-5px) scale(1) rotate(16deg); }
+  }
+
+  .confirmation-check {
+    animation: confirmation-check-pop 560ms var(--ease-out-soft) both;
+  }
+
+  .confirmation-title {
+    animation: rise-in 480ms var(--ease-out-soft) 120ms both;
+  }
+
+  .confirmation-spark {
+    position: absolute;
+    color: color-mix(in oklch, var(--accent) 82%, white 18%);
+    font-size: 1.25rem;
+    animation: confirmation-spark 1.7s var(--ease-out-soft) 260ms both;
+  }
+
+  .confirmation-spark-one { right: 26%; top: 30%; }
+  .confirmation-spark-two { left: 27%; top: 40%; animation-delay: 420ms; }
+
+  .confirmation-summary-cell {
+    animation: rise-in 460ms var(--ease-out-soft) both;
+  }
+
+  .confirmation-summary-cell:nth-child(1) { animation-delay: 120ms; }
+  .confirmation-summary-cell:nth-child(2) { animation-delay: 180ms; }
+  .confirmation-summary-cell:nth-child(3) { animation-delay: 240ms; }
+  .confirmation-summary-cell:nth-child(4) { animation-delay: 300ms; }
+
   .page-section-reveal {
     opacity: 0;
     transform: translateY(18px);
@@ -369,7 +407,11 @@
   .vision-copy-item,
   .vision-value,
   .trust-copy-item,
-  .trust-card {
+  .trust-card,
+  .confirmation-check,
+  .confirmation-title,
+  .confirmation-spark,
+  .confirmation-summary-cell {
     animation: none;
   }
 }

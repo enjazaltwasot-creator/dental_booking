@@ -147,7 +147,13 @@ describe("booking lifecycle", () => {
     const fetched = await caller.bookings.getByReferenceNumber({
       referenceNumber: created.referenceNumber,
     });
-    expect(fetched?.patientName).toBe("مريض اختبار آلي");
+    expect(fetched).toMatchObject({
+      patientName: "مريض اختبار آلي",
+      branch: "mahdiyah",
+      serviceId: 1,
+      dentistId: 1,
+    });
+    expect(fetched?.appointmentDate).toEqual(new Date("2026-09-14T00:00:00.000Z"));
 
     const adminCaller = appRouter.createCaller(createAdminContext());
     const confirmed = await adminCaller.bookings.updateStatus({
