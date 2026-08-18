@@ -60,6 +60,10 @@ export default function BookingForm() {
   }, [dentistId, date]);
 
   useEffect(() => {
+    if (dentistId && !date) setDate(minDate);
+  }, [dentistId, date, minDate]);
+
+  useEffect(() => {
     setServiceId(null);
     setDentistId(null);
     setDate("");
@@ -356,6 +360,45 @@ export default function BookingForm() {
                     </button>
                   ))}
                 </div>
+
+                {dentistId && (
+                  <div className="mt-6 rounded-2xl border border-primary/15 bg-primary/5 p-4" aria-live="polite">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-extrabold text-foreground">أقرب مواعيد الطبيب</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">اختر وقتاً سريعاً أو انتقل لعرض جميع المواعيد.</p>
+                      </div>
+                      <span className="rounded-lg bg-white px-2.5 py-1 text-xs font-bold text-primary shadow-sm">{date || minDate}</span>
+                    </div>
+
+                    {loadingSlots && (
+                      <div className="mt-4 flex items-center gap-2 text-sm text-primary">
+                        <Loader2 className="size-4 animate-spin" />
+                        جاري جلب أقرب المواعيد المتاحة...
+                      </div>
+                    )}
+
+                    {!loadingSlots && (slots?.length ?? 0) === 0 && (
+                      <p className="mt-4 rounded-xl bg-white/80 p-3 text-center text-sm text-muted-foreground">لا توجد مواعيد متاحة اليوم؛ انتقل للخطوة التالية لاختيار تاريخ آخر.</p>
+                    )}
+
+                    {!loadingSlots && (slots?.length ?? 0) > 0 && (
+                      <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                        {(slots ?? []).slice(0, 6).map(slot => (
+                          <button
+                            key={slot}
+                            type="button"
+                            dir="ltr"
+                            onClick={() => { setTime(slot); setStep(4); }}
+                            className="rounded-lg border border-primary/15 bg-white py-2 text-sm font-bold text-primary transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                          >
+                            {slot}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
