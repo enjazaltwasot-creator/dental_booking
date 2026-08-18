@@ -68,6 +68,19 @@ describe("catalog data", () => {
     expect(services.length).toBeGreaterThan(0);
     expect(services.every(service => ["dentistry", "dermatology", "laser"].includes(service.department))).toBe(true);
   });
+
+  it("filters available branches and dentists by the requested service type", async () => {
+    const caller = appRouter.createCaller(createPublicContext().ctx);
+    const [branches, dentists] = await Promise.all([
+      caller.branches.listForDepartment({ department: "dentistry" }),
+      caller.dentists.listForDepartment({ department: "dentistry" }),
+    ]);
+
+    expect(branches.length).toBeGreaterThan(0);
+    expect(branches.every(branch => branch.isActive)).toBe(true);
+    expect(dentists.length).toBeGreaterThan(0);
+    expect(dentists.every(dentist => dentist.department === "dentistry")).toBe(true);
+  });
 });
 
 describe("availability", () => {

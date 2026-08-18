@@ -7,7 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/clinic";
 
-const STEPS = ["الفرع", "النوع", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
+const STEPS = ["النوع", "الفرع", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
 const SERVICE_TYPES = [
   { id: "dentistry", label: "خدمات الأسنان", description: "العلاجات والابتسامة وصحة الفم", icon: Stethoscope },
   { id: "dermatology", label: "الجلدية والتجميل", description: "العناية بالبشرة وخدمات التجميل", icon: Sparkles },
@@ -30,13 +30,20 @@ export default function BookingForm() {
   const [notes, setNotes] = useState("");
 
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
-  const { data: branches, isLoading: loadingBranches } = trpc.branches.list.useQuery();
+  const { data: allServices, isLoading: loadingServiceTypes } = trpc.services.list.useQuery();
+  const { data: branches, isLoading: loadingBranches } = trpc.branches.listForDepartment.useQuery(
+    { department: department ?? "dentistry" },
+    { enabled: Boolean(department) }
+  );
   const selectedBranch = (branches ?? []).find(branch => branch.slug === branchSlug);
   const { data: services, isLoading: loadingServices } = trpc.services.listForBranch.useQuery({ branch: branchSlug ?? "unselected" }, { enabled: Boolean(branchSlug) });
-  const { data: dentists, isLoading: loadingDentists } = trpc.dentists.list.useQuery();
+  const { data: dentists, isLoading: loadingDentists } = trpc.dentists.listForDepartment.useQuery(
+    { department: department ?? "dentistry" },
+    { enabled: Boolean(department) }
+  );
   const availableDepartments = useMemo(
-    () => new Set((services ?? []).map(service => service.department as ServiceDepartment)),
-    [services]
+    () => new Set((allServices ?? []).map(service => service.department as ServiceDepartment)),
+    [allServices]
   );
   const filteredServices = useMemo(
     () => (services ?? []).filter(service => service.department === department),
@@ -53,7 +60,6 @@ export default function BookingForm() {
   }, [dentistId, date]);
 
   useEffect(() => {
-    setDepartment(null);
     setServiceId(null);
     setDentistId(null);
     setDate("");
@@ -61,8 +67,15 @@ export default function BookingForm() {
   }, [branchSlug]);
 
   useEffect(() => {
-    if (branchSlug && branches && !selectedBranch) setBranchSlug(null);
-  }, [branchSlug, branches, selectedBranch]);
+    setServiceId(null);
+    setDentistId(null);
+    setDate("");
+    setTime("");
+  }, [department]);
+
+  useEffect(() => {
+    if (department && branchSlug && branches && !selectedBranch) setBranchSlug(null);
+  }, [department, branchSlug, branches, selectedBranch]);
   useEffect(() => {
     if (serviceId && !filteredServices.some(service => service.id === serviceId)) setServiceId(null);
   }, [serviceId, filteredServices]);
@@ -77,8 +90,8 @@ export default function BookingForm() {
   });
 
   const canContinue = [
-    Boolean(branchSlug),
     Boolean(department),
+    Boolean(branchSlug),
     Boolean(serviceId),
     Boolean(dentistId),
     Boolean(date) && Boolean(time),
@@ -105,7 +118,7 @@ export default function BookingForm() {
         <div className="container text-center">
           <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">احجز موعدك</h1>
           <p className="mx-auto mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
-            ابدأ باختيار الفرع، ثم أكمل خطوات الحجز حتى تأكيد موعدك.
+            ابدأ باختيار نوع الخدمة، ثم الفرع، وأكمل خطوات الحجز حتى تأكيد موعدك.
           </p>
         </div>
       </section>
@@ -153,7 +166,7 @@ export default function BookingForm() {
           </ol>
 
           <div className="mt-8 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-            {selectedBranch && step > 0 && (
+            {selectedBranch && step > 1 && (
               <div className="mb-6 flex items-center gap-3 rounded-xl border border-primary/10 bg-primary/5 px-4 py-3">
                 <span className="grid size-9 place-items-center rounded-lg bg-white text-primary shadow-sm"><Building2 className="size-4" /></span>
                 <div>
@@ -163,7 +176,7 @@ export default function BookingForm() {
               </div>
             )}
 
-            {department && step > 1 && (
+            {department && step > 0 && (
               <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/5 px-4 py-3">
                 <span className="grid size-9 place-items-center rounded-lg bg-white text-accent shadow-sm">
                   {(() => {
@@ -178,11 +191,11 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 1 — Branch */}
-            {step === 0 && (
+            {/* Step 2 — Branch */}
+            {step === 1 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر الفرع</h2>
-                <p className="mt-1 text-sm text-muted-foreground">ابدأ من الفرع الأقرب إليك، وسيتم حفظه مع طلب الحجز.</p>
+                <p className="mt-1 text-sm text-muted-foreground">اختر الفرع المتاح لنوع الخدمة الذي حددته، وسيتم حفظه مع طلب الحجز.</p>
                 <div className="mt-6 grid gap-3">
                   {loadingBranches && <p className="rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">جاري تحميل الفروع...</p>}
                   {!loadingBranches && !(branches?.length) && <p className="rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد فروع متاحة للحجز حالياً.</p>}
@@ -209,14 +222,14 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 2 — Service type */}
-            {step === 1 && (
+            {/* Step 1 — Service type */}
+            {step === 0 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر نوع الخدمة</h2>
-                <p className="mt-1 text-sm text-muted-foreground">ستظهر لك الأنواع المتاحة في فرع {selectedBranch?.name ?? "المختار"} فقط.</p>
+                <p className="mt-1 text-sm text-muted-foreground">ابدأ بتحديد نوع الرعاية المطلوبة، ثم سنعرض الفروع والخدمات المتاحة تلقائياً.</p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  {loadingServices && [0, 1, 2].map(item => <div key={item} className="h-36 animate-pulse rounded-xl bg-secondary/60" />)}
-                  {!loadingServices && SERVICE_TYPES.filter(type => availableDepartments.has(type.id)).map(type => {
+                  {loadingServiceTypes && [0, 1, 2].map(item => <div key={item} className="h-36 animate-pulse rounded-xl bg-secondary/60" />)}
+                  {!loadingServiceTypes && SERVICE_TYPES.filter(type => availableDepartments.has(type.id)).map(type => {
                     const Icon = type.icon;
                     return (
                       <button
@@ -235,7 +248,7 @@ export default function BookingForm() {
                     );
                   })}
                 </div>
-                {!loadingServices && availableDepartments.size === 0 && <p className="mt-6 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد أنواع خدمات متاحة في هذا الفرع حالياً.</p>}
+                {!loadingServiceTypes && availableDepartments.size === 0 && <p className="mt-6 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد أنواع خدمات متاحة للحجز حالياً.</p>}
               </div>
             )}
 

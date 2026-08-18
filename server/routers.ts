@@ -257,6 +257,7 @@ export const appRouter = router({
 
   branches: router({
     list: publicProcedure.query(() => db.getActiveBranches()),
+    listForDepartment: publicProcedure.input(z.object({ department: z.enum(["dentistry", "dermatology", "laser"]) })).query(({ input }) => db.getActiveBranchesForDepartment(input.department)),
     listForAdmin: adminSessionProcedure.query(() => db.getAllBranches()),
     create: operationsProcedure.input(z.object({ slug: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/), name: z.string().trim().min(3).max(140), shortName: z.string().trim().min(2).max(100), city: z.string().trim().min(2).max(140), address: z.string().trim().max(500).optional(), phone: z.string().trim().max(20).optional() })).mutation(async ({ input }) => {
       if (await db.getBranchBySlug(input.slug)) throw new TRPCError({ code: "CONFLICT", message: "رمز الفرع مستخدم بالفعل" });
@@ -285,6 +286,7 @@ export const appRouter = router({
     list: publicProcedure.query(async () => {
       return db.getAllDentists();
     }),
+    listForDepartment: publicProcedure.input(z.object({ department: z.enum(["dentistry", "dermatology", "laser"]) })).query(({ input }) => db.getDentistsForDepartment(input.department)),
     getById: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
@@ -359,6 +361,8 @@ export const appRouter = router({
         if (!service?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الخدمة غير متاحة للحجز حالياً" });
         if (!branch?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الفرع غير متاح للحجز حالياً" });
         if (!(await db.getBranchSpecialties(branch.id)).some(item => item.department === service.department && item.isActive)) throw new TRPCError({ code: "BAD_REQUEST", message: "هذه الخدمة غير متاحة في الفرع المختار حالياً" });
+        const dentist = await db.getDentistById(input.dentistId);
+        if (!dentist || dentist.department !== service.department) throw new TRPCError({ code: "BAD_REQUEST", message: "الطبيب غير متاح لنوع الخدمة المختار" });
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
         const booking = await db.createBooking({
           referenceNumber,

@@ -283,6 +283,26 @@ export async function setBranchSpecialtyActive(branchId: number, department: "de
   await db.update(branchSpecialties).set({ isActive }).where(and(eq(branchSpecialties.branchId, branchId), eq(branchSpecialties.department, department)));
   return getBranchSpecialties(branchId);
 }
+export async function getActiveBranchesForDepartment(department: "dentistry" | "dermatology" | "laser"): Promise<BranchRecord[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: branches.id,
+    slug: branches.slug,
+    name: branches.name,
+    shortName: branches.shortName,
+    city: branches.city,
+    address: branches.address,
+    phone: branches.phone,
+    isActive: branches.isActive,
+    createdAt: branches.createdAt,
+    updatedAt: branches.updatedAt,
+  }).from(branches).innerJoin(branchSpecialties, and(
+    eq(branchSpecialties.branchId, branches.id),
+    eq(branchSpecialties.department, department),
+    eq(branchSpecialties.isActive, true)
+  )).where(eq(branches.isActive, true));
+}
 export async function getServicesForBranch(slug: string): Promise<Service[]> {
   const db = await getDb();
   if (!db) return [];
@@ -298,6 +318,12 @@ export async function getAllDentists(): Promise<Dentist[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(dentists);
+}
+
+export async function getDentistsForDepartment(department: "dentistry" | "dermatology" | "laser"): Promise<Dentist[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dentists).where(eq(dentists.department, department));
 }
 
 export async function getDentistById(id: number): Promise<Dentist | undefined> {

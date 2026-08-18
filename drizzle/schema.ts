@@ -75,6 +75,7 @@ export const dentists = mysqlTable("dentists", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   specialization: varchar("specialization", { length: 100 }).notNull(),
+  department: mysqlEnum("department", ["dentistry", "dermatology", "laser"]).default("dentistry").notNull(),
   bio: text("bio"),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),

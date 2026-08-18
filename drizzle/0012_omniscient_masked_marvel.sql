@@ -1,0 +1,1 @@
+ALTER TABLE `dentists` ADD `department` enum('dentistry','dermatology','laser') DEFAULT 'dentistry' NOT NULL;
