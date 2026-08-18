@@ -76,6 +76,7 @@ export default function AdminDashboard() {
   const { data: adminUsers } = trpc.admin.users.list.useQuery(undefined, { enabled: authed && canManageUsers });
   const { data: conversations } = trpc.assistant.conversations.list.useQuery({ limit: 20 }, { enabled: authed });
   const { data: conversationMessages } = trpc.assistant.conversations.messages.useQuery({ conversationId: selectedConversationId ?? 0 }, { enabled: authed && selectedConversationId !== null });
+  const { data: bookingActionRequests } = trpc.bookingActions.list.useQuery(undefined, { enabled: authed });
   const exportBookings = trpc.admin.exportBookings.useQuery(undefined, { enabled: false });
 
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function AdminDashboard() {
       utils.branchSpecialties.listForAdmin.invalidate(),
       utils.admin.users.list.invalidate(),
       utils.bookings.getAll.invalidate(),
+      utils.bookingActions.list.invalidate(),
       utils.assistant.conversations.list.invalidate(),
     ]);
   };
@@ -331,6 +333,13 @@ export default function AdminDashboard() {
             </div>
           </div>
         </section>
+
+        {(bookingActionRequests ?? []).some(request => request.status === "pending") && (
+          <section className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/50 p-5 shadow-sm">
+            <div className="flex items-start justify-between gap-4"><div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-amber-700"><CalendarClock className="size-4" />طلبات المراجعين</span><h2 className="mt-2 text-xl font-extrabold text-foreground">طلبات تعديل أو إلغاء الحجز</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">طلبات مسجلة من شاشة التأكيد وتحتاج متابعة الفريق قبل تغيير حالة الحجز.</p></div><span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-extrabold text-amber-700">{bookingActionRequests?.filter(request => request.status === "pending").length ?? 0} معلقة</span></div>
+            <div className="mt-4 divide-y divide-amber-200 rounded-xl border border-amber-200 bg-white">{bookingActionRequests?.filter(request => request.status === "pending").map(request => <div key={request.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3"><div><p className="text-sm font-extrabold text-foreground">{request.action === "cancel" ? "طلب إلغاء" : "طلب تعديل موعد"} · {request.patientName}</p><p className="mt-1 text-xs text-muted-foreground"><span dir="ltr">{request.referenceNumber}</span> · {request.source === "website" ? "من الموقع" : "من واتساب"}</p></div><a href={`/confirmation/${request.referenceNumber}`} target="_blank" rel="noreferrer" className="rounded-lg border border-primary/20 px-3 py-2 text-xs font-extrabold text-primary transition-colors hover:bg-primary/5">عرض الحجز</a></div>)}</div>
+          </section>
+        )}
 
         <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm sm:flex-row sm:items-center"><div className="relative flex-1"><Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input type="text" value={search} onChange={event => setSearch(event.target.value)} placeholder="ابحث بالاسم أو الجوال أو الرقم المرجعي" className="w-full rounded-xl border border-border bg-white py-2.5 pe-10 ps-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20" /></div><div className="flex flex-wrap items-center gap-1.5">{FILTERS.map(item => <button key={item.value} type="button" onClick={() => setFilter(item.value)} className={cn("rounded-lg px-3.5 py-2 text-xs font-bold transition-colors", filter === item.value ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70")}>{item.label}</button>)}<button type="button" onClick={() => refetch()} aria-label="تحديث" className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-primary"><RefreshCw className={cn("size-4", isFetching && "animate-spin")} /></button></div></div>
 

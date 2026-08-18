@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useParams } from "wouter";
-import { CalendarDays, CalendarPlus, CheckCircle2, Clock, Copy, Download, Loader2, MapPin, Phone, User } from "lucide-react";
+import { CalendarDays, CalendarPlus, CheckCircle2, Clock, Copy, Download, Loader2, MapPin, PencilLine, Phone, Send, User, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import PageShell from "@/components/PageShell";
 import { trpc } from "@/lib/trpc";
@@ -18,6 +18,16 @@ export default function BookingConfirmation() {
 
   const { data: services } = trpc.services.list.useQuery();
   const { data: dentists } = trpc.dentists.list.useQuery();
+  const [requestedAction, setRequestedAction] = useState<"reschedule" | "cancel" | null>(null);
+  const [selectedAction, setSelectedAction] = useState<"reschedule" | "cancel" | null>(null);
+  const actionRequest = trpc.bookings.requestAction.useMutation({
+    onSuccess: (result, variables) => {
+      setRequestedAction(variables.action);
+      setSelectedAction(null);
+      toast.success(result.alreadyRequested ? "تم تسجيل الطلب مسبقاً وسيتابع الفريق معك" : "تم إرسال طلبك إلى فريق العيادة");
+    },
+    onError: error => toast.error(error.message),
+  });
 
   const service = services?.find(s => s.id === booking?.serviceId);
   const dentist = dentists?.find(d => d.id === booking?.dentistId);
@@ -45,6 +55,11 @@ export default function BookingConfirmation() {
     if (!calendarEvent) return;
     downloadCalendarFile(calendarEvent.icsContent, calendarEvent.fileName);
     toast.success("تم تجهيز ملف الموعد للتقويم");
+  };
+
+  const submitActionRequest = () => {
+    if (!selectedAction || !booking) return;
+    actionRequest.mutate({ referenceNumber: booking.referenceNumber, action: selectedAction });
   };
 
   return (
@@ -123,6 +138,36 @@ export default function BookingConfirmation() {
                         </button>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {booking.status !== "cancelled" && (
+                  <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="text-sm font-extrabold text-foreground">هل تحتاج إلى تعديل أو إلغاء الحجز؟</p>
+                        <p className="mt-1 text-xs text-muted-foreground">سجّل طلبك وسيقوم فريق العيادة بمراجعته والتواصل معك.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => setSelectedAction("reschedule")} disabled={requestedAction === "reschedule"} className="inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-white px-3 py-2 text-xs font-extrabold text-primary transition-all duration-200 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60">
+                          <PencilLine className="size-3.5" /> {requestedAction === "reschedule" ? "تم طلب التعديل" : "تعديل الموعد"}
+                        </button>
+                        <button type="button" onClick={() => setSelectedAction("cancel")} disabled={requestedAction === "cancel"} className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-extrabold text-rose-600 transition-all duration-200 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-60">
+                          <XCircle className="size-3.5" /> {requestedAction === "cancel" ? "تم طلب الإلغاء" : "إلغاء الحجز"}
+                        </button>
+                      </div>
+                    </div>
+                    {selectedAction && (
+                      <div className="mt-4 flex flex-col justify-between gap-3 rounded-xl border border-amber-200 bg-white/80 p-3 sm:flex-row sm:items-center">
+                        <p className="text-xs font-bold text-foreground">{selectedAction === "cancel" ? "سيُرسل طلب إلغاء الحجز إلى فريق العيادة، ولن يُلغى الموعد تلقائياً." : "سيُرسل طلب تعديل الموعد إلى فريق العيادة لمتابعته معك."}</p>
+                        <div className="flex gap-2">
+                          <button type="button" onClick={() => setSelectedAction(null)} className="rounded-lg px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted">تراجع</button>
+                          <button type="button" onClick={submitActionRequest} disabled={actionRequest.isPending} className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-3 py-2 text-xs font-extrabold text-white transition-all duration-200 hover:bg-amber-600 disabled:opacity-60">
+                            {actionRequest.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />} إرسال الطلب
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

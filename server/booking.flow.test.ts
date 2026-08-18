@@ -155,7 +155,22 @@ describe("booking lifecycle", () => {
     });
     expect(fetched?.appointmentDate).toEqual(new Date("2026-09-14T00:00:00.000Z"));
 
+    const actionRequest = await caller.bookings.requestAction({
+      referenceNumber: created.referenceNumber,
+      action: "reschedule",
+    });
+    expect(actionRequest.alreadyRequested).toBe(false);
+    const repeatedActionRequest = await caller.bookings.requestAction({
+      referenceNumber: created.referenceNumber,
+      action: "reschedule",
+    });
+    expect(repeatedActionRequest.alreadyRequested).toBe(true);
+
     const adminCaller = appRouter.createCaller(createAdminContext());
+    const adminActions = await adminCaller.bookingActions.list();
+    expect(adminActions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ referenceNumber: created.referenceNumber, action: "reschedule", source: "website", status: "pending" }),
+    ]));
     const confirmed = await adminCaller.bookings.updateStatus({
       referenceNumber: created.referenceNumber,
       status: "confirmed",

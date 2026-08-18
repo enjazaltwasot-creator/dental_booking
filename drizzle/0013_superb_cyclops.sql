@@ -1,0 +1,1 @@
+ALTER TABLE `booking_action_requests` MODIFY COLUMN `source` enum('whatsapp','website') NOT NULL;

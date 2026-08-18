@@ -197,7 +197,7 @@ export const bookingActionRequests = mysqlTable("booking_action_requests", {
   id: int("id").autoincrement().primaryKey(),
   bookingId: int("booking_id").notNull(),
   action: mysqlEnum("action", ["confirm", "reschedule", "cancel"]).notNull(),
-  source: mysqlEnum("source", ["whatsapp"]).notNull(),
+  source: mysqlEnum("source", ["whatsapp", "website"]).notNull(),
   externalMessageId: varchar("external_message_id", { length: 160 }).notNull(),
   status: mysqlEnum("status", ["pending", "processed", "rejected"]).default("pending").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

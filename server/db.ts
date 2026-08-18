@@ -544,10 +544,37 @@ export async function queueBookingActionRequest(input: {
   }).onDuplicateKeyUpdate({ set: { externalMessageId: input.externalMessageId } });
 }
 
+export async function queueWebsiteBookingActionRequest(input: {
+  bookingId: number;
+  referenceNumber: string;
+  action: "reschedule" | "cancel";
+}): Promise<BookingActionRequest> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const externalMessageId = `website:${input.referenceNumber}:${input.action}:${Date.now()}`;
+  await db.insert(bookingActionRequests).values({
+    bookingId: input.bookingId,
+    action: input.action,
+    source: "website",
+    externalMessageId,
+    status: "pending",
+  });
+  const requests = await getBookingActionRequests(input.bookingId);
+  const request = requests.find(item => item.externalMessageId === externalMessageId);
+  if (!request) throw new Error("Could not record booking action request");
+  return request;
+}
+
 export async function getBookingActionRequests(bookingId: number): Promise<BookingActionRequest[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(bookingActionRequests).where(eq(bookingActionRequests.bookingId, bookingId));
+}
+
+export async function listBookingActionRequests(): Promise<BookingActionRequest[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(bookingActionRequests).orderBy(desc(bookingActionRequests.createdAt));
 }
 
 export async function getBookingsByDentistAndDate(dentistId: number, appointmentDate: Date): Promise<Booking[]> {

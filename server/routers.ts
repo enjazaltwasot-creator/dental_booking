@@ -394,6 +394,34 @@ export const appRouter = router({
         return db.getBookingByReferenceNumber(input.referenceNumber);
       }),
 
+    requestAction: publicProcedure
+      .input(z.object({
+        referenceNumber: z.string().trim().min(8).max(40),
+        action: z.enum(["reschedule", "cancel"]),
+      }))
+      .mutation(async ({ input }) => {
+        const booking = await db.getBookingByReferenceNumber(input.referenceNumber);
+        if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "الحجز غير موجود" });
+        if (booking.status === "cancelled") throw new TRPCError({ code: "BAD_REQUEST", message: "هذا الحجز ملغى بالفعل" });
+        const previousRequests = await db.getBookingActionRequests(booking.id);
+        const existing = previousRequests.find(request => request.action === input.action && request.status === "pending");
+        if (existing) return { id: existing.id, alreadyRequested: true };
+        const request = await db.queueWebsiteBookingActionRequest({
+          bookingId: booking.id,
+          referenceNumber: booking.referenceNumber,
+          action: input.action,
+        });
+        try {
+          await notifyOwner({
+            title: input.action === "cancel" ? "طلب إلغاء حجز" : "طلب تعديل موعد",
+            content: `تم تسجيل طلب ${input.action === "cancel" ? "إلغاء" : "تعديل"} للحجز ${booking.referenceNumber} من شاشة المراجع.`,
+          });
+        } catch (error) {
+          console.warn("[Booking] Action request notification failed", error);
+        }
+        return { id: request.id, alreadyRequested: false };
+      }),
+
     getAll: adminSessionProcedure.query(async () => {
       return db.getAllBookings();
     }),
@@ -421,6 +449,25 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getBookingById(input.id);
       }),
+  }),
+
+  bookingActions: router({
+    list: adminSessionProcedure.query(async () => {
+      const [requests, allBookings] = await Promise.all([db.listBookingActionRequests(), db.getAllBookings()]);
+      return requests.map(request => {
+        const booking = allBookings.find(item => item.id === request.bookingId);
+        return {
+          id: request.id,
+          action: request.action,
+          source: request.source,
+          status: request.status,
+          createdAt: request.createdAt,
+          referenceNumber: booking?.referenceNumber ?? "",
+          patientName: booking?.patientName ?? "حجز محذوف",
+          patientPhone: booking?.patientPhone ?? "",
+        };
+      });
+    }),
   }),
 });
 
