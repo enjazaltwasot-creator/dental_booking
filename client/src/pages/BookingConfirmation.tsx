@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 import { Link, useParams } from "wouter";
-import { CalendarDays, CheckCircle2, Clock, Copy, Loader2, MapPin, Phone, User } from "lucide-react";
+import { CalendarDays, CalendarPlus, CheckCircle2, Clock, Copy, Download, Loader2, MapPin, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 import PageShell from "@/components/PageShell";
 import { trpc } from "@/lib/trpc";
 import { STATUS_META, formatDate, getBranchBySlug } from "@/lib/clinic";
+import { buildCalendarEvent, downloadCalendarFile } from "@/lib/calendar";
 
 export default function BookingConfirmation() {
   const params = useParams<{ reference: string }>();
@@ -22,6 +23,14 @@ export default function BookingConfirmation() {
   const dentist = dentists?.find(d => d.id === booking?.dentistId);
   const branch = getBranchBySlug(booking?.branch ?? undefined);
   const status = booking ? STATUS_META[booking.status as keyof typeof STATUS_META] : null;
+  const calendarEvent = booking ? buildCalendarEvent({
+    referenceNumber: booking.referenceNumber,
+    appointmentDate: booking.appointmentDate,
+    appointmentTime: String(booking.appointmentTime),
+    serviceName: service?.name,
+    dentistName: dentist?.name,
+    branchName: branch?.name,
+  }) : null;
 
   const copyReference = async () => {
     try {
@@ -30,6 +39,12 @@ export default function BookingConfirmation() {
     } catch {
       toast.error("تعذر النسخ");
     }
+  };
+
+  const downloadCalendar = () => {
+    if (!calendarEvent) return;
+    downloadCalendarFile(calendarEvent.icsContent, calendarEvent.fileName);
+    toast.success("تم تجهيز ملف الموعد للتقويم");
   };
 
   return (
@@ -79,6 +94,37 @@ export default function BookingConfirmation() {
                   <SummaryCell label="الطبيب" value={dentist?.name ?? "قيد التحديد"} />
                   <SummaryCell label="الموعد" value={`${formatDate(booking.appointmentDate)} · ${String(booking.appointmentTime).slice(0, 5)}`} />
                 </div>
+
+                {calendarEvent && (
+                  <div className="mb-6 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground"><CalendarPlus className="size-4" /></span>
+                        <div>
+                          <p className="text-sm font-extrabold text-foreground">أضف الموعد إلى تقويمك</p>
+                          <p className="text-xs text-muted-foreground">يبقى الموعد قيد التأكيد من فريق العيادة.</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <a
+                          href={calendarEvent.googleUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground transition-all duration-200 hover:shadow-md"
+                        >
+                          <CalendarPlus className="size-3.5" /> Google Calendar
+                        </a>
+                        <button
+                          type="button"
+                          onClick={downloadCalendar}
+                          className="inline-flex items-center gap-2 rounded-xl border border-primary/20 bg-white px-3 py-2 text-xs font-extrabold text-primary transition-all duration-200 hover:border-primary hover:shadow-sm"
+                        >
+                          <Download className="size-3.5" /> Apple / Outlook
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 p-5 text-center">
                   <span className="text-xs font-semibold text-muted-foreground">الرقم المرجعي</span>
