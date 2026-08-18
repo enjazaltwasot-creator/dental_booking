@@ -197,7 +197,15 @@ export default function BookingForm() {
                 <h2 className="text-xl font-bold text-foreground">اختر الفرع</h2>
                 <p className="mt-1 text-sm text-muted-foreground">اختر الفرع المتاح لنوع الخدمة الذي حددته، وسيتم حفظه مع طلب الحجز.</p>
                 <div className="mt-6 grid gap-3">
-                  {loadingBranches && <p className="rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">جاري تحميل الفروع...</p>}
+                  {loadingBranches && (
+                    <div className="space-y-3" aria-live="polite">
+                      <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-primary">
+                        <span className="grid size-9 place-items-center rounded-lg bg-white shadow-sm"><Loader2 className="size-4 animate-spin" /></span>
+                        <span><span className="block text-sm font-extrabold">نبحث عن الفروع المتوافقة</span><span className="mt-0.5 block text-xs text-muted-foreground">يجري تحديث الخيارات وفق نوع الخدمة المختار.</span></span>
+                      </div>
+                      {[0, 1, 2].map(item => <div key={item} className="h-20 animate-pulse rounded-xl bg-secondary/60" />)}
+                    </div>
+                  )}
                   {!loadingBranches && !(branches?.length) && <p className="rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد فروع متاحة للحجز حالياً.</p>}
                   {(branches ?? []).map(branch => (
                     <button
@@ -308,11 +316,19 @@ export default function BookingForm() {
                 <p className="mt-1 text-sm text-muted-foreground">اختر الطبيب المناسب من القائمة المتاحة حالياً؛ الفرع المختار سيُحفظ مع طلبك.</p>
 
                 {loadingDentists && (
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-6 space-y-3" aria-live="polite">
+                    <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-primary">
+                      <span className="grid size-9 place-items-center rounded-lg bg-white shadow-sm"><Loader2 className="size-4 animate-spin" /></span>
+                      <span><span className="block text-sm font-extrabold">نفلتر الأطباء المتاحين</span><span className="mt-0.5 block text-xs text-muted-foreground">يجري عرض الأطباء المتوافقين مع نوع الخدمة المختار.</span></span>
+                    </div>
                     {[0, 1, 2].map(i => (
                       <div key={i} className="h-16 animate-pulse rounded-xl bg-secondary/60" />
                     ))}
                   </div>
+                )}
+
+                {!loadingDentists && (dentists?.length ?? 0) === 0 && (
+                  <p className="mt-6 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا يوجد طبيب متاح لهذا النوع من الخدمات حالياً.</p>
                 )}
 
                 <div className="mt-6 grid gap-3">
