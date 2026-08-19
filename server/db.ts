@@ -165,7 +165,12 @@ export async function setAdminUserPermission(username: string, adminPermission: 
 export async function getAllServices(): Promise<Service[]> {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(services).where(eq(services.isActive, true));
+  try {
+    return await db.select().from(services).where(eq(services.isActive, true));
+  } catch (error) {
+    console.error("[Database] Failed to list active services:", error);
+    throw error;
+  }
 }
 
 export async function getAllServicesForAdmin(): Promise<Service[]> {
