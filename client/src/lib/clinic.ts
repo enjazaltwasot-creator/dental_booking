@@ -1,4 +1,7 @@
-export const LOGO_SRC = "/manus-storage/evan-logo_076a049e.webp";
+const ASSET_BASE = import.meta.env.VITE_ASSET_BASE || "/manus-storage";
+const asset = (filename: string) => `${ASSET_BASE}/${filename}`;
+
+export const LOGO_SRC = asset("evan-logo_076a049e.webp");
 
 export const CLINIC = {
   name: "مجموعة عيادات إيفان الطبية",
@@ -20,7 +23,7 @@ export const BRANCHES = [
     mapUrl: "https://maps.app.goo.gl/ikvDqxtpXo7NRkXZ9",
     mapEmbedUrl: "https://www.google.com/maps?q=24.6553724,46.5126144&z=15&output=embed",
     coordinates: { lat: 24.6553724, lng: 46.5126144 },
-    image: "/manus-storage/evan-mahdiyah-building-enhanced_dec82603.png",
+    image: asset("evan-mahdiyah-building-enhanced_dec82603.png"),
     galleryImage: undefined,
     imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي المهدية",
   },
@@ -36,8 +39,8 @@ export const BRANCHES = [
     mapUrl: "https://maps.app.goo.gl/7J85tT4cWz7aJqjS6",
     mapEmbedUrl: "https://www.google.com/maps?q=24.7046584,46.6840428&z=15&output=embed",
     coordinates: { lat: 24.7046584, lng: 46.6840428 },
-    image: "/manus-storage/evan-olaya-building-night-enhanced_2f58024a.png",
-    galleryImage: "/manus-storage/evan-olaya-building-day-enhanced_4ea1abcc.png",
+    image: asset("evan-olaya-building-night-enhanced_2f58024a.png"),
+    galleryImage: asset("evan-olaya-building-day-enhanced_4ea1abcc.png"),
     imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي العليا",
   },
   {
@@ -52,7 +55,7 @@ export const BRANCHES = [
     mapUrl: "https://maps.app.goo.gl/ZroSiioybrMx1UiA8",
     mapEmbedUrl: "https://www.google.com/maps?q=24.6310446,46.6094759&z=15&output=embed",
     coordinates: { lat: 24.6310446, lng: 46.6094759 },
-    image: "/manus-storage/evan-ahmadiyah-building-enhanced_1a2b3264.png",
+    image: asset("evan-ahmadiyah-building-enhanced_1a2b3264.png"),
     galleryImage: undefined,
     imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي الأحمدية لبن",
   },
@@ -76,21 +79,21 @@ export const DEPARTMENTS = [
 ] as const;
 
 export const PARTNERS = [
-  { id: "aesthetic-pioneers", name: "Aesthetic Pioneers", logo: "/manus-storage/aesthetic-pioneers_c0b1848f.webp" },
-  { id: "ame", name: "AME International", logo: "/manus-storage/ame_a717f941.webp" },
-  { id: "euromi", name: "Euromi", logo: "/manus-storage/euromi_dffc98b5.webp" },
-  { id: "mint-lift", name: "MINT Lift", logo: "/manus-storage/mint-lift_89389cf6.webp" },
-  { id: "exosmart", name: "exosmart", logo: "/manus-storage/exosmart_23541996.webp" },
-  { id: "teoxane", name: "Teoxane", logo: "/manus-storage/teoxane_7571099b.webp" },
-  { id: "clearcaps", name: "clearcaps", logo: "/manus-storage/clearcaps_1489ca7a.webp" },
-  { id: "magellan", name: "Magellan", logo: "/manus-storage/magellan_931d6a62.webp" },
-  { id: "anteage-md", name: "AnteAGE MD", logo: "/manus-storage/anteage-md_c04a4a43.webp" },
-  { id: "deka", name: "DEKA", logo: "/manus-storage/deka_2ddcc173.webp" },
-  { id: "kuos", name: "Kuo's Professional", logo: "/manus-storage/kuos_c0551d1b.webp" },
-  { id: "nabota", name: "Nabota", logo: "/manus-storage/nabota_a7ac23a0.webp" },
-  { id: "promoitalia", name: "Promoitalia", logo: "/manus-storage/promoitalia_284ffb1a.webp" },
-  { id: "splendor-x", name: "Splendor X", logo: "/manus-storage/splendor-x_b983233c.webp" },
-  { id: "madfu", name: "مدفوع", logo: "/manus-storage/madfu_37d05cad.webp" },
+  { id: "aesthetic-pioneers", name: "Aesthetic Pioneers", logo: asset("aesthetic-pioneers_c0b1848f.webp") },
+  { id: "ame", name: "AME International", logo: asset("ame_a717f941.webp") },
+  { id: "euromi", name: "Euromi", logo: asset("euromi_dffc98b5.webp") },
+  { id: "mint-lift", name: "MINT Lift", logo: asset("mint-lift_89389cf6.webp") },
+  { id: "exosmart", name: "exosmart", logo: asset("exosmart_23541996.webp") },
+  { id: "teoxane", name: "Teoxane", logo: asset("teoxane_7571099b.webp") },
+  { id: "clearcaps", name: "clearcaps", logo: asset("clearcaps_1489ca7a.webp") },
+  { id: "magellan", name: "Magellan", logo: asset("magellan_931d6a62.webp") },
+  { id: "anteage-md", name: "AnteAGE MD", logo: asset("anteage-md_c04a4a43.webp") },
+  { id: "deka", name: "DEKA", logo: asset("deka_2ddcc173.webp") },
+  { id: "kuos", name: "Kuo's Professional", logo: asset("kuos_c0551d1b.webp") },
+  { id: "nabota", name: "Nabota", logo: asset("nabota_a7ac23a0.webp") },
+  { id: "promoitalia", name: "Promoitalia", logo: asset("promoitalia_284ffb1a.webp") },
+  { id: "splendor-x", name: "Splendor X", logo: asset("splendor-x_b983233c.webp") },
+  { id: "madfu", name: "مدفوع", logo: asset("madfu_37d05cad.webp") },
 ] as const;
 
 export const SPECIALTIES = [
@@ -102,7 +105,7 @@ export const SPECIALTIES = [
     description:
       "رعاية سنية تجمع المسارات العلاجية والتجميلية المتاحة في الموقع، ثم تقودك إلى خطوة حجز واضحة ومباشرة.",
     highlights: ["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان"],
-    image: "/manus-storage/services-overview_66815dcd.jpg",
+    image: asset("services-overview_66815dcd.jpg"),
     imageAlt: "طبيب يجري فحصاً للأسنان داخل عيادة",
   },
   {
@@ -113,7 +116,7 @@ export const SPECIALTIES = [
     description:
       "خدمات مخصصة للعناية بالجلد والتجميل ضمن بيئة طبية منظمة، مع ظهور خيارات تجميلية مثل بروفايلو في الخدمات المعلنة سابقاً.",
     highlights: ["العناية بالجلد", "استشارات تجميلية", "بروفايلو ضمن الخدمات المعلنة"],
-    image: "/manus-storage/clinic-care_9c78a4bb.jpg",
+    image: asset("clinic-care_9c78a4bb.jpg"),
     imageAlt: "جلسة عناية تجميلية داخل بيئة طبية",
   },
   {
@@ -124,7 +127,7 @@ export const SPECIALTIES = [
     description:
       "تقنيات ليزر حديثة تظهر ضمن التخصصات المعلنة للمجموعة، مع تواصل منظم لتحديد الخدمة والفرع والموعد المناسب.",
     highlights: ["تقنيات الليزر", "ليزر الرجال ضمن الخدمات المعلنة", "تنسيق الموعد حسب الفرع"],
-    image: "/manus-storage/laser-care-neutral_0fe7d79f.png",
+    image: asset("laser-care-neutral_0fe7d79f.png"),
     imageAlt: "مراجع يرتدي نظارات واقية خلال جلسة ليزر داخل عيادة",
   },
 ] as const;
