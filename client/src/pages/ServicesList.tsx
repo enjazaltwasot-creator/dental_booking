@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { ArrowLeft, CheckCircle2, ChevronLeft, Sparkles, Stethoscope } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import { asset } from "@/lib/clinic";
 
 const SPECIALTIES = [
   {
@@ -9,7 +10,7 @@ const SPECIALTIES = [
     eyebrow: "الرعاية السنية",
     title: "طب الأسنان",
     summary: "رعاية سنية منظمة تجمع التقييم وخيارات العلاج والتجميل، وتنتقل بك إلى الفرع والطبيب والموعد المناسب من مكان واحد.",
-    image: "/manus-storage/services-overview_66815dcd.jpg",
+    image: asset("services-overview_66815dcd.jpg"),
     alt: "طبيب أسنان مع مراجع داخل عيادة",
     services: ["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان"],
     note: "ابدأ باختيار الفرع، ثم الخدمة والطبيب والموعد المتاح.",
@@ -20,7 +21,7 @@ const SPECIALTIES = [
     eyebrow: "العناية بالبشرة",
     title: "الجلدية والتجميل",
     summary: "تخصص يركز على العناية الطبية بالبشرة والاستشارات التجميلية ضمن تجربة مريحة وواضحة قبل تحديد مسار الزيارة.",
-    image: "/manus-storage/clinic-care_9c78a4bb.jpg",
+    image: asset("clinic-care_9c78a4bb.jpg"),
     alt: "جلسة عناية بالبشرة داخل بيئة طبية",
     services: ["العناية بالجلد", "استشارات تجميلية", "بروفايلو", "تقييم الاحتياج"],
     note: "تبدأ الزيارة باستشارة لتحديد الخطوة الملائمة وفق احتياج المراجع.",
@@ -31,7 +32,7 @@ const SPECIALTIES = [
     eyebrow: "تقنيات حديثة",
     title: "تقنيات الليزر",
     summary: "مسار واضح لتنسيق خدمات الليزر المعلنة بحسب الخدمة والفرع والموعد، ضمن تجربة حجز موحدة ومباشرة.",
-    image: "/manus-storage/laser-care-neutral_0fe7d79f.png",
+    image: asset("laser-care-neutral_0fe7d79f.png"),
     alt: "جلسة ليزر في عيادة طبية",
     services: ["تقنيات الليزر", "ليزر الرجال", "اختيار الفرع", "تنسيق الموعد"],
     note: "يعرض الحجز الخدمة والفرع والوقت قبل تثبيت الموعد.",

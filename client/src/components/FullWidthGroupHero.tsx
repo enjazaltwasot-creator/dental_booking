@@ -2,9 +2,7 @@ import { ArrowLeft, Building2, CalendarCheck } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import { Link } from "wouter";
-
-const NATURE_HERO_VIDEO = "/manus-storage/evan-natural-hero-day-extended_5ec37a01.mp4";
-const EVAN_HERO_LOGO = "/manus-storage/evan-logo_076a049e.webp";
+import { HERO_VIDEO_SRC, LOGO_SRC } from "@/lib/clinic";
 
 function AnimatedWords({ text, delay = 0, step = 0.075 }: { text: string; delay?: number; step?: number }) {
   const reduceMotion = useReducedMotion();
@@ -45,7 +43,7 @@ export default function FullWidthGroupHero() {
   return (
     <section className="relative isolate min-h-[670px] overflow-hidden border-b border-primary/10 bg-slate-100 sm:min-h-[690px] lg:min-h-[720px]">
       <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover brightness-[1.22] saturate-110" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
-        <source src={NATURE_HERO_VIDEO} type="video/mp4" />
+        <source src={HERO_VIDEO_SRC} type="video/mp4" />
       </video>
       <div aria-hidden="true" className="absolute inset-0 z-[1] bg-gradient-to-b from-slate-950/40 via-slate-950/20 to-slate-950/65 lg:bg-gradient-to-l lg:from-slate-950/78 lg:via-slate-950/42 lg:to-transparent" />
 
@@ -76,7 +74,7 @@ export default function FullWidthGroupHero() {
           <div className="relative z-10">
             <motion.div initial={reduceMotion ? false : { opacity: 0, y: -12 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1] }} className="inline-flex items-center gap-3 rounded-2xl border border-white/20 bg-slate-950/30 p-1.5 pl-4 shadow-lg shadow-slate-950/20 backdrop-blur-md">
               <span className="grid h-11 w-20 place-items-center rounded-xl bg-white/95 p-1.5 shadow-sm sm:w-24">
-                <img src={EVAN_HERO_LOGO} alt="شعار مجموعة عيادات إيفان الطبية" className="h-full w-full object-contain" />
+                <img src={LOGO_SRC} alt="شعار مجموعة عيادات إيفان الطبية" className="h-full w-full object-contain" />
               </span>
               <span className="border-r border-white/20 pr-3 text-xs font-extrabold text-white sm:text-sm">مجموعة إيفان الطبية<br /><span className="font-semibold text-sky-100/85">ثلاث فروع في الرياض</span></span>
             </motion.div>

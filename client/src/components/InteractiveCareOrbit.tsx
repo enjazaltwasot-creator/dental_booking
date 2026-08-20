@@ -1,7 +1,8 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
+import { asset } from "@/lib/clinic";
 
-const ORBIT_ASSET = "/manus-storage/evan-3d-care-orbit_e6f66c40.png";
+const ORBIT_ASSET = asset("evan-3d-care-orbit_e6f66c40.png");
 
 type Tilt = { x: number; y: number };
 

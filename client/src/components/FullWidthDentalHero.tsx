@@ -1,8 +1,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, CalendarCheck, Sparkles } from "lucide-react";
 import { Link } from "wouter";
+import { asset } from "@/lib/clinic";
 
-const DENTAL_HERO_ASSET = "/manus-storage/evan-fullwidth-dental-hero_2a1eeedf.png";
+const DENTAL_HERO_ASSET = asset("evan-fullwidth-dental-hero_2a1eeedf.png");
 
 export default function FullWidthDentalHero() {
   const reduceMotion = useReducedMotion();
