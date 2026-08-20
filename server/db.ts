@@ -169,6 +169,9 @@ export async function getAllServices(): Promise<Service[]> {
     return await db.select().from(services).where(eq(services.isActive, true));
   } catch (error) {
     console.error("[Database] Failed to list active services:", error);
+    if (error && typeof error === "object" && "cause" in error) {
+      console.error("[Database] Active services query cause:", (error as { cause?: unknown }).cause);
+    }
     throw error;
   }
 }
