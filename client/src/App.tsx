@@ -16,6 +16,7 @@ import BookingForm from "./pages/BookingForm";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import BranchLanding from "./pages/BranchLanding";
 
 function Router() {
   return (
@@ -26,6 +27,7 @@ function Router() {
       <Route path="/doctors" component={DoctorsList} />
       <Route path="/branches" component={Branches} />
       <Route path="/branches/:slug" component={BranchDetail} />
+      <Route path="/go/:slug" component={BranchLanding} />
       <Route path="/about" component={About} />
       <Route path="/vision" component={Vision} />
       <Route path="/partners" component={Partners} />

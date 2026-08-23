@@ -36,8 +36,8 @@ describe("تكوين الصفحة الرئيسية", () => {
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
     const hero = readFileSync(join(process.cwd(), "client/src/components/FullWidthGroupHero.tsx"), "utf8");
 
-    expect(hero).toContain("EVAN_HERO_LOGO");
-    expect(hero).toContain('img src={EVAN_HERO_LOGO}');
+    expect(hero).toContain("LOGO_SRC");
+    expect(hero).toContain('img src={LOGO_SRC}');
     expect(hero).toContain("lg:from-slate-950/78");
     expect(hero).not.toContain("bg-slate-950/22");
     expect(hero).toContain("text-white drop-shadow");
