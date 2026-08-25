@@ -115,6 +115,7 @@ describe("booking lifecycle", () => {
     const slots = await caller.workingHours.availableSlots({
       dentistId: 1,
       date: "2026-09-14",
+      serviceId: 1,
     });
     expect(slots.length).toBeGreaterThan(0);
 

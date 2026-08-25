@@ -49,6 +49,38 @@ const fullAccessProcedure = adminSessionProcedure.use(async ({ ctx, next }) => {
   return next();
 });
 
+const careDepartmentSchema = z.enum(["dentistry", "dermatology", "laser"]);
+const bookingSourceSchema = z.enum(["snapchat", "instagram", "facebook", "branch_visit", "other"]);
+const workingHourInputSchema = z.object({
+  dayOfWeek: z.number().int().min(0).max(6),
+  startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+}).refine(value => value.startTime < value.endTime, { message: "نهاية الدوام يجب أن تكون بعد بدايته" });
+
+async function getAvailableSlotsForDate(dentistId: number, target: Date, serviceId?: number) {
+  const hours = await db.getWorkingHoursByDentistAndDay(dentistId, target.getDay());
+  if (!hours.length) return [];
+  const booked = await db.getBookingsByDentistAndDate(dentistId, target);
+  const takenTimes = new Set(booked.map(booking => String(booking.appointmentTime).slice(0, 5)));
+  const service = serviceId ? await db.getServiceById(serviceId) : undefined;
+  const slotMinutes = service?.duration ?? 30;
+  const toMinutes = (value: string) => {
+    const [hour, minute] = String(value).split(":").map(Number);
+    return hour * 60 + (minute || 0);
+  };
+  const toLabel = (total: number) => `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+  const slots: string[] = [];
+  for (const window of hours) {
+    const start = toMinutes(window.startTime as unknown as string);
+    const end = toMinutes(window.endTime as unknown as string);
+    for (let time = start; time + slotMinutes <= end; time += 30) {
+      const label = toLabel(time);
+      if (!takenTimes.has(label) && !slots.includes(label)) slots.push(label);
+    }
+  }
+  return slots.sort();
+}
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -283,15 +315,39 @@ export const appRouter = router({
 
   // Dentists
   dentists: router({
-    list: publicProcedure.query(async () => {
-      return db.getAllDentists();
-    }),
-    listForDepartment: publicProcedure.input(z.object({ department: z.enum(["dentistry", "dermatology", "laser"]) })).query(({ input }) => db.getDentistsForDepartment(input.department)),
+    list: publicProcedure.query(() => db.getActiveDentists()),
+    listForAdmin: adminSessionProcedure.query(() => db.getAllDentists()),
+    listForDepartment: publicProcedure.input(z.object({ department: careDepartmentSchema })).query(({ input }) => db.getDentistsForDepartment(input.department)),
+    listForBranchAndService: publicProcedure.input(z.object({ branch: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/), serviceId: z.number().int().positive() })).query(({ input }) => db.getDentistsForBranchAndService(input.branch, input.serviceId)),
+    assignments: adminSessionProcedure.input(z.object({ dentistId: z.number().int().positive() })).query(async ({ input }) => ({ branches: await db.getDentistBranches(input.dentistId), services: await db.getDentistServices(input.dentistId), workingHours: await db.getWorkingHoursForDentist(input.dentistId) })),
     getById: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         return db.getDentistById(input.id);
       }),
+    create: operationsProcedure.input(z.object({ name: z.string().trim().min(2).max(100), specialization: z.string().trim().min(2).max(100), department: careDepartmentSchema, bio: z.string().trim().max(2000).optional(), phone: z.string().trim().max(20).optional(), email: z.string().trim().email().max(320).optional(), branchIds: z.array(z.number().int().positive()).default([]), serviceIds: z.array(z.number().int().positive()).default([]), workingHours: z.array(workingHourInputSchema).default([]) })).mutation(async ({ input }) => {
+      const { branchIds, serviceIds, workingHours, ...profile } = input;
+      const dentist = await db.createDentist(profile);
+      if (!dentist) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "تعذر إنشاء الطبيب" });
+      await db.setDentistAssignments(dentist.id, branchIds, serviceIds);
+      await db.setWorkingHoursForDentist(dentist.id, workingHours);
+      return dentist;
+    }),
+    update: operationsProcedure.input(z.object({ id: z.number().int().positive(), name: z.string().trim().min(2).max(100), specialization: z.string().trim().min(2).max(100), department: careDepartmentSchema, bio: z.string().trim().max(2000).optional(), phone: z.string().trim().max(20).optional(), email: z.string().trim().email().max(320).optional(), branchIds: z.array(z.number().int().positive()).default([]), serviceIds: z.array(z.number().int().positive()).default([]), workingHours: z.array(workingHourInputSchema).default([]) })).mutation(async ({ input }) => {
+      const { id, branchIds, serviceIds, workingHours, ...profile } = input;
+      const dentist = await db.updateDentist(id, profile);
+      if (!dentist) throw new TRPCError({ code: "NOT_FOUND", message: "الطبيب غير موجود" });
+      await db.setDentistAssignments(id, branchIds, serviceIds);
+      await db.setWorkingHoursForDentist(id, workingHours);
+      return dentist;
+    }),
+    setActive: operationsProcedure.input(z.object({ id: z.number().int().positive(), isActive: z.boolean() })).mutation(({ input }) => db.setDentistActive(input.id, input.isActive)),
+    remove: operationsProcedure.input(z.object({ id: z.number().int().positive() })).mutation(async ({ input }) => {
+      const result = await db.deleteDentistIfUnused(input.id);
+      if (result === "not_found") throw new TRPCError({ code: "NOT_FOUND", message: "الطبيب غير موجود" });
+      if (result === "in_use") throw new TRPCError({ code: "BAD_REQUEST", message: "لا يمكن حذف طبيب مرتبط بحجوزات سابقة؛ أوقفه بدلاً من ذلك" });
+      return { success: true };
+    }),
   }),
 
   // Working hours
@@ -302,45 +358,23 @@ export const appRouter = router({
         return db.getWorkingHoursByDentistAndDay(input.dentistId, input.dayOfWeek);
       }),
     availableSlots: publicProcedure
-      .input(z.object({ dentistId: z.number(), date: z.string() }))
+      .input(z.object({ dentistId: z.number(), date: z.string(), serviceId: z.number().int().positive().optional() }))
       .query(async ({ input }) => {
         if (!input.dentistId || !input.date) return [];
         const target = new Date(`${input.date}T00:00:00`);
         if (Number.isNaN(target.getTime())) return [];
-        const dayOfWeek = target.getDay();
-
-        const hours = await db.getWorkingHoursByDentistAndDay(input.dentistId, dayOfWeek);
-        if (!hours.length) return [];
-
-        const booked = await db.getBookingsByDentistAndDate(input.dentistId, target);
-        const takenTimes = new Set(
-          booked.map(b => String(b.appointmentTime).slice(0, 5))
-        );
-
-        const toMinutes = (value: string) => {
-          const [h, m] = String(value).split(":").map(Number);
-          return h * 60 + (m || 0);
-        };
-        const toLabel = (total: number) => {
-          const h = Math.floor(total / 60);
-          const m = total % 60;
-          return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-        };
-
-        const SLOT_MINUTES = 30;
-        const slots: string[] = [];
-        for (const window of hours) {
-          const start = toMinutes(window.startTime as unknown as string);
-          const end = toMinutes(window.endTime as unknown as string);
-          for (let t = start; t + SLOT_MINUTES <= end; t += SLOT_MINUTES) {
-            const label = toLabel(t);
-            if (!takenTimes.has(label) && !slots.includes(label)) {
-              slots.push(label);
-            }
-          }
-        }
-        return slots.sort();
+        return getAvailableSlotsForDate(input.dentistId, target, input.serviceId);
       }),
+    recommendAvailable: publicProcedure.input(z.object({ branch: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/), serviceId: z.number().int().positive(), date: z.string() })).query(async ({ input }) => {
+      const target = new Date(`${input.date}T00:00:00`);
+      if (Number.isNaN(target.getTime())) return null;
+      const candidates = await db.getDentistsForBranchAndService(input.branch, input.serviceId);
+      for (const dentist of candidates) {
+        const slots = await getAvailableSlotsForDate(dentist.id, target, input.serviceId);
+        if (slots.length) return { dentist, slots };
+      }
+      return null;
+    }),
   }),
 
   // Bookings
@@ -354,6 +388,7 @@ export const appRouter = router({
         patientPhone: z.string().min(1),
         appointmentDate: z.string().transform(str => new Date(str)),
         appointmentTime: z.string(),
+        bookingSource: bookingSourceSchema.default("other"),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -361,20 +396,30 @@ export const appRouter = router({
         if (!service?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الخدمة غير متاحة للحجز حالياً" });
         if (!branch?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الفرع غير متاح للحجز حالياً" });
         if (!(await db.getBranchSpecialties(branch.id)).some(item => item.department === service.department && item.isActive)) throw new TRPCError({ code: "BAD_REQUEST", message: "هذه الخدمة غير متاحة في الفرع المختار حالياً" });
-        const dentist = await db.getDentistById(input.dentistId);
-        if (!dentist || dentist.department !== service.department) throw new TRPCError({ code: "BAD_REQUEST", message: "الطبيب غير متاح لنوع الخدمة المختار" });
+        const eligibleDentists = await db.getDentistsForBranchAndService(input.branch, input.serviceId);
+        const dentist = eligibleDentists.find(item => item.id === input.dentistId);
+        if (!dentist || dentist.department !== service.department) throw new TRPCError({ code: "BAD_REQUEST", message: "الطبيب غير متاح للخدمة أو الفرع المختار" });
+        const availableSlots = await getAvailableSlotsForDate(input.dentistId, input.appointmentDate, input.serviceId);
+        if (!availableSlots.includes(String(input.appointmentTime).slice(0, 5))) throw new TRPCError({ code: "CONFLICT", message: "هذا الموعد لم يعد متاحاً، اختر وقتاً آخر" });
         const referenceNumber = `DENTAL-${nanoid(8).toUpperCase()}`;
-        const booking = await db.createBooking({
-          referenceNumber,
-          branch: input.branch,
-          dentistId: input.dentistId,
-          serviceId: input.serviceId,
-          patientName: input.patientName,
-          patientPhone: input.patientPhone,
-          appointmentDate: input.appointmentDate,
-          appointmentTime: input.appointmentTime,
-          notes: input.notes,
-        });
+        let booking;
+        try {
+          booking = await db.createBooking({
+            referenceNumber,
+            branch: input.branch,
+            dentistId: input.dentistId,
+            serviceId: input.serviceId,
+            patientName: input.patientName,
+            patientPhone: input.patientPhone,
+            appointmentDate: input.appointmentDate,
+            appointmentTime: input.appointmentTime,
+            bookingSource: input.bookingSource,
+            notes: input.notes,
+          });
+        } catch (error) {
+          if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "ER_DUP_ENTRY") throw new TRPCError({ code: "CONFLICT", message: "تم حجز هذا الوقت للتو، اختر وقتاً آخر" });
+          throw error;
+        }
         await db.createBookingReminderQueue(booking);
         await db.queueCrmBookingCreatedEvent(booking);
         try {
@@ -442,6 +487,45 @@ export const appRouter = router({
       }))
       .mutation(async ({ input }) => {
         return db.updateBookingStatus(input.referenceNumber, input.status);
+      }),
+
+    reschedule: fullAccessProcedure
+      .input(z.object({
+        referenceNumber: z.string().trim().min(8).max(40),
+        branch: z.string().trim().min(3).max(64).regex(/^[a-z0-9-]+$/),
+        dentistId: z.number().int().positive(),
+        serviceId: z.number().int().positive(),
+        appointmentDate: z.string().transform(str => new Date(str)),
+        appointmentTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const current = await db.getBookingByReferenceNumber(input.referenceNumber);
+        if (!current) throw new TRPCError({ code: "NOT_FOUND", message: "الحجز غير موجود" });
+        const [service, branch] = await Promise.all([db.getServiceById(input.serviceId), db.getBranchBySlug(input.branch)]);
+        if (!service?.isActive || !branch?.isActive) throw new TRPCError({ code: "BAD_REQUEST", message: "الخدمة أو الفرع غير متاح" });
+        const eligibleDentists = await db.getDentistsForBranchAndService(input.branch, input.serviceId);
+        if (!eligibleDentists.some(dentist => dentist.id === input.dentistId)) throw new TRPCError({ code: "BAD_REQUEST", message: "الطبيب غير متاح للخدمة أو الفرع المختار" });
+        const unchanged = current.dentistId === input.dentistId && current.serviceId === input.serviceId && current.branch === input.branch && current.appointmentDate.getTime() === input.appointmentDate.getTime() && String(current.appointmentTime).slice(0, 5) === input.appointmentTime;
+        if (!unchanged) {
+          const slots = await getAvailableSlotsForDate(input.dentistId, input.appointmentDate, input.serviceId);
+          if (!slots.includes(input.appointmentTime)) throw new TRPCError({ code: "CONFLICT", message: "الوقت المحدد غير متاح للطبيب" });
+        }
+        const admin = await getAuthenticatedAdmin(ctx);
+        try {
+          return await db.rescheduleBookingByAdmin({ ...input, performedBy: admin?.username ?? "admin" });
+        } catch (error) {
+          if (error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "ER_DUP_ENTRY") throw new TRPCError({ code: "CONFLICT", message: "تم حجز هذا الوقت للتو، اختر وقتاً آخر" });
+          throw error;
+        }
+      }),
+
+    remove: fullAccessProcedure
+      .input(z.object({ referenceNumber: z.string().trim().min(8).max(40) }))
+      .mutation(async ({ input, ctx }) => {
+        const admin = await getAuthenticatedAdmin(ctx);
+        const deleted = await db.deleteBookingByAdmin(input.referenceNumber, admin?.username ?? "admin");
+        if (!deleted) throw new TRPCError({ code: "NOT_FOUND", message: "الحجز غير موجود" });
+        return { success: true };
       }),
 
     getById: publicProcedure

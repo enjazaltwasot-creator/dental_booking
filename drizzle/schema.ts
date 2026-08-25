@@ -79,12 +79,41 @@ export const dentists = mysqlTable("dentists", {
   bio: text("bio"),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 320 }),
+  isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
 export type Dentist = typeof dentists.$inferSelect;
 export type InsertDentist = typeof dentists.$inferInsert;
+
+/** Doctors can be assigned to one or more branches independently of their profile. */
+export const dentistBranches = mysqlTable("dentist_branches", {
+  id: int("id").autoincrement().primaryKey(),
+  dentistId: int("dentist_id").notNull(),
+  branchId: int("branch_id").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("dentist_branches_dentist_branch_unique").on(table.dentistId, table.branchId),
+  index("dentist_branches_branch_active_index").on(table.branchId, table.isActive),
+]);
+export type DentistBranch = typeof dentistBranches.$inferSelect;
+
+/** The services each doctor is allowed to perform. */
+export const dentistServices = mysqlTable("dentist_services", {
+  id: int("id").autoincrement().primaryKey(),
+  dentistId: int("dentist_id").notNull(),
+  serviceId: int("service_id").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("dentist_services_dentist_service_unique").on(table.dentistId, table.serviceId),
+  index("dentist_services_service_active_index").on(table.serviceId, table.isActive),
+]);
+export type DentistService = typeof dentistServices.$inferSelect;
 
 /**
  * Working hours for dentists
@@ -116,14 +145,34 @@ export const bookings = mysqlTable("bookings", {
   patientPhone: varchar("patient_phone", { length: 20 }).notNull(),
   appointmentDate: date("appointment_date").notNull(),
   appointmentTime: time("appointment_time").notNull(),
+  bookingSource: mysqlEnum("booking_source", ["snapchat", "instagram", "facebook", "branch_visit", "other"]).default("other").notNull(),
+  slotState: varchar("slot_state", { length: 16 }).default("reserved"),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, table => [
+  uniqueIndex("bookings_dentist_date_time_reserved_unique").on(table.dentistId, table.appointmentDate, table.appointmentTime, table.slotState),
+  index("bookings_booking_source_index").on(table.bookingSource),
+]);
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = typeof bookings.$inferInsert;
+
+/** Immutable audit trail for high-privilege changes to a booking. */
+export const bookingAdminActions = mysqlTable("booking_admin_actions", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("booking_id").notNull(),
+  referenceNumber: varchar("reference_number", { length: 20 }).notNull(),
+  action: mysqlEnum("action", ["rescheduled", "deleted"]).notNull(),
+  performedBy: varchar("performed_by", { length: 100 }).notNull(),
+  beforePayload: text("before_payload").notNull(),
+  afterPayload: text("after_payload"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => [
+  index("booking_admin_actions_booking_index").on(table.bookingId, table.createdAt),
+]);
+export type BookingAdminAction = typeof bookingAdminActions.$inferSelect;
 
 /**
  * Delivery queue for booking reminders. Messages stay pending until an approved

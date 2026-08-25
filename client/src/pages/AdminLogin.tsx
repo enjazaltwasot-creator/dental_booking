@@ -31,8 +31,8 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/40 px-4 py-12">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-screen w-full overflow-x-hidden items-center justify-center bg-secondary/40 px-4 py-12">
+      <div className="w-full min-w-0 max-w-md">
         <div className="mb-8 text-center">
           <img src={LOGO_SRC} alt="مجموعة عيادات إيفان الطبية" className="mx-auto h-12 w-auto" />
         </div>
@@ -95,10 +95,7 @@ export default function AdminLogin() {
             </button>
           </form>
 
-          <div className="mt-6 rounded-xl bg-secondary/60 p-4 text-center text-xs text-muted-foreground">
-            <p className="font-semibold text-foreground">بيانات الدخول الافتراضية</p>
-            <p className="mt-1" dir="ltr">admin / admin123</p>
-          </div>
+          <p className="mt-6 text-center text-xs text-muted-foreground">استخدم بيانات الحساب الإداري المعتمدة لديك.</p>
         </div>
       </div>
     </div>

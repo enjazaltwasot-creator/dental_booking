@@ -1,6 +1,6 @@
 import { asc, desc, eq, and, gte, lte, ne, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, branches, branchSpecialties, dentists, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord, BranchSpecialty } from "../drizzle/schema";
+import { InsertUser, users, services, branches, branchSpecialties, dentists, dentistBranches, dentistServices, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, bookingAdminActions, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord, BranchSpecialty, DentistBranch, DentistService } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -322,16 +322,25 @@ export async function getServicesForBranch(slug: string): Promise<Service[]> {
 }
 
 // Dentists queries
+export type CareDepartment = "dentistry" | "dermatology" | "laser";
+export type BookingSource = "snapchat" | "instagram" | "facebook" | "branch_visit" | "other";
+
 export async function getAllDentists(): Promise<Dentist[]> {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(dentists);
+  return db.select().from(dentists).orderBy(asc(dentists.name));
 }
 
-export async function getDentistsForDepartment(department: "dentistry" | "dermatology" | "laser"): Promise<Dentist[]> {
+export async function getActiveDentists(): Promise<Dentist[]> {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(dentists).where(eq(dentists.department, department));
+  return db.select().from(dentists).where(eq(dentists.isActive, true)).orderBy(asc(dentists.name));
+}
+
+export async function getDentistsForDepartment(department: CareDepartment): Promise<Dentist[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dentists).where(and(eq(dentists.department, department), eq(dentists.isActive, true))).orderBy(asc(dentists.name));
 }
 
 export async function getDentistById(id: number): Promise<Dentist | undefined> {
@@ -339,6 +348,91 @@ export async function getDentistById(id: number): Promise<Dentist | undefined> {
   if (!db) return undefined;
   const result = await db.select().from(dentists).where(eq(dentists.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function createDentist(input: { name: string; specialization: string; department: CareDepartment; bio?: string; phone?: string; email?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(dentists).values({ ...input, isActive: true });
+  return getDentistById(Number(result[0].insertId));
+}
+
+export async function updateDentist(id: number, input: { name: string; specialization: string; department: CareDepartment; bio?: string; phone?: string; email?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dentists).set(input).where(eq(dentists.id, id));
+  return getDentistById(id);
+}
+
+export async function setDentistActive(id: number, isActive: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(dentists).set({ isActive }).where(eq(dentists.id, id));
+  return getDentistById(id);
+}
+
+export async function deleteDentistIfUnused(id: number): Promise<"deleted" | "in_use" | "not_found"> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const dentist = await getDentistById(id);
+  if (!dentist) return "not_found";
+  const linkedBookings = await db.select({ id: bookings.id }).from(bookings).where(eq(bookings.dentistId, id)).limit(1);
+  if (linkedBookings.length) return "in_use";
+  await db.delete(dentistBranches).where(eq(dentistBranches.dentistId, id));
+  await db.delete(dentistServices).where(eq(dentistServices.dentistId, id));
+  await db.delete(workingHours).where(eq(workingHours.dentistId, id));
+  await db.delete(dentists).where(eq(dentists.id, id));
+  return "deleted";
+}
+
+export async function getDentistBranches(dentistId: number): Promise<DentistBranch[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dentistBranches).where(eq(dentistBranches.dentistId, dentistId));
+}
+
+export async function getDentistServices(dentistId: number): Promise<DentistService[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(dentistServices).where(eq(dentistServices.dentistId, dentistId));
+}
+
+export async function setDentistAssignments(dentistId: number, branchIds: number[], serviceIds: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(dentistBranches).where(eq(dentistBranches.dentistId, dentistId));
+  await db.delete(dentistServices).where(eq(dentistServices.dentistId, dentistId));
+  if (branchIds.length) await db.insert(dentistBranches).values(branchIds.map(branchId => ({ dentistId, branchId, isActive: true })));
+  if (serviceIds.length) await db.insert(dentistServices).values(serviceIds.map(serviceId => ({ dentistId, serviceId, isActive: true })));
+  return { branches: await getDentistBranches(dentistId), services: await getDentistServices(dentistId) };
+}
+
+export async function getWorkingHoursForDentist(dentistId: number): Promise<WorkingHour[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(workingHours).where(eq(workingHours.dentistId, dentistId)).orderBy(asc(workingHours.dayOfWeek), asc(workingHours.startTime));
+}
+
+export async function setWorkingHoursForDentist(dentistId: number, hours: Array<{ dayOfWeek: number; startTime: string; endTime: string }>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.delete(workingHours).where(eq(workingHours.dentistId, dentistId));
+  if (hours.length) await db.insert(workingHours).values(hours.map(hour => ({ ...hour, dentistId, isActive: true })));
+  return getWorkingHoursForDentist(dentistId);
+}
+
+export async function getDentistsForBranchAndService(branchSlug: string, serviceId: number): Promise<Dentist[]> {
+  const db = await getDb();
+  if (!db) return [];
+  const branch = await getBranchBySlug(branchSlug);
+  if (!branch?.isActive) return [];
+  const assigned = await db.select({ dentistId: dentistBranches.dentistId })
+    .from(dentistBranches)
+    .innerJoin(dentistServices, and(eq(dentistServices.dentistId, dentistBranches.dentistId), eq(dentistServices.serviceId, serviceId), eq(dentistServices.isActive, true)))
+    .where(and(eq(dentistBranches.branchId, branch.id), eq(dentistBranches.isActive, true)));
+  const dentistIds = Array.from(new Set(assigned.map(item => item.dentistId)));
+  if (!dentistIds.length) return [];
+  return db.select().from(dentists).where(and(inArray(dentists.id, dentistIds), eq(dentists.isActive, true))).orderBy(asc(dentists.name));
 }
 
 // Working hours queries
@@ -360,6 +454,7 @@ export async function createBooking(booking: {
   patientPhone: string;
   appointmentDate: Date;
   appointmentTime: string;
+  bookingSource: BookingSource;
   notes?: string;
 }): Promise<Booking> {
   const db = await getDb();
@@ -374,6 +469,8 @@ export async function createBooking(booking: {
     patientPhone: booking.patientPhone,
     appointmentDate: booking.appointmentDate,
     appointmentTime: booking.appointmentTime,
+    bookingSource: booking.bookingSource,
+    slotState: "reserved",
     status: 'pending',
     notes: booking.notes,
   });
@@ -601,10 +698,56 @@ export async function updateBookingStatus(referenceNumber: string, status: 'pend
   const db = await getDb();
   if (!db) return undefined;
   
-  await db.update(bookings).set({ status }).where(eq(bookings.referenceNumber, referenceNumber));
+  await db.update(bookings).set({ status, slotState: status === "cancelled" ? null : "reserved" }).where(eq(bookings.referenceNumber, referenceNumber));
   
   const result = await db.select().from(bookings).where(eq(bookings.referenceNumber, referenceNumber)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function rescheduleBookingByAdmin(input: { referenceNumber: string; branch: string; dentistId: number; serviceId: number; appointmentDate: Date; appointmentTime: string; performedBy: string }): Promise<Booking | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const booking = await getBookingByReferenceNumber(input.referenceNumber);
+  if (!booking) return undefined;
+  const beforePayload = JSON.stringify({ branch: booking.branch, dentistId: booking.dentistId, serviceId: booking.serviceId, appointmentDate: booking.appointmentDate, appointmentTime: booking.appointmentTime, status: booking.status });
+  await db.update(bookings).set({
+    branch: input.branch,
+    dentistId: input.dentistId,
+    serviceId: input.serviceId,
+    appointmentDate: input.appointmentDate,
+    appointmentTime: input.appointmentTime,
+    status: "pending",
+    slotState: "reserved",
+  }).where(eq(bookings.referenceNumber, input.referenceNumber));
+  const updated = await getBookingByReferenceNumber(input.referenceNumber);
+  await db.insert(bookingAdminActions).values({
+    bookingId: booking.id,
+    referenceNumber: booking.referenceNumber,
+    action: "rescheduled",
+    performedBy: input.performedBy,
+    beforePayload,
+    afterPayload: JSON.stringify({ branch: input.branch, dentistId: input.dentistId, serviceId: input.serviceId, appointmentDate: input.appointmentDate, appointmentTime: input.appointmentTime }),
+  });
+  return updated;
+}
+
+export async function deleteBookingByAdmin(referenceNumber: string, performedBy: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const booking = await getBookingByReferenceNumber(referenceNumber);
+  if (!booking) return false;
+  await db.insert(bookingAdminActions).values({
+    bookingId: booking.id,
+    referenceNumber: booking.referenceNumber,
+    action: "deleted",
+    performedBy,
+    beforePayload: JSON.stringify(booking),
+    afterPayload: null,
+  });
+  await db.delete(bookingActionRequests).where(eq(bookingActionRequests.bookingId, booking.id));
+  await db.delete(bookingReminders).where(eq(bookingReminders.bookingId, booking.id));
+  await db.delete(bookings).where(eq(bookings.id, booking.id));
+  return true;
 }
 
 export async function getBookingById(id: number): Promise<Booking | undefined> {

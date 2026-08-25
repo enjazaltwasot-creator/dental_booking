@@ -44,6 +44,15 @@ const PERMISSIONS = [
   { value: "operations", label: "مدير تشغيل" },
   { value: "bookings", label: "موظف حجوزات" },
 ] as const;
+const WEEK_DAYS = [
+  { value: 0, label: "الأحد" },
+  { value: 1, label: "الاثنين" },
+  { value: 2, label: "الثلاثاء" },
+  { value: 3, label: "الأربعاء" },
+  { value: 4, label: "الخميس" },
+  { value: 5, label: "الجمعة" },
+  { value: 6, label: "السبت" },
+] as const;
 
 export default function AdminDashboard() {
   const [, navigate] = useLocation();
@@ -54,6 +63,7 @@ export default function AdminDashboard() {
   const [newBookingCount, setNewBookingCount] = useState(0);
   const [serviceDraft, setServiceDraft] = useState<{ id: number; name: string; description: string; duration: number; department: "dentistry" | "dermatology" | "laser" }>({ id: 0, name: "", description: "", duration: 45, department: "dentistry" });
   const [branchDraft, setBranchDraft] = useState({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" });
+  const [dentistDraft, setDentistDraft] = useState<{ id: number; name: string; specialization: string; department: "dentistry" | "dermatology" | "laser"; bio: string; phone: string; email: string; branchIds: number[]; serviceIds: number[]; workingHours: Array<{ dayOfWeek: number; startTime: string; endTime: string }> }>({ id: 0, name: "", specialization: "", department: "dentistry", bio: "", phone: "", email: "", branchIds: [], serviceIds: [], workingHours: [] });
   const [userDraft, setUserDraft] = useState<{ username: string; name: string; password: string; permission?: "full_access" | "operations" | "bookings" }>({ username: "", name: "", password: "", permission: "bookings" });
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
@@ -64,6 +74,7 @@ export default function AdminDashboard() {
   const authed = auth?.isAuthenticated ?? false;
   const permission = auth?.permission ?? "bookings";
   const canManageUsers = permission === "full_access";
+  const canManageBookings = permission === "full_access";
   const { data: bookings, isLoading: loadingBookings, isFetching, refetch } = trpc.bookings.getAll.useQuery(undefined, {
     enabled: authed,
     refetchInterval: 5_000,
@@ -72,7 +83,8 @@ export default function AdminDashboard() {
   const { data: services } = trpc.services.listForAdmin.useQuery(undefined, { enabled: authed });
   const { data: branches } = trpc.branches.listForAdmin.useQuery(undefined, { enabled: authed });
   const { data: branchSpecialties } = trpc.branchSpecialties.listForAdmin.useQuery(undefined, { enabled: authed });
-  const { data: dentists } = trpc.dentists.list.useQuery(undefined, { enabled: authed });
+  const { data: dentists } = trpc.dentists.listForAdmin.useQuery(undefined, { enabled: authed });
+  const { data: dentistAssignments } = trpc.dentists.assignments.useQuery({ dentistId: dentistDraft.id || 0 }, { enabled: authed && dentistDraft.id > 0 });
   const { data: adminUsers } = trpc.admin.users.list.useQuery(undefined, { enabled: authed && canManageUsers });
   const { data: conversations } = trpc.assistant.conversations.list.useQuery({ limit: 20 }, { enabled: authed });
   const { data: conversationMessages } = trpc.assistant.conversations.messages.useQuery({ conversationId: selectedConversationId ?? 0 }, { enabled: authed && selectedConversationId !== null });
@@ -90,6 +102,9 @@ export default function AdminDashboard() {
       utils.branches.list.invalidate(),
       utils.branches.listForAdmin.invalidate(),
       utils.branchSpecialties.listForAdmin.invalidate(),
+      utils.dentists.list.invalidate(),
+      utils.dentists.listForAdmin.invalidate(),
+      utils.dentists.listForBranchAndService.invalidate(),
       utils.admin.users.list.invalidate(),
       utils.bookings.getAll.invalidate(),
       utils.bookingActions.list.invalidate(),
@@ -103,6 +118,14 @@ export default function AdminDashboard() {
       toast.success("تم تحديث حالة الحجز");
     },
     onError: error => toast.error(error.message || "تعذر تحديث الحالة"),
+  });
+  const rescheduleBooking = trpc.bookings.reschedule.useMutation({
+    onSuccess: async () => { await utils.bookings.getAll.invalidate(); toast.success("تم تعديل الموعد وتسجيل الإجراء"); },
+    onError: error => toast.error(error.message || "تعذر تعديل الموعد"),
+  });
+  const removeBooking = trpc.bookings.remove.useMutation({
+    onSuccess: async () => { await utils.bookings.getAll.invalidate(); toast.success("تم حذف الحجز وتحرير وقت الطبيب"); },
+    onError: error => toast.error(error.message || "تعذر حذف الحجز"),
   });
   const logout = trpc.admin.logout.useMutation({
     onSuccess: async () => {
@@ -142,6 +165,11 @@ export default function AdminDashboard() {
   const setBranchActive = trpc.branches.setActive.useMutation({ onSuccess: async (_, variables) => { await refreshAdminData(); toast.success(variables.isActive ? "أصبح الفرع متاحاً للحجز" : "تم إيقاف الفرع عن الحجز"); }, onError: error => toast.error(error.message || "تعذر تحديث حالة الفرع") });
   const removeBranch = trpc.branches.remove.useMutation({ onSuccess: async () => { await refreshAdminData(); setBranchDraft({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" }); toast.success("تم حذف الفرع"); }, onError: error => toast.error(error.message || "تعذر حذف الفرع") });
   const setBranchSpecialtyActive = trpc.branchSpecialties.setActive.useMutation({ onSuccess: async () => { await refreshAdminData(); toast.success("تم تحديث تخصصات الفرع"); }, onError: error => toast.error(error.message || "تعذر تحديث تخصص الفرع") });
+  const resetDentistDraft = () => setDentistDraft({ id: 0, name: "", specialization: "", department: "dentistry", bio: "", phone: "", email: "", branchIds: [], serviceIds: [], workingHours: [] });
+  const createDentist = trpc.dentists.create.useMutation({ onSuccess: async () => { await refreshAdminData(); resetDentistDraft(); toast.success("تمت إضافة الطبيب وربط خدماته وفروعه"); }, onError: error => toast.error(error.message || "تعذرت إضافة الطبيب") });
+  const updateDentist = trpc.dentists.update.useMutation({ onSuccess: async () => { await refreshAdminData(); resetDentistDraft(); toast.success("تم تحديث بيانات الطبيب"); }, onError: error => toast.error(error.message || "تعذر تحديث الطبيب") });
+  const setDentistActive = trpc.dentists.setActive.useMutation({ onSuccess: async (_, variables) => { await refreshAdminData(); toast.success(variables.isActive ? "أصبح الطبيب متاحاً للحجز" : "تم إيقاف الطبيب عن الحجز"); }, onError: error => toast.error(error.message || "تعذر تحديث حالة الطبيب") });
+  const removeDentist = trpc.dentists.remove.useMutation({ onSuccess: async () => { await refreshAdminData(); resetDentistDraft(); toast.success("تم حذف الطبيب"); }, onError: error => toast.error(error.message || "تعذر حذف الطبيب") });
   const createAdminUser = trpc.admin.users.create.useMutation({
     onSuccess: async () => {
       await utils.admin.users.list.invalidate();
@@ -193,6 +221,16 @@ export default function AdminDashboard() {
     toast.success(arrived.length === 1 ? `وصل طلب حجز جديد باسم ${arrived[0].patientName}` : `وصلت ${arrived.length} طلبات حجز جديدة`);
   }, [bookings]);
 
+  useEffect(() => {
+    if (!dentistDraft.id || !dentistAssignments) return;
+    setDentistDraft(current => current.id !== dentistDraft.id ? current : ({
+      ...current,
+      branchIds: dentistAssignments.branches.filter(item => item.isActive).map(item => item.branchId),
+      serviceIds: dentistAssignments.services.filter(item => item.isActive).map(item => item.serviceId),
+      workingHours: dentistAssignments.workingHours.filter(item => item.isActive).map(item => ({ dayOfWeek: item.dayOfWeek, startTime: String(item.startTime).slice(0, 5), endTime: String(item.endTime).slice(0, 5) })),
+    }));
+  }, [dentistAssignments, dentistDraft.id]);
+
   const stats = useMemo(() => {
     const list = bookings ?? [];
     return {
@@ -242,6 +280,16 @@ export default function AdminDashboard() {
     if (branchDraft.id) updateBranch.mutate({ id: branchDraft.id, name: input.name, shortName: input.shortName, city: input.city, address: input.address, phone: input.phone });
     else createBranch.mutate(input);
   };
+  const submitDentist = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const input = { name: dentistDraft.name.trim(), specialization: dentistDraft.specialization.trim(), department: dentistDraft.department, bio: dentistDraft.bio.trim() || undefined, phone: dentistDraft.phone.trim() || undefined, email: dentistDraft.email.trim() || undefined, branchIds: dentistDraft.branchIds, serviceIds: dentistDraft.serviceIds, workingHours: dentistDraft.workingHours };
+    if (!input.name || !input.specialization || !input.branchIds.length || !input.serviceIds.length || !input.workingHours.length) return toast.error("أدخل بيانات الطبيب واختر فرعاً وخدمة ووقت عمل واحداً على الأقل");
+    if (dentistDraft.id) updateDentist.mutate({ id: dentistDraft.id, ...input });
+    else createDentist.mutate(input);
+  };
+  const toggleDentistSelection = (field: "branchIds" | "serviceIds", id: number) => setDentistDraft(current => ({ ...current, [field]: current[field].includes(id) ? current[field].filter(item => item !== id) : [...current[field], id] }));
+  const toggleWorkingDay = (dayOfWeek: number) => setDentistDraft(current => ({ ...current, workingHours: current.workingHours.some(item => item.dayOfWeek === dayOfWeek) ? current.workingHours.filter(item => item.dayOfWeek !== dayOfWeek) : [...current.workingHours, { dayOfWeek, startTime: "09:00", endTime: "17:00" }] }));
+  const updateWorkingHour = (dayOfWeek: number, key: "startTime" | "endTime", value: string) => setDentistDraft(current => ({ ...current, workingHours: current.workingHours.map(item => item.dayOfWeek === dayOfWeek ? { ...item, [key]: value } : item) }));
   const submitUser = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!userDraft.username.trim()) return toast.error("اسم المستخدم مطلوب");
@@ -258,6 +306,14 @@ export default function AdminDashboard() {
     if (result.error) return toast.error("تعذر تصدير الحجوزات");
     downloadCsv(result.data ?? []);
     toast.success("تم تجهيز ملف الحجوزات للتنزيل");
+  };
+  const promptReschedule = (booking: NonNullable<typeof bookings>[number]) => {
+    if (!booking.branch) return toast.error("هذا الحجز القديم لا يحتوي على فرع ولا يمكن تعديله من هنا");
+    const nextDate = window.prompt("التاريخ الجديد (YYYY-MM-DD)", new Date(booking.appointmentDate).toISOString().slice(0, 10));
+    if (!nextDate) return;
+    const nextTime = window.prompt("الوقت الجديد (HH:MM)", String(booking.appointmentTime).slice(0, 5));
+    if (!nextTime) return;
+    rescheduleBooking.mutate({ referenceNumber: booking.referenceNumber, branch: booking.branch, dentistId: booking.dentistId, serviceId: booking.serviceId, appointmentDate: nextDate, appointmentTime: nextTime });
   };
 
   if (checkingAuth || !authed) return <div className="flex min-h-screen items-center justify-center bg-secondary/40"><Loader2 className="size-6 animate-spin text-primary" /></div>;
@@ -306,6 +362,12 @@ export default function AdminDashboard() {
           <form onSubmit={submitBranch} className="mt-4 grid gap-2 rounded-xl bg-secondary/50 p-3 sm:grid-cols-2 lg:grid-cols-[.8fr_1.2fr_1fr_1fr_1.3fr_1fr_auto]"><input value={branchDraft.slug} disabled={branchDraft.id > 0} onChange={event => setBranchDraft(current => ({ ...current, slug: event.target.value }))} placeholder="رمز الفرع" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary disabled:bg-secondary" /><input value={branchDraft.name} onChange={event => setBranchDraft(current => ({ ...current, name: event.target.value }))} placeholder="اسم الفرع" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.shortName} onChange={event => setBranchDraft(current => ({ ...current, shortName: event.target.value }))} placeholder="الاسم المختصر" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.city} onChange={event => setBranchDraft(current => ({ ...current, city: event.target.value }))} placeholder="المدينة / المنطقة" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.address} onChange={event => setBranchDraft(current => ({ ...current, address: event.target.value }))} placeholder="العنوان" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><input value={branchDraft.phone} onChange={event => setBranchDraft(current => ({ ...current, phone: event.target.value }))} placeholder="رقم الهاتف" className="rounded-lg border border-border bg-white px-3 py-2 text-xs outline-none focus:border-primary" /><div className="flex gap-2"><button type="submit" disabled={createBranch.isPending || updateBranch.isPending} className="inline-flex flex-1 items-center justify-center gap-1 rounded-lg bg-primary px-3 py-2 text-xs font-extrabold text-primary-foreground transition-all hover:shadow-sm"><Plus className="size-3.5" />{branchDraft.id ? "حفظ" : "إضافة"}</button>{branchDraft.id > 0 && <button type="button" onClick={() => setBranchDraft({ id: 0, slug: "", name: "", shortName: "", city: "", address: "", phone: "" })} className="rounded-lg border border-border bg-white px-3 text-xs font-bold text-muted-foreground">إلغاء</button>}</div></form>
         </section>
 
+        <section className="mt-6 rounded-2xl border border-border bg-white p-5 shadow-sm">
+          <div className="flex items-start justify-between gap-4"><div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary"><UserCog className="size-4" />الأطباء والتوافر</span><h2 className="mt-2 text-xl font-extrabold text-foreground">إدارة الطبيب وخدماته</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">حدد فرع الطبيب وخدماته وأيام دوامه؛ لا يظهر للحجز إلا ضمن هذه الخيارات.</p></div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-extrabold text-primary">{dentists?.filter(dentist => dentist.isActive).length ?? 0} نشط</span></div>
+          <div className="mt-4 divide-y divide-border rounded-xl border border-border">{(dentists ?? []).map(dentist => <div key={dentist.id} className="flex items-center justify-between gap-3 px-3 py-3"><div><p className="text-sm font-bold text-foreground">{dentist.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{dentist.specialization} · {DEPARTMENTS.find(item => item.value === dentist.department)?.label}</p></div><div className="flex items-center gap-1.5"><button type="button" onClick={() => setDentistDraft({ id: dentist.id, name: dentist.name, specialization: dentist.specialization, department: dentist.department, bio: dentist.bio ?? "", phone: dentist.phone ?? "", email: dentist.email ?? "", branchIds: [], serviceIds: [], workingHours: [] })} className="grid size-8 place-items-center rounded-lg bg-secondary text-secondary-foreground" aria-label={`تعديل ${dentist.name}`}><Pencil className="size-3.5" /></button><button type="button" onClick={() => setDentistActive.mutate({ id: dentist.id, isActive: !dentist.isActive })} className={cn("rounded-lg px-2 py-1.5 text-[10px] font-extrabold ring-1", dentist.isActive ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-rose-50 text-rose-700 ring-rose-200")}>{dentist.isActive ? "متاح" : "موقوف"}</button><button type="button" onClick={() => { if (window.confirm(`حذف الطبيب «${dentist.name}»؟`)) removeDentist.mutate({ id: dentist.id }); }} className="grid size-8 place-items-center rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-200" aria-label={`حذف ${dentist.name}`}><Trash2 className="size-3.5" /></button></div></div>)}{!dentists?.length && <p className="px-3 py-6 text-center text-sm text-muted-foreground">أضف طبيباً لتبدأ إتاحة الحجز.</p>}</div>
+          <form onSubmit={submitDentist} className="mt-4 space-y-4 rounded-xl bg-secondary/50 p-4"><div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4"><input value={dentistDraft.name} onChange={event => setDentistDraft(current => ({ ...current, name: event.target.value }))} placeholder="اسم الطبيب" className="rounded-lg border border-border bg-white px-3 py-2 text-xs" /><input value={dentistDraft.specialization} onChange={event => setDentistDraft(current => ({ ...current, specialization: event.target.value }))} placeholder="التخصص الدقيق" className="rounded-lg border border-border bg-white px-3 py-2 text-xs" /><select value={dentistDraft.department} onChange={event => setDentistDraft(current => ({ ...current, department: event.target.value as typeof current.department, serviceIds: [] }))} className="rounded-lg border border-border bg-white px-3 py-2 text-xs">{DEPARTMENTS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}</select><input value={dentistDraft.phone} onChange={event => setDentistDraft(current => ({ ...current, phone: event.target.value }))} placeholder="الجوال اختياري" className="rounded-lg border border-border bg-white px-3 py-2 text-xs" /></div><div className="grid gap-3 lg:grid-cols-2"><div><p className="mb-2 text-xs font-extrabold">الفروع</p><div className="flex flex-wrap gap-2">{(branches ?? []).filter(branch => branch.isActive).map(branch => <label key={branch.id} className={cn("inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold", dentistDraft.branchIds.includes(branch.id) ? "border-primary bg-primary/10 text-primary" : "border-border bg-white")}><input type="checkbox" checked={dentistDraft.branchIds.includes(branch.id)} onChange={() => toggleDentistSelection("branchIds", branch.id)} />{branch.shortName}</label>)}</div></div><div><p className="mb-2 text-xs font-extrabold">الخدمات</p><div className="flex flex-wrap gap-2">{(services ?? []).filter(service => service.isActive && service.department === dentistDraft.department).map(service => <label key={service.id} className={cn("inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold", dentistDraft.serviceIds.includes(service.id) ? "border-accent bg-accent/10 text-accent" : "border-border bg-white")}><input type="checkbox" checked={dentistDraft.serviceIds.includes(service.id)} onChange={() => toggleDentistSelection("serviceIds", service.id)} />{service.name}</label>)}</div></div></div><div><p className="mb-2 text-xs font-extrabold">أيام وساعات العمل</p><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">{WEEK_DAYS.map(day => { const hours = dentistDraft.workingHours.find(item => item.dayOfWeek === day.value); return <div key={day.value} className="rounded-lg border border-border bg-white p-2"><label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={!!hours} onChange={() => toggleWorkingDay(day.value)} />{day.label}</label>{hours && <div className="mt-2 flex gap-1"><input type="time" value={hours.startTime} onChange={event => updateWorkingHour(day.value, "startTime", event.target.value)} className="min-w-0 rounded border border-border px-1 text-[11px]" /><input type="time" value={hours.endTime} onChange={event => updateWorkingHour(day.value, "endTime", event.target.value)} className="min-w-0 rounded border border-border px-1 text-[11px]" /></div>}</div>; })}</div></div><div className="flex gap-2"><button type="submit" disabled={createDentist.isPending || updateDentist.isPending} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-xs font-extrabold text-primary-foreground"><Plus className="size-3.5" />{dentistDraft.id ? "حفظ الطبيب" : "إضافة طبيب"}</button>{dentistDraft.id > 0 && <button type="button" onClick={resetDentistDraft} className="rounded-lg border border-border bg-white px-4 py-2 text-xs font-bold text-muted-foreground">إلغاء</button>}</div></form>
+        </section>
+
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.35fr_1fr]">
           <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4"><div><span className="inline-flex items-center gap-2 text-sm font-extrabold text-primary"><UserCog className="size-4" />المستخدمون الإداريون</span><h2 className="mt-2 text-xl font-extrabold text-foreground">التحكم في الوصول</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">إضافة مسؤولين، تعطيل الوصول، أو حذف الحسابات غير المستخدمة مع حماية آخر مسؤول نشط.</p></div><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-extrabold text-primary">{adminUsers?.filter(user => user.isActive).length ?? 0} نشط</span></div>
@@ -344,6 +406,7 @@ export default function AdminDashboard() {
         <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-white p-4 shadow-sm sm:flex-row sm:items-center"><div className="relative flex-1"><Search className="pointer-events-none absolute end-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input type="text" value={search} onChange={event => setSearch(event.target.value)} placeholder="ابحث بالاسم أو الجوال أو الرقم المرجعي" className="w-full rounded-xl border border-border bg-white py-2.5 pe-10 ps-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20" /></div><div className="flex flex-wrap items-center gap-1.5">{FILTERS.map(item => <button key={item.value} type="button" onClick={() => setFilter(item.value)} className={cn("rounded-lg px-3.5 py-2 text-xs font-bold transition-colors", filter === item.value ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground hover:bg-secondary/70")}>{item.label}</button>)}<button type="button" onClick={() => refetch()} aria-label="تحديث" className="grid size-9 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-primary"><RefreshCw className={cn("size-4", isFetching && "animate-spin")} /></button></div></div>
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-white shadow-sm">{loadingBookings && <div className="flex items-center justify-center gap-2 py-16 text-muted-foreground"><Loader2 className="size-5 animate-spin" />جاري تحميل الحجوزات...</div>}{!loadingBookings && filtered.length === 0 && <div className="py-16 text-center"><CalendarClock className="mx-auto size-10 text-muted-foreground/50" /><p className="mt-3 text-sm text-muted-foreground">لا توجد حجوزات مطابقة.</p></div>}{!loadingBookings && filtered.length > 0 && <div className="overflow-x-auto"><table className="w-full min-w-[820px] text-sm"><thead><tr className="border-b border-border bg-secondary/50 text-right"><Th>الرقم المرجعي</Th><Th>المريض</Th><Th>الجوال</Th><Th>الفرع</Th><Th>الموعد</Th><Th>الخدمة</Th><Th>الطبيب</Th><Th>الحالة</Th><Th>إجراءات</Th></tr></thead><tbody>{filtered.map(booking => { const meta = STATUS_META[booking.status as keyof typeof STATUS_META]; const service = services?.find(item => item.id === booking.serviceId); const dentist = dentists?.find(item => item.id === booking.dentistId); const branch = getBranchBySlug(booking.branch ?? undefined); const busy = updateStatus.isPending; return <tr key={booking.id} className="border-b border-border transition-colors last:border-0 hover:bg-secondary/30"><Td><span dir="ltr" className="font-mono text-xs font-bold text-primary">{booking.referenceNumber}</span></Td><Td><span className="font-semibold text-foreground">{booking.patientName}</span></Td><Td><span dir="ltr" className="block text-right">{booking.patientPhone}</span></Td><Td><span className="font-semibold text-foreground">{branch?.shortName ?? "غير محدد"}</span></Td><Td><span className="block text-foreground">{formatDate(booking.appointmentDate)}</span><span dir="ltr" className="block text-xs text-muted-foreground">{String(booking.appointmentTime).slice(0, 5)}</span></Td><Td>{service?.name ?? "-"}</Td><Td>{dentist?.name ?? "-"}</Td><Td><span className={cn("rounded-full px-2.5 py-1 text-xs font-bold", meta?.className)}>{meta?.label}</span></Td><Td><div className="flex items-center gap-1.5">{booking.status !== "confirmed" && <button type="button" disabled={busy} onClick={() => updateStatus.mutate({ referenceNumber: booking.referenceNumber, status: "confirmed" })} aria-label="تأكيد" className="grid size-8 place-items-center rounded-lg bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200 transition-all hover:shadow-sm disabled:opacity-50"><CheckCircle2 className="size-4" /></button>}{booking.status !== "cancelled" && <button type="button" disabled={busy} onClick={() => updateStatus.mutate({ referenceNumber: booking.referenceNumber, status: "cancelled" })} aria-label="إلغاء" className="grid size-8 place-items-center rounded-lg bg-rose-50 text-rose-600 ring-1 ring-rose-200 transition-all hover:shadow-sm disabled:opacity-50"><XCircle className="size-4" /></button>}</div></Td></tr>; })}</tbody></table></div>}</div>
+        {canManageBookings && <section className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-5 shadow-sm"><div><span className="text-sm font-extrabold text-primary">صلاحيات المدير العام</span><h2 className="mt-1 text-xl font-extrabold text-foreground">تعديل أو حذف الحجز</h2><p className="mt-1 text-sm text-muted-foreground">هذه الإجراءات محصورة بالمدير العام وتُسجل في سجل التدقيق. اختيار وقت جديد يتحقق من عدم حجزه لطبيب آخر.</p></div><div className="mt-4 divide-y divide-primary/10 rounded-xl border border-primary/15 bg-white">{filtered.slice(0, 12).map(booking => <div key={`admin-action-${booking.id}`} className="flex flex-wrap items-center justify-between gap-3 px-3 py-3"><div><p className="text-sm font-bold text-foreground">{booking.patientName} <span dir="ltr" className="text-xs text-muted-foreground">{booking.referenceNumber}</span></p><p className="mt-1 text-xs text-muted-foreground">{formatDate(booking.appointmentDate)} · <span dir="ltr">{String(booking.appointmentTime).slice(0, 5)}</span></p></div><div className="flex gap-2"><button type="button" disabled={rescheduleBooking.isPending} onClick={() => promptReschedule(booking)} className="rounded-lg border border-primary/20 bg-white px-3 py-2 text-xs font-extrabold text-primary">تعديل الموعد</button><button type="button" disabled={removeBooking.isPending} onClick={() => { if (window.confirm(`حذف الحجز ${booking.referenceNumber} نهائياً؟`)) removeBooking.mutate({ referenceNumber: booking.referenceNumber }); }} className="rounded-lg bg-rose-600 px-3 py-2 text-xs font-extrabold text-white">حذف الحجز</button></div></div>)}{!filtered.length && <p className="px-3 py-6 text-center text-sm text-muted-foreground">لا توجد حجوزات لإدارتها حالياً.</p>}</div></section>}
       </main>
     </div>
   );

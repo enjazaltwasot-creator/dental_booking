@@ -7,11 +7,18 @@ import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/clinic";
 
-const STEPS = ["النوع", "الفرع", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
+const STEPS = ["الفرع", "نوع الرعاية", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
 const SERVICE_TYPES = [
   { id: "dentistry", label: "خدمات الأسنان", description: "العلاجات والابتسامة وصحة الفم", icon: Stethoscope },
   { id: "dermatology", label: "الجلدية والتجميل", description: "العناية بالبشرة وخدمات التجميل", icon: Sparkles },
   { id: "laser", label: "خدمات الليزر", description: "جلسات الليزر المتاحة في الفرع", icon: Zap },
+] as const;
+const BOOKING_SOURCES = [
+  { value: "snapchat", label: "إعلان سناب شات" },
+  { value: "instagram", label: "إعلان إنستجرام" },
+  { value: "facebook", label: "إعلان فيسبوك" },
+  { value: "branch_visit", label: "زيارة الفرع" },
+  { value: "other", label: "مصدر آخر" },
 ] as const;
 type ServiceDepartment = (typeof SERVICE_TYPES)[number]["id"];
 
@@ -28,22 +35,23 @@ export default function BookingForm() {
   const [patientName, setPatientName] = useState("");
   const [patientPhone, setPatientPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [bookingSource, setBookingSource] = useState<(typeof BOOKING_SOURCES)[number]["value"]>("other");
 
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
-  const { data: allServices, isLoading: loadingServiceTypes } = trpc.services.list.useQuery();
-  const { data: branches, isLoading: loadingBranches } = trpc.branches.listForDepartment.useQuery(
-    { department: department ?? "dentistry" },
-    { enabled: Boolean(department) }
-  );
+  const { data: branches, isLoading: loadingBranches } = trpc.branches.list.useQuery();
   const selectedBranch = (branches ?? []).find(branch => branch.slug === branchSlug);
   const { data: services, isLoading: loadingServices } = trpc.services.listForBranch.useQuery({ branch: branchSlug ?? "unselected" }, { enabled: Boolean(branchSlug) });
-  const { data: dentists, isLoading: loadingDentists } = trpc.dentists.listForDepartment.useQuery(
-    { department: department ?? "dentistry" },
-    { enabled: Boolean(department) }
+  const { data: dentists, isLoading: loadingDentists } = trpc.dentists.listForBranchAndService.useQuery(
+    { branch: branchSlug ?? "unselected", serviceId: serviceId ?? 0 },
+    { enabled: Boolean(branchSlug) && Boolean(serviceId) }
+  );
+  const { data: recommendedDoctor, isFetching: loadingRecommendation } = trpc.workingHours.recommendAvailable.useQuery(
+    { branch: branchSlug ?? "unselected", serviceId: serviceId ?? 0, date: date || minDate },
+    { enabled: Boolean(branchSlug) && Boolean(serviceId) }
   );
   const availableDepartments = useMemo(
-    () => new Set((allServices ?? []).map(service => service.department as ServiceDepartment)),
-    [allServices]
+    () => new Set((services ?? []).map(service => service.department as ServiceDepartment)),
+    [services]
   );
   const filteredServices = useMemo(
     () => (services ?? []).filter(service => service.department === department),
@@ -51,7 +59,7 @@ export default function BookingForm() {
   );
 
   const { data: slots, isFetching: loadingSlots } = trpc.workingHours.availableSlots.useQuery(
-    { dentistId: dentistId ?? 0, date },
+    { dentistId: dentistId ?? 0, date, serviceId: serviceId ?? undefined },
     { enabled: Boolean(dentistId) && Boolean(date) }
   );
 
@@ -78,8 +86,14 @@ export default function BookingForm() {
   }, [department]);
 
   useEffect(() => {
-    if (department && branchSlug && branches && !selectedBranch) setBranchSlug(null);
-  }, [department, branchSlug, branches, selectedBranch]);
+    setDentistId(null);
+    setDate("");
+    setTime("");
+  }, [serviceId]);
+
+  useEffect(() => {
+    if (branchSlug && branches && !selectedBranch) setBranchSlug(null);
+  }, [branchSlug, branches, selectedBranch]);
   useEffect(() => {
     if (serviceId && !filteredServices.some(service => service.id === serviceId)) setServiceId(null);
   }, [serviceId, filteredServices]);
@@ -94,8 +108,8 @@ export default function BookingForm() {
   });
 
   const canContinue = [
-    Boolean(department),
     Boolean(branchSlug),
+    Boolean(department),
     Boolean(serviceId),
     Boolean(dentistId),
     Boolean(date) && Boolean(time),
@@ -110,6 +124,7 @@ export default function BookingForm() {
       dentistId,
       appointmentDate: date,
       appointmentTime: time,
+      bookingSource,
       patientName: patientName.trim(),
       patientPhone: patientPhone.trim(),
       notes: notes.trim() || undefined,
@@ -122,7 +137,7 @@ export default function BookingForm() {
         <div className="container text-center">
           <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">احجز موعدك</h1>
           <p className="mx-auto mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
-            ابدأ باختيار نوع الخدمة، ثم الفرع، وأكمل خطوات الحجز حتى تأكيد موعدك.
+            ابدأ باختيار الفرع، ثم نوع الرعاية والخدمة والطبيب والموعد المناسب.
           </p>
         </div>
       </section>
@@ -170,7 +185,7 @@ export default function BookingForm() {
           </ol>
 
           <div className="mt-8 rounded-2xl border border-border bg-white p-6 shadow-sm sm:p-8">
-            {selectedBranch && step > 1 && (
+            {selectedBranch && step > 0 && (
               <div className="mb-6 flex items-center gap-3 rounded-xl border border-primary/10 bg-primary/5 px-4 py-3">
                 <span className="grid size-9 place-items-center rounded-lg bg-white text-primary shadow-sm"><Building2 className="size-4" /></span>
                 <div>
@@ -180,7 +195,7 @@ export default function BookingForm() {
               </div>
             )}
 
-            {department && step > 0 && (
+            {department && step > 1 && (
               <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent/20 bg-accent/5 px-4 py-3">
                 <span className="grid size-9 place-items-center rounded-lg bg-white text-accent shadow-sm">
                   {(() => {
@@ -195,17 +210,17 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 2 — Branch */}
-            {step === 1 && (
+            {/* Step 1 — Branch */}
+            {step === 0 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر الفرع</h2>
-                <p className="mt-1 text-sm text-muted-foreground">اختر الفرع المتاح لنوع الخدمة الذي حددته، وسيتم حفظه مع طلب الحجز.</p>
+                <p className="mt-1 text-sm text-muted-foreground">اختر الفرع الأقرب لك أولاً، ثم سنعرض نوع الرعاية والخدمات المتاحة فيه.</p>
                 <div className="mt-6 grid gap-3">
                   {loadingBranches && (
                     <div className="space-y-3" aria-live="polite">
                       <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-primary">
                         <span className="grid size-9 place-items-center rounded-lg bg-white shadow-sm"><Loader2 className="size-4 animate-spin" /></span>
-                        <span><span className="block text-sm font-extrabold">نبحث عن الفروع المتوافقة</span><span className="mt-0.5 block text-xs text-muted-foreground">يجري تحديث الخيارات وفق نوع الخدمة المختار.</span></span>
+                        <span><span className="block text-sm font-extrabold">نبحث عن الفروع المتاحة</span><span className="mt-0.5 block text-xs text-muted-foreground">يجري تحميل الفروع التي يمكن الحجز فيها.</span></span>
                       </div>
                       {[0, 1, 2].map(item => <div key={item} className="h-20 animate-pulse rounded-xl bg-secondary/60" />)}
                     </div>
@@ -234,14 +249,14 @@ export default function BookingForm() {
               </div>
             )}
 
-            {/* Step 1 — Service type */}
-            {step === 0 && (
+            {/* Step 2 — Service type */}
+            {step === 1 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر نوع الخدمة</h2>
-                <p className="mt-1 text-sm text-muted-foreground">ابدأ بتحديد نوع الرعاية المطلوبة، ثم سنعرض الفروع والخدمات المتاحة تلقائياً.</p>
+                <p className="mt-1 text-sm text-muted-foreground">حدد نوع الرعاية المطلوبة، وسنعرض الخدمات المتاحة في الفرع الذي اخترته.</p>
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  {loadingServiceTypes && [0, 1, 2].map(item => <div key={item} className="h-36 animate-pulse rounded-xl bg-secondary/60" />)}
-                  {!loadingServiceTypes && SERVICE_TYPES.filter(type => availableDepartments.has(type.id)).map(type => {
+                  {loadingServices && [0, 1, 2].map(item => <div key={item} className="h-36 animate-pulse rounded-xl bg-secondary/60" />)}
+                  {!loadingServices && SERVICE_TYPES.filter(type => availableDepartments.has(type.id)).map(type => {
                     const Icon = type.icon;
                     return (
                       <button
@@ -260,7 +275,7 @@ export default function BookingForm() {
                     );
                   })}
                 </div>
-                {!loadingServiceTypes && availableDepartments.size === 0 && <p className="mt-6 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد أنواع خدمات متاحة للحجز حالياً.</p>}
+                {!loadingServices && availableDepartments.size === 0 && <p className="mt-6 rounded-xl bg-secondary/50 p-4 text-center text-sm text-muted-foreground">لا توجد أنواع خدمات متاحة في هذا الفرع حالياً.</p>}
               </div>
             )}
 
@@ -317,13 +332,15 @@ export default function BookingForm() {
             {step === 3 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر الطبيب</h2>
-                <p className="mt-1 text-sm text-muted-foreground">اختر الطبيب المناسب من القائمة المتاحة حالياً؛ الفرع المختار سيُحفظ مع طلبك.</p>
+                <p className="mt-1 text-sm text-muted-foreground">اختر طبيباً محدداً، أو دعنا نرشح أول طبيب لديه وقت متاح للخدمة والفرع.</p>
+
+                <button type="button" disabled={loadingRecommendation || !recommendedDoctor} onClick={() => { if (recommendedDoctor) { setDentistId(recommendedDoctor.dentist.id); setDate(date || minDate); setTime(recommendedDoctor.slots[0] ?? ""); } }} className={cn("mt-5 flex w-full items-center justify-between gap-4 rounded-xl border p-4 text-right transition-all", recommendedDoctor ? "border-accent/30 bg-accent/5 hover:shadow-sm" : "border-border bg-secondary/40 text-muted-foreground")}>{loadingRecommendation ? <span className="inline-flex items-center gap-2 text-sm font-bold"><Loader2 className="size-4 animate-spin" />جارٍ البحث عن أقرب طبيب متاح…</span> : recommendedDoctor ? <><span><span className="block text-sm font-extrabold text-foreground">اقتراح: {recommendedDoctor.dentist.name}</span><span className="mt-1 block text-xs text-muted-foreground">متاح اليوم من الساعة {recommendedDoctor.slots[0]}</span></span><span className="rounded-lg bg-accent px-3 py-2 text-xs font-extrabold text-accent-foreground">اختيار سريع</span></> : <span className="text-sm">لا يوجد اقتراح متاح اليوم؛ اختر طبيباً وتاريخاً آخر.</span>}</button>
 
                 {loadingDentists && (
                   <div className="mt-6 space-y-3" aria-live="polite">
                     <div className="flex items-center gap-3 rounded-xl border border-primary/15 bg-primary/5 px-4 py-3 text-primary">
                       <span className="grid size-9 place-items-center rounded-lg bg-white shadow-sm"><Loader2 className="size-4 animate-spin" /></span>
-                      <span><span className="block text-sm font-extrabold">نفلتر الأطباء المتاحين</span><span className="mt-0.5 block text-xs text-muted-foreground">يجري عرض الأطباء المتوافقين مع نوع الخدمة المختار.</span></span>
+                        <span><span className="block text-sm font-extrabold">نفلتر الأطباء المتاحين</span><span className="mt-0.5 block text-xs text-muted-foreground">يجري عرض أطباء الفرع الذين يقدمون الخدمة المختارة.</span></span>
                     </div>
                     {[0, 1, 2].map(i => (
                       <div key={i} className="h-16 animate-pulse rounded-xl bg-secondary/60" />
@@ -500,6 +517,13 @@ export default function BookingForm() {
                       placeholder="05xxxxxxxx"
                       className="mt-2 w-full rounded-xl border border-border bg-white px-4 py-3 text-right text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
                     />
+                  </div>
+
+                  <div>
+                    <label htmlFor="booking-source" className="block text-sm font-semibold text-foreground">كيف سمعت عنا؟</label>
+                    <select id="booking-source" value={bookingSource} onChange={event => setBookingSource(event.target.value as typeof bookingSource)} className="mt-2 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground outline-none transition-colors duration-200 focus:border-primary focus:ring-2 focus:ring-ring/20">
+                      {BOOKING_SOURCES.map(source => <option key={source.value} value={source.value}>{source.label}</option>)}
+                    </select>
                   </div>
 
                   <div>
