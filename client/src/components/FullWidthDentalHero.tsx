@@ -1,9 +1,9 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, CalendarCheck, Sparkles } from "lucide-react";
 import { Link } from "wouter";
-import { asset } from "@/lib/clinic";
+import { optimizedAsset } from "@/lib/clinic";
 
-const DENTAL_HERO_ASSET = asset("evan-fullwidth-dental-hero_2a1eeedf.png");
+const DENTAL_HERO_ASSET = optimizedAsset("evan-fullwidth-dental-hero_2a1eeedf.webp", "evan-fullwidth-dental-hero_2a1eeedf.png");
 
 export default function FullWidthDentalHero() {
   const reduceMotion = useReducedMotion();
@@ -13,6 +13,7 @@ export default function FullWidthDentalHero() {
       <motion.img
         src={DENTAL_HERO_ASSET}
         alt="مشهد ثلاثي الأبعاد لسنّ أبيض يرمز إلى الرعاية السنية المتخصصة"
+        fetchPriority="high"
         className="absolute inset-0 -z-20 h-full w-full object-cover object-[33%_center] sm:object-[38%_center] lg:hidden"
         initial={{ scale: 1.03 }}
         animate={reduceMotion ? undefined : { scale: [1.03, 1.07, 1.03], x: [0, -5, 0], y: [0, 3, 0] }}
@@ -25,7 +26,7 @@ export default function FullWidthDentalHero() {
         animate={reduceMotion ? { opacity: 1 } : { opacity: 1, x: [-8, 14, -8], y: [-8, 8, -8], rotate: [-0.55, 0.65, -0.55], scale: [1, 1.025, 1] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       >
-        <img src={DENTAL_HERO_ASSET} alt="" className="h-auto w-full" />
+        <img src={DENTAL_HERO_ASSET} alt="" className="h-auto w-full" fetchPriority="high" />
       </motion.div>
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-l from-white via-white/74 to-primary/5 lg:via-white/50 lg:to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 -z-10 bg-gradient-to-t from-white/85 to-transparent" />

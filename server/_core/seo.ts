@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { getBlogPost } from "../../shared/blog";
 
 const DEFAULT_ORIGIN = "https://evanclinic.sa";
 const SITE_NAME = "مجموعة عيادات إيفان الطبية";
@@ -16,9 +17,9 @@ type BranchMeta = {
 };
 
 const BRANCHES: BranchMeta[] = [
-  { slug: "mahdiyah", name: "فرع حي المهدية", district: "غرب الرياض", address: "حي المهدية، غرب الرياض", lat: 24.6553724, lng: 46.5126144, image: "/assets/evan-mahdiyah-building-enhanced_dec82603.png" },
-  { slug: "olaya", name: "فرع حي العليا", district: "وسط الرياض", address: "عماير السيركون، شارع موسى بن نصير، العليا، الرياض", lat: 24.7046584, lng: 46.6840428, image: "/assets/evan-olaya-building-night-enhanced_2f58024a.png" },
-  { slug: "ahmadiyah-laban", name: "فرع حي الأحمدية — لبن", district: "الأحمدية، لبن", address: "حي الأحمدية، لبن، غرب الرياض", lat: 24.6310446, lng: 46.6094759, image: "/assets/evan-ahmadiyah-building-enhanced_1a2b3264.png" },
+  { slug: "mahdiyah", name: "فرع حي المهدية", district: "غرب الرياض", address: "حي المهدية، غرب الرياض", lat: 24.6553724, lng: 46.5126144, image: "/assets/evan-mahdiyah-building-enhanced_dec82603.webp" },
+  { slug: "olaya", name: "فرع حي العليا", district: "وسط الرياض", address: "عماير السيركون، شارع موسى بن نصير، العليا، الرياض", lat: 24.7046584, lng: 46.6840428, image: "/assets/evan-olaya-building-night-enhanced_2f58024a.webp" },
+  { slug: "ahmadiyah-laban", name: "فرع حي الأحمدية — لبن", district: "الأحمدية، لبن", address: "حي الأحمدية، لبن، غرب الرياض", lat: 24.6310446, lng: 46.6094759, image: "/assets/evan-ahmadiyah-building-enhanced_1a2b3264.webp" },
 ];
 
 type PageMeta = {
@@ -41,16 +42,24 @@ const normalizePath = (rawUrl: string) => {
 
 const getOrigin = () => (process.env.CANONICAL_ORIGIN || DEFAULT_ORIGIN).replace(/\/$/, "");
 
-function getPageMeta(rawUrl: string): PageMeta {
+export function getPageMeta(rawUrl: string): PageMeta {
   const path = normalizePath(rawUrl);
+  if (path === "/blog") {
+    return { title: `المدونة الطبية | ${SITE_NAME}`, description: "مسودات توعوية عامة في طب الأسنان والجلدية والليزر بانتظار اعتماد المراجعة الطبية.", canonicalPath: "/blog", noindex: true, heading: "المدونة الطبية", summary: "محتوى توعوي عام لا يغني عن استشارة المختص." };
+  }
+  const blogPost = getBlogPost(path.match(/^\/blog\/([^/]+)$/)?.[1]);
+  if (blogPost) {
+    return { title: `${blogPost.title} | ${SITE_NAME}`, description: blogPost.description, canonicalPath: path, noindex: true, heading: blogPost.title, summary: blogPost.excerpt };
+  }
   const branchSlug = path.match(/^\/(?:branches\/al-|go\/)(mahdiyah|olaya|ahmadiyah-laban)$/)?.[1];
   const branch = BRANCHES.find(item => item.slug === branchSlug);
   if (branch) {
     return {
       title: `${branch.name} في الرياض | ${SITE_NAME}`,
-      description: `${branch.name} في ${branch.district}. ${SITE_NAME} لطب الأسنان والجلدية والليزر مع إمكانية حجز موعد وفتح الاتجاهات بسهولة.`,
+      description: `${branch.name} في ${branch.district} بالرياض. تعرّف على خدمات طب الأسنان والجلدية والليزر، ثم اختر الخدمة والطبيب والموعد المناسب أو افتح الاتجاهات إلى الفرع.`,
       canonicalPath: `/branches/al-${branch.slug}`,
       image: branch.image,
+      noindex: path.startsWith("/go/"),
       branch,
       heading: branch.name,
       summary: `خدمات الأسنان والجلدية والليزر في ${branch.address}. اختر الخدمة والطبيب والموعد المناسب عبر الحجز الإلكتروني.`,
@@ -59,12 +68,12 @@ function getPageMeta(rawUrl: string): PageMeta {
 
   const pages: Record<string, PageMeta> = {
     "/": { title: `${SITE_NAME} | أسنان وجلدية وليزر في الرياض`, description: SITE_DESCRIPTION, canonicalPath: "/", image: "/assets/evan-natural-hero-day-extended_5ec37a01.mp4", heading: SITE_NAME, summary: "خدمات الأسنان والجلدية والليزر ضمن تجربة حجز موحدة في فروع الرياض." },
-    "/about": { title: `عن ${SITE_NAME}`, description: "تعرّف على مجموعة عيادات إيفان الطبية وفروعها وخدماتها في الرياض.", canonicalPath: "/about", heading: "عن مجموعة عيادات إيفان الطبية", summary: "منظومة طبية تجمع طب الأسنان والجلدية والليزر ضمن تجربة واضحة للمراجع." },
-    "/vision": { title: `رؤية ${SITE_NAME}`, description: "رؤية مجموعة عيادات إيفان الطبية لتجربة رعاية واضحة وقريبة من احتياج المراجع.", canonicalPath: "/vision", heading: "رؤيتنا", summary: "رعاية طبية أوضح وأقرب عبر تخصصات محددة وفروع سهلة الوصول وحجز منظم." },
-    "/specialties": { title: `تخصصات ${SITE_NAME} | أسنان وجلدية وليزر`, description: "تخصصات طب الأسنان والجلدية والليزر في مجموعة عيادات إيفان الطبية بالرياض.", canonicalPath: "/specialties", heading: "تخصصاتنا", summary: "طب الأسنان والجلدية والتجميل وتقنيات الليزر ضمن منظومة رعاية واحدة." },
-    "/services": { title: `خدمات ${SITE_NAME} | أسنان وجلدية وليزر`, description: "استعرض خدمات الأسنان والجلدية والليزر واحجز الموعد المناسب في أحد فروع إيفان بالرياض.", canonicalPath: "/specialties", heading: "خدمات إيفان الطبية", summary: "اختر التخصص والخدمة والفرع والطبيب والموعد ضمن رحلة حجز رقمية واضحة." },
-    "/branches": { title: `فروع ${SITE_NAME} في الرياض`, description: "فروع مجموعة عيادات إيفان الطبية في المهدية والعليا والأحمدية لبن بالرياض.", canonicalPath: "/branches", heading: "فروعنا في الرياض", summary: "ثلاثة فروع في الرياض لتختار الموقع الأقرب لك وتبدأ الحجز الإلكتروني." },
-    "/doctors": { title: `أطباء ${SITE_NAME}`, description: "تعرّف على فريق أطباء مجموعة عيادات إيفان الطبية وخدماتهم وفروعهم المتاحة للحجز.", canonicalPath: "/doctors", heading: "فريقنا الطبي", summary: "اختر طبيباً محدداً أو اعثر على أقرب طبيب متاح حسب الخدمة والفرع والموعد." },
+    "/about": { title: `عن ${SITE_NAME} في الرياض`, description: "تعرّف على مجموعة عيادات إيفان الطبية وفروعها في المهدية والعليا والأحمدية لبن، وعلى مسار حجز واضح لخدمات الأسنان والجلدية والليزر في الرياض.", canonicalPath: "/about", heading: "عن مجموعة عيادات إيفان الطبية", summary: "منظومة طبية تجمع طب الأسنان والجلدية والليزر ضمن تجربة واضحة للمراجع." },
+    "/vision": { title: `رؤية ${SITE_NAME} للرعاية المتكاملة`, description: "تعرّف على رؤية إيفان لتجربة رعاية أوضح وأقرب إلى المراجع، من اختيار الفرع والتخصص إلى تحديد الطبيب والموعد المناسب في الرياض.", canonicalPath: "/vision", heading: "رؤيتنا", summary: "رعاية طبية أوضح وأقرب عبر تخصصات محددة وفروع سهلة الوصول وحجز منظم." },
+    "/specialties": { title: `تخصصات إيفان الطبية في الرياض`, description: "استكشف تخصصات طب الأسنان والجلدية والتجميل وتقنيات الليزر لدى مجموعة عيادات إيفان الطبية، ثم انتقل إلى الحجز باختيار الفرع والخدمة والموعد.", canonicalPath: "/specialties", heading: "تخصصاتنا", summary: "طب الأسنان والجلدية والتجميل وتقنيات الليزر ضمن منظومة رعاية واحدة." },
+    "/services": { title: `خدمات إيفان الطبية في الرياض`, description: "استعرض مسارات حجز خدمات الأسنان والجلدية والليزر في فروع إيفان بالرياض، واختر الفرع ونوع الرعاية والخدمة والطبيب والوقت وفق التوافر.", canonicalPath: "/specialties", heading: "خدمات إيفان الطبية", summary: "اختر التخصص والخدمة والفرع والطبيب والموعد ضمن رحلة حجز رقمية واضحة." },
+    "/branches": { title: `فروع إيفان الطبية في الرياض`, description: "دليل فروع مجموعة عيادات إيفان الطبية في حي المهدية وحي العليا وحي الأحمدية لبن بالرياض، مع الموقع وخيار متابعة الحجز للفرع المناسب.", canonicalPath: "/branches", heading: "فروعنا في الرياض", summary: "ثلاثة فروع في الرياض لتختار الموقع الأقرب لك وتبدأ الحجز الإلكتروني." },
+    "/doctors": { title: `الفريق الطبي في إيفان | ملفات قيد الاعتماد`, description: "تُستكمل الملفات المهنية للطواقم الطبية في مجموعة إيفان بعد اعتماد البيانات الرسمية. يمكنك متابعة الحجز باختيار الخدمة والفرع والموعد المتاح.", canonicalPath: "/doctors", noindex: true, heading: "فريقنا الطبي", summary: "تُعرض ملفات الأطباء بعد اعتماد البيانات المهنية الرسمية من إدارة المجموعة." },
     "/partners": { title: `شركاء النجاح | ${SITE_NAME}`, description: "شركاء النجاح في مجموعة عيادات إيفان الطبية.", canonicalPath: "/partners", heading: "شركاء النجاح", summary: "شراكات تدعم منظومة الخدمات والتقنيات الطبية في إيفان." },
     "/booking": { title: `حجز موعد | ${SITE_NAME}`, description: "احجز موعداً في فروع إيفان بالرياض باختيار الفرع ونوع الرعاية والخدمة والطبيب والوقت.", canonicalPath: "/booking", noindex: true, heading: "حجز موعد", summary: "ابدأ باختيار الفرع ثم الخدمة والطبيب والموعد المناسب." },
   };
@@ -82,12 +91,28 @@ function pageSchema(meta: PageMeta, origin: string) {
     areaServed: { "@type": "City", name: "الرياض" },
     availableService: ["طب الأسنان", "الجلدية والتجميل", "تقنيات الليزر"].map(name => ({ "@type": "MedicalProcedure", name })),
   };
-  if (!meta.branch) return [base, { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: origin, inLanguage: "ar-SA" }];
+  if (!meta.branch) {
+    const schemas: Array<Record<string, unknown>> = [base, { "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME, url: origin, inLanguage: "ar-SA" }];
+    if (meta.canonicalPath === "/") {
+      schemas.push({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: "كيف أحجز موعداً؟", acceptedAnswer: { "@type": "Answer", text: "ابدأ باختيار الفرع، ثم نوع الرعاية والخدمة والطبيب والموعد المتاح، وأدخل بيانات التواصل لإرسال طلب الحجز." } },
+          { "@type": "Question", name: "كيف أختار الفرع الأنسب؟", acceptedAnswer: { "@type": "Answer", text: "استعرض فروع المهدية والعليا والأحمدية لبن، واختر الموقع الذي يناسبك قبل متابعة الحجز." } },
+          { "@type": "Question", name: "هل يمكنني اختيار الطبيب؟", acceptedAnswer: { "@type": "Answer", text: "نعم، بعد اختيار الفرع والخدمة يمكنك اختيار طبيب محدد أو الاستفادة من اقتراح أقرب طبيب متاح." } },
+        ],
+      });
+    }
+    const blogPost = getBlogPost(meta.canonicalPath.match(/^\/blog\/([^/]+)$/)?.[1]);
+    if (blogPost) schemas.push({ "@context": "https://schema.org", "@type": "Article", headline: blogPost.title, description: blogPost.description, inLanguage: "ar-SA", mainEntityOfPage: `${origin}${meta.canonicalPath}`, isAccessibleForFree: true });
+    return schemas;
+  }
   return [
     base,
     {
       "@context": "https://schema.org",
-      "@type": "MedicalClinic",
+      "@type": ["MedicalClinic", "LocalBusiness"],
       name: `${SITE_NAME} — ${meta.branch.name}`,
       url: `${origin}${meta.canonicalPath}`,
       image: `${origin}${meta.branch.image}`,
@@ -136,7 +161,10 @@ export function registerSeoRoutes(app: Express) {
   const origin = getOrigin();
   const urls = ["/", "/about", "/vision", "/specialties", "/branches", "/doctors", "/partners", ...BRANCHES.flatMap(branch => [`/branches/al-${branch.slug}`, `/go/${branch.slug}`])];
   app.get("/robots.txt", (_req, res) => {
-    res.type("text/plain").send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin-login\nDisallow: /confirmation/\nSitemap: ${origin}/sitemap.xml\n`);
+    const privatePaths = "Disallow: /admin\nDisallow: /admin-login\nDisallow: /confirmation/";
+    const aiAgents = ["Googlebot", "Bingbot", "GPTBot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "ClaudeBot", "Claude-SearchBot", "Google-Extended", "Applebot-Extended"];
+    const directives = ["User-agent: *\nAllow: /\n" + privatePaths, ...aiAgents.map(agent => `User-agent: ${agent}\nAllow: /\n${privatePaths}`)];
+    res.type("text/plain").send(`${directives.join("\n\n")}\n\nSitemap: ${origin}/sitemap.xml\n`);
   });
   app.get("/sitemap.xml", (_req, res) => {
     const rows = urls.map(url => `<url><loc>${origin}${url}</loc><changefreq>${url.startsWith("/go/") ? "monthly" : "weekly"}</changefreq><priority>${url === "/" ? "1.0" : url.startsWith("/branches/") ? "0.9" : "0.7"}</priority></url>`).join("");

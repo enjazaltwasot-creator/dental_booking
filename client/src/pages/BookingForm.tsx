@@ -6,6 +6,7 @@ import PageShell from "@/components/PageShell";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/clinic";
+import { trackBookingConversion } from "@/lib/conversions";
 
 const STEPS = ["الفرع", "نوع الرعاية", "الخدمة", "الطبيب", "الموعد", "بياناتك"] as const;
 const SERVICE_TYPES = [
@@ -100,6 +101,12 @@ export default function BookingForm() {
 
   const createBooking = trpc.bookings.create.useMutation({
     onSuccess: booking => {
+      trackBookingConversion({
+        conversion: "booking_confirmed",
+        branch: branchSlug || "all",
+        source: bookingSource,
+        serviceId: serviceId || undefined,
+      });
       navigate(`/confirmation/${booking.referenceNumber}`);
     },
     onError: error => {

@@ -30,7 +30,7 @@ export default function BranchLanding() {
       <main>
         <section className="relative isolate overflow-hidden bg-primary">
           <div className="absolute inset-0">
-            <img src={branch.image} alt={branch.imageAlt} className="size-full object-cover object-center opacity-45" />
+            <img src={branch.image} alt={branch.imageAlt} fetchPriority="high" decoding="async" className="size-full object-cover object-center opacity-45" />
             <div className="absolute inset-0 bg-gradient-to-l from-primary via-primary/90 to-primary/55" />
           </div>
           <div className="pointer-events-none absolute -left-28 top-8 size-72 rounded-full border-[34px] border-white/10" />

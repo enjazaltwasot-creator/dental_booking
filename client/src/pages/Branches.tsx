@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, Navigation, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, Navigation } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { BRANCHES } from "@/lib/clinic";
 import { Link } from "wouter";
@@ -22,19 +22,13 @@ export default function Branches() {
               key={branch.slug}
               className="group overflow-hidden rounded-2xl border border-border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
             >
-              <img src={branch.image} alt={branch.imageAlt} className="aspect-[4/3] w-full object-cover" />
+              <img src={branch.image} alt={branch.imageAlt} loading="lazy" decoding="async" className="aspect-[4/3] w-full object-cover" />
               <div className="p-6">
               <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
                 <MapPin className="size-5 text-primary" />
                 {branch.name}
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">{branch.city}</p>
-              <div className="mt-5 space-y-2.5 border-t border-border pt-4 text-sm text-muted-foreground">
-                <p className="flex items-center gap-2" dir="ltr">
-                  <Phone className="size-4 text-primary" />
-                  {branch.phone}
-                </p>
-              </div>
               <div className="mt-5 flex items-center justify-between gap-3">
                 <a href={branch.mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"><Navigation className="size-3.5" />الموقع</a>
                 <Link href={branch.route} className="inline-flex items-center gap-1 text-sm font-extrabold text-primary transition-transform duration-200 group-hover:-translate-x-1">استكشف الفرع <ArrowLeft className="size-4" /></Link>

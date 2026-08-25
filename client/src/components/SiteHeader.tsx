@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { href: "/vision", label: "رؤيتنا" },
   { href: "/specialties", label: "تخصصاتنا" },
   { href: "/doctors", label: "الأطباء" },
+  { href: "/blog", label: "المدونة" },
   { href: "/partners", label: "شركاء النجاح" },
 ];
 
@@ -26,7 +27,7 @@ export default function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-white/90 backdrop-blur-md">
       <div className="container flex h-20 items-center justify-between gap-4">
         <Link href="/" className="flex shrink-0 items-center">
-          <img src={LOGO_SRC} alt="مجموعة عيادات إيفان الطبية" className="h-11 w-auto" />
+          <img src={LOGO_SRC} alt="مجموعة عيادات إيفان الطبية" fetchPriority="high" className="h-11 w-auto" />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

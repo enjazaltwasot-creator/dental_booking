@@ -1,5 +1,6 @@
 const ASSET_BASE = import.meta.env.VITE_ASSET_BASE || "/manus-storage";
 export const asset = (filename: string) => `${ASSET_BASE}/${filename}`;
+export const optimizedAsset = (webpFilename: string, localFilename: string) => asset(ASSET_BASE === "/assets" ? webpFilename : localFilename);
 
 export const LOGO_SRC = asset("evan-logo_076a049e.webp");
 export const HERO_VIDEO_SRC = asset("evan-natural-hero-day-extended_5ec37a01.mp4");
@@ -8,7 +9,7 @@ export const CLINIC = {
   name: "مجموعة عيادات إيفان الطبية",
   tagline: "لطب الأسنان والجلدية والليزر",
   description:
-    "نحرص على تقديم أفضل الخدمات في مجالات طب الأسنان والجلدية وتقنيات الليزر الحديثة، تحت إشراف نخبة من الأطباء ذوي الخبرة والكفاءة.",
+    "تجمع مجموعة إيفان خدمات طب الأسنان والجلدية والليزر ضمن تجربة حجز منظمة في فروع الرياض.",
 } as const;
 
 export const BRANCHES = [
@@ -18,13 +19,12 @@ export const BRANCHES = [
     shortName: "المهدية",
     city: "الرياض — غرب الرياض",
     address: "حي المهدية، غرب الرياض",
-    phone: "0112345678",
     route: "/branches/al-mahdiyah",
     bookingPath: "/booking?branch=mahdiyah",
     mapUrl: "https://maps.app.goo.gl/ikvDqxtpXo7NRkXZ9",
     mapEmbedUrl: "https://www.google.com/maps?q=24.6553724,46.5126144&z=15&output=embed",
     coordinates: { lat: 24.6553724, lng: 46.5126144 },
-    image: asset("evan-mahdiyah-building-enhanced_dec82603.png"),
+    image: optimizedAsset("evan-mahdiyah-building-enhanced_dec82603.webp", "evan-mahdiyah-building-enhanced_dec82603.png"),
     galleryImage: undefined,
     imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي المهدية",
   },
@@ -34,14 +34,13 @@ export const BRANCHES = [
     shortName: "العليا",
     city: "الرياض — وسط الرياض",
     address: "عماير السيركون، شارع موسى بن نصير، العليا",
-    phone: "0112345679",
     route: "/branches/al-olaya",
     bookingPath: "/booking?branch=olaya",
     mapUrl: "https://maps.app.goo.gl/7J85tT4cWz7aJqjS6",
     mapEmbedUrl: "https://www.google.com/maps?q=24.7046584,46.6840428&z=15&output=embed",
     coordinates: { lat: 24.7046584, lng: 46.6840428 },
-    image: asset("evan-olaya-building-night-enhanced_2f58024a.png"),
-    galleryImage: asset("evan-olaya-building-day-enhanced_4ea1abcc.png"),
+    image: optimizedAsset("evan-olaya-building-night-enhanced_2f58024a.webp", "evan-olaya-building-night-enhanced_2f58024a.png"),
+    galleryImage: optimizedAsset("evan-olaya-building-day-enhanced_4ea1abcc.webp", "evan-olaya-building-day-enhanced_4ea1abcc.png"),
     imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي العليا",
   },
   {
@@ -50,13 +49,12 @@ export const BRANCHES = [
     shortName: "الأحمدية — لبن",
     city: "الرياض — الأحمدية (لبن)",
     address: "حي الأحمدية، لبن، غرب الرياض",
-    phone: "0112345680",
     route: "/branches/al-ahmadiyah-laban",
     bookingPath: "/booking?branch=ahmadiyah-laban",
     mapUrl: "https://maps.app.goo.gl/ZroSiioybrMx1UiA8",
     mapEmbedUrl: "https://www.google.com/maps?q=24.6310446,46.6094759&z=15&output=embed",
     coordinates: { lat: 24.6310446, lng: 46.6094759 },
-    image: asset("evan-ahmadiyah-building-enhanced_1a2b3264.png"),
+    image: optimizedAsset("evan-ahmadiyah-building-enhanced_1a2b3264.webp", "evan-ahmadiyah-building-enhanced_1a2b3264.png"),
     galleryImage: undefined,
     imageAlt: "واجهة مبنى مجمع إيفان الطبي في فرع حي الأحمدية لبن",
   },
@@ -106,7 +104,7 @@ export const SPECIALTIES = [
     description:
       "رعاية سنية تجمع المسارات العلاجية والتجميلية المتاحة في الموقع، ثم تقودك إلى خطوة حجز واضحة ومباشرة.",
     highlights: ["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان"],
-    image: asset("services-overview_66815dcd.jpg"),
+    image: optimizedAsset("services-overview_66815dcd.webp", "services-overview_66815dcd.jpg"),
     imageAlt: "طبيب يجري فحصاً للأسنان داخل عيادة",
   },
   {
@@ -117,7 +115,7 @@ export const SPECIALTIES = [
     description:
       "خدمات مخصصة للعناية بالجلد والتجميل ضمن بيئة طبية منظمة، مع ظهور خيارات تجميلية مثل بروفايلو في الخدمات المعلنة سابقاً.",
     highlights: ["العناية بالجلد", "استشارات تجميلية", "بروفايلو ضمن الخدمات المعلنة"],
-    image: asset("clinic-care_9c78a4bb.jpg"),
+    image: optimizedAsset("clinic-care_9c78a4bb.webp", "clinic-care_9c78a4bb.jpg"),
     imageAlt: "جلسة عناية تجميلية داخل بيئة طبية",
   },
   {
@@ -128,7 +126,7 @@ export const SPECIALTIES = [
     description:
       "تقنيات ليزر حديثة تظهر ضمن التخصصات المعلنة للمجموعة، مع تواصل منظم لتحديد الخدمة والفرع والموعد المناسب.",
     highlights: ["تقنيات الليزر", "ليزر الرجال ضمن الخدمات المعلنة", "تنسيق الموعد حسب الفرع"],
-    image: asset("laser-care-neutral_0fe7d79f.png"),
+    image: optimizedAsset("laser-care-neutral_0fe7d79f.webp", "laser-care-neutral_0fe7d79f.png"),
     imageAlt: "مراجع يرتدي نظارات واقية خلال جلسة ليزر داخل عيادة",
   },
 ] as const;

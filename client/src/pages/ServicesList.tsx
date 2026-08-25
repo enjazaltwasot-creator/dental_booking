@@ -1,7 +1,7 @@
 import { Link } from "wouter";
 import { ArrowLeft, CheckCircle2, ChevronLeft, Sparkles, Stethoscope } from "lucide-react";
 import PageShell from "@/components/PageShell";
-import { asset } from "@/lib/clinic";
+import { optimizedAsset } from "@/lib/clinic";
 
 const SPECIALTIES = [
   {
@@ -10,7 +10,7 @@ const SPECIALTIES = [
     eyebrow: "الرعاية السنية",
     title: "طب الأسنان",
     summary: "رعاية سنية منظمة تجمع التقييم وخيارات العلاج والتجميل، وتنتقل بك إلى الفرع والطبيب والموعد المناسب من مكان واحد.",
-    image: asset("services-overview_66815dcd.jpg"),
+    image: optimizedAsset("services-overview_66815dcd.webp", "services-overview_66815dcd.jpg"),
     alt: "طبيب أسنان مع مراجع داخل عيادة",
     services: ["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان"],
     note: "ابدأ باختيار الفرع، ثم الخدمة والطبيب والموعد المتاح.",
@@ -21,7 +21,7 @@ const SPECIALTIES = [
     eyebrow: "العناية بالبشرة",
     title: "الجلدية والتجميل",
     summary: "تخصص يركز على العناية الطبية بالبشرة والاستشارات التجميلية ضمن تجربة مريحة وواضحة قبل تحديد مسار الزيارة.",
-    image: asset("clinic-care_9c78a4bb.jpg"),
+    image: optimizedAsset("clinic-care_9c78a4bb.webp", "clinic-care_9c78a4bb.jpg"),
     alt: "جلسة عناية بالبشرة داخل بيئة طبية",
     services: ["العناية بالجلد", "استشارات تجميلية", "بروفايلو", "تقييم الاحتياج"],
     note: "تبدأ الزيارة باستشارة لتحديد الخطوة الملائمة وفق احتياج المراجع.",
@@ -32,7 +32,7 @@ const SPECIALTIES = [
     eyebrow: "تقنيات حديثة",
     title: "تقنيات الليزر",
     summary: "مسار واضح لتنسيق خدمات الليزر المعلنة بحسب الخدمة والفرع والموعد، ضمن تجربة حجز موحدة ومباشرة.",
-    image: asset("laser-care-neutral_0fe7d79f.png"),
+    image: optimizedAsset("laser-care-neutral_0fe7d79f.webp", "laser-care-neutral_0fe7d79f.png"),
     alt: "جلسة ليزر في عيادة طبية",
     services: ["تقنيات الليزر", "ليزر الرجال", "اختيار الفرع", "تنسيق الموعد"],
     note: "يعرض الحجز الخدمة والفرع والوقت قبل تثبيت الموعد.",
@@ -68,7 +68,7 @@ export default function ServicesList() {
             <article id={specialty.id} key={specialty.id} className="scroll-mt-24 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_16px_50px_-30px_rgba(15,37,68,0.35)]">
               <div className={`grid lg:grid-cols-2 ${index % 2 ? "lg:[&>div:first-child]:order-2" : ""}`}>
                 <div className="relative min-h-[300px] overflow-hidden sm:min-h-[380px]">
-                  <img src={specialty.image} alt={specialty.alt} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
+                  <img src={specialty.image} alt={specialty.alt} loading={index === 0 ? "eager" : "lazy"} decoding="async" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/75 via-primary/15 to-transparent" />
                   <div className="absolute bottom-6 right-6 left-6 flex items-end justify-between text-white sm:bottom-8 sm:right-8 sm:left-8">
                     <div><span className="text-xs font-bold text-orange-200">{specialty.eyebrow}</span><p className="mt-2 text-3xl font-extrabold">{specialty.title}</p></div>
@@ -83,7 +83,7 @@ export default function ServicesList() {
                     {specialty.services.map((service) => <div key={service} className="flex items-center gap-2 rounded-xl border border-primary/10 bg-[#f8fbfe] px-3 py-3 text-sm font-bold text-primary"><CheckCircle2 className="size-4 shrink-0 text-accent" />{service}</div>)}
                   </div>
                   <div className="mt-7 border-r-2 border-accent pr-4 text-sm leading-7 text-slate-500">{specialty.note}</div>
-                  <Link href="/booking" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#143b70] hover:shadow-lg hover:shadow-primary/20">احجز ضمن هذا التخصص <ArrowLeft className="size-4" /></Link>
+                  <div className="mt-8 flex flex-wrap gap-3"><Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#143b70] hover:shadow-lg hover:shadow-primary/20">احجز ضمن هذا التخصص <ArrowLeft className="size-4" /></Link><Link href="/branches" className="inline-flex items-center gap-2 rounded-xl border border-primary/15 px-5 py-3 text-sm font-extrabold text-primary transition-colors hover:bg-primary/5">اختر الفرع <ArrowLeft className="size-4" /></Link></div>
                 </div>
               </div>
             </article>

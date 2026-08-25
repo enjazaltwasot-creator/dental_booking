@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import { BRANCHES, CLINIC, LOGO_SRC } from "@/lib/clinic";
 
 export default function SiteFooter() {
@@ -33,10 +33,10 @@ export default function SiteFooter() {
                   <MapPin className="size-3.5 text-primary" />
                   {branch.name}
                 </span>
-                <span className="flex items-center gap-1" dir="ltr">
-                  <Phone className="size-3 text-primary" />
-                  {branch.phone}
-                </span>
+                <a href={branch.mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary transition-colors hover:text-accent">
+                  <Navigation className="size-3" />
+                  الموقع
+                </a>
               </li>
             ))}
           </ul>

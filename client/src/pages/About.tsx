@@ -55,6 +55,8 @@ export default function About() {
                     <img
                       src={image}
                       alt={`${imageLabel}: ${branch.imageAlt}`}
+                      loading={index === 0 ? "eager" : "lazy"}
+                      decoding="async"
                       className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-transparent p-6 pt-20" />

@@ -1,5 +1,5 @@
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, ArrowRight, ArrowUpLeft, CalendarCheck, Clock3, MapPin, Navigation, Phone, Sparkles, Stethoscope } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpLeft, CalendarCheck, Clock3, MapPin, Navigation, Sparkles, Stethoscope } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import NotFound from "@/pages/NotFound";
 import { DEPARTMENTS, getBranchByRouteSegment } from "@/lib/clinic";
@@ -45,7 +45,7 @@ export default function BranchDetail() {
             </div>
           </div>
           <div className="relative overflow-hidden rounded-[2rem] border border-white bg-white p-2 shadow-xl shadow-primary/10">
-            <img src={branch.image} alt={branch.imageAlt} className="aspect-[4/3] w-full rounded-[1.55rem] object-cover object-center" />
+            <img src={branch.image} alt={branch.imageAlt} fetchPriority="high" decoding="async" className="aspect-[4/3] w-full rounded-[1.55rem] object-cover object-center" />
           </div>
         </div>
       </section>
@@ -58,9 +58,7 @@ export default function BranchDetail() {
             <p className="mt-3 text-sm leading-7 text-white/75">{branch.address}</p>
             <div className="mt-7 space-y-4 border-t border-white/15 pt-5 text-sm">
               <span className="flex items-center gap-2 text-white/85"><Clock3 className="size-4 text-orange-200" />أوقات الزيارة تعتمد على تأكيد الفرع.</span>
-              <span className="flex items-center gap-2 text-white/85" dir="ltr"><Phone className="size-4 text-orange-200" />{branch.phone}</span>
             </div>
-            <p className="mt-5 text-xs leading-5 text-white/55">رقم التواصل الحالي تجريبي إلى حين اعتماد أرقام الفروع الرسمية.</p>
           </aside>
           <a href={branch.mapUrl} target="_blank" rel="noreferrer" className="group relative flex min-h-[330px] overflow-hidden rounded-3xl border border-primary/10 bg-gradient-to-br from-sky-50 via-white to-orange-50 p-7 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md sm:p-9">
             <div className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(rgba(30,58,138,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(30,58,138,0.07)_1px,transparent_1px)] [background-size:32px_32px]" />
@@ -102,9 +100,14 @@ export default function BranchDetail() {
             <div className="mt-5 flex flex-wrap gap-2">
               {DEPARTMENTS.map(department => <span key={department} className="rounded-full bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground">{department}</span>)}
             </div>
-            <Link href={branch.bookingPath} className="mt-7 inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
+            <div className="mt-7 flex flex-wrap items-center gap-4">
+            <Link href={branch.bookingPath} className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
               متابعة الحجز في {branch.shortName} <ArrowLeft className="size-4" />
             </Link>
+            <Link href="/specialties" className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
+              استكشف التخصصات <ArrowLeft className="size-4" />
+            </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -121,7 +124,7 @@ export default function BranchDetail() {
               </a>
             </div>
             <div className="overflow-hidden rounded-3xl border border-border bg-white p-2 shadow-sm">
-              <img src={branch.galleryImage} alt={`واجهة مبنى ${branch.name} نهاراً`} className="aspect-[4/3] w-full rounded-[1.25rem] object-cover object-center" />
+              <img src={branch.galleryImage} alt={`واجهة مبنى ${branch.name} نهاراً`} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-[1.25rem] object-cover object-center" />
             </div>
           </div>
         </section>

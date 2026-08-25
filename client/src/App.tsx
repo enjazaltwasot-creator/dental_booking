@@ -17,6 +17,9 @@ import BookingConfirmation from "./pages/BookingConfirmation";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import BranchLanding from "./pages/BranchLanding";
+import ConversionTracker from "./components/ConversionTracker";
+import BlogIndex from "./pages/BlogIndex";
+import BlogPostPage from "./pages/BlogPostPage";
 
 function Router() {
   return (
@@ -31,6 +34,8 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/vision" component={Vision} />
       <Route path="/partners" component={Partners} />
+      <Route path="/blog" component={BlogIndex} />
+      <Route path="/blog/:slug" component={BlogPostPage} />
       <Route path="/booking" component={BookingForm} />
       <Route path="/confirmation/:reference" component={BookingConfirmation} />
       <Route path="/admin-login" component={AdminLogin} />
@@ -46,6 +51,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
+          <ConversionTracker />
           <Toaster position="top-center" richColors />
           <Router />
         </TooltipProvider>
