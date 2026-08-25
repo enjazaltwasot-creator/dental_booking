@@ -60,7 +60,10 @@ export function serveStatic(app: Express) {
     );
   }
 
-  app.use(express.static(distPath));
+  // Do not let express.static serve index.html directly at `/`: the SPA shell
+  // must fall through to the renderer below so metadata and JSON-LD are present
+  // in the raw HTML received by crawlers.
+  app.use(express.static(distPath, { index: false }));
 
   // Fall through to a server-composed page so crawlers receive page-specific
   // Arabic content, canonical metadata and structured data before JavaScript.
