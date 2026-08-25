@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { registerSeoRoutes } from "./seo";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -40,6 +41,7 @@ async function startServer() {
   } else {
     console.log("[OAuth] Disabled because OAUTH_SERVER_URL is not configured");
   }
+  registerSeoRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",

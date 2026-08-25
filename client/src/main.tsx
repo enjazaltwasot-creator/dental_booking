@@ -72,7 +72,12 @@ const trpcClient = trpc.createClient({
   ],
 });
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root")!;
+// Public pages receive a short, crawlable HTML snapshot from the server. The
+// interactive React app takes ownership after JavaScript is available.
+if (rootElement.childNodes.length > 0) rootElement.replaceChildren();
+
+createRoot(rootElement).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
       <App />
