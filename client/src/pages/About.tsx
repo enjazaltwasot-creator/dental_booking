@@ -1,8 +1,9 @@
 import { Link } from "wouter";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Building2, CalendarCheck, MapPin, ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { BRANCHES, CLINIC } from "@/lib/clinic";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 
 const VALUES = [
   { icon: Stethoscope, title: "رعاية مترابطة", text: "نجمع تخصصات الأسنان والجلدية والليزر ضمن مسار واضح للزيارة والحجز." },
@@ -10,12 +11,18 @@ const VALUES = [
   { icon: ShieldCheck, title: "تجربة منظمة", text: "تبدأ رحلتك من الخدمة والفرع، ثم تنتقل إلى الطبيب والموعد ضمن خطوات بسيطة." },
 ];
 
-const BRANCH_SLIDES = BRANCHES.flatMap((branch) => [
-  { branch, image: branch.image, imageLabel: "واجهة الفرع" },
-  ...(branch.galleryImage ? [{ branch, image: branch.galleryImage, imageLabel: "لقطة إضافية للفرع" }] : []),
-]);
+const BRANCH_SLIDES = BRANCHES.map((branch) => ({ branch, image: branch.image, imageLabel: "واجهة الفرع" }));
 
 export default function About() {
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+
+  useEffect(() => {
+    if (!carouselApi || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const autoplay = window.setInterval(() => carouselApi.scrollNext(), 5500);
+    return () => window.clearInterval(autoplay);
+  }, [carouselApi]);
+
   return (
     <PageShell>
       <section className="relative overflow-hidden bg-primary py-16 text-white sm:py-20">
@@ -46,12 +53,13 @@ export default function About() {
             </div>
             <p className="max-w-md text-sm leading-7 text-white/65">تصفح صور الفروع، ثم انتقل إلى موقع الفرع أو ابدأ الحجز من المكان المناسب لك.</p>
           </div>
+        </div>
 
-          <Carousel opts={{ align: "start", loop: true }} className="mt-9 px-10 sm:px-14" dir="ltr">
-            <CarouselContent className="-ml-4">
+        <Carousel setApi={setCarouselApi} opts={{ align: "start", loop: true }} className="mt-9" dir="ltr">
+          <CarouselContent className="ml-0">
               {BRANCH_SLIDES.map(({ branch, image, imageLabel }, index) => (
-                <CarouselItem key={`${branch.slug}-${imageLabel}`} className="basis-full pl-4 md:basis-1/2 xl:basis-1/3" dir="rtl">
-                  <article className="group relative h-[320px] overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900 shadow-2xl shadow-black/25">
+                <CarouselItem key={`${branch.slug}-${imageLabel}`} className="basis-full pl-0" dir="rtl">
+                  <article className="group relative h-[460px] overflow-hidden bg-slate-900 shadow-2xl shadow-black/25 sm:h-[560px] lg:h-[640px]">
                     <img
                       src={image}
                       alt={`${imageLabel}: ${branch.imageAlt}`}
@@ -59,8 +67,8 @@ export default function About() {
                       decoding="async"
                       className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-transparent p-6 pt-20" />
-                    <div className="absolute inset-x-0 bottom-0 p-6">
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/65 to-transparent pt-36" />
+                    <div className="container absolute inset-x-0 bottom-0 pb-10 sm:pb-12">
                       <div className="flex items-end justify-between gap-4">
                         <div>
                           <span className="inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-bold text-orange-200 backdrop-blur-sm">{imageLabel}</span>
@@ -81,10 +89,11 @@ export default function About() {
                   </article>
                 </CarouselItem>
               ))}
-            </CarouselContent>
-            <CarouselPrevious className="-left-1 border-white/20 bg-white/10 text-white hover:bg-white hover:text-primary sm:-left-2" />
-            <CarouselNext className="-right-1 border-white/20 bg-white/10 text-white hover:bg-white hover:text-primary sm:-right-2" />
-          </Carousel>
+          </CarouselContent>
+          <CarouselPrevious className="left-4 z-10 border-white/25 bg-slate-950/50 text-white hover:bg-white hover:text-primary sm:left-8" />
+          <CarouselNext className="right-4 z-10 border-white/25 bg-slate-950/50 text-white hover:bg-white hover:text-primary sm:right-8" />
+        </Carousel>
+        <div className="container">
           <p className="mt-6 text-center text-xs text-white/45">اسحب الصور أو استخدم الأسهم لاستعراض جميع فروع المجموعة.</p>
         </div>
       </section>
