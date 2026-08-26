@@ -1,6 +1,13 @@
 import { Link } from "wouter";
-import { MapPin, Navigation } from "lucide-react";
+import { AtSign, Facebook, Ghost, Instagram, MapPin, Navigation } from "lucide-react";
 import { BRANCHES, CLINIC, LOGO_SRC } from "@/lib/clinic";
+
+const SOCIAL_LINKS = [
+  { label: "إنستغرام", href: "https://www.instagram.com/ivan.clinicksa/", icon: Instagram },
+  { label: "فيسبوك", href: "https://www.facebook.com/ivanclinicksa/", icon: Facebook },
+  { label: "سناب شات", href: "https://www.snapchat.com/add/ivandental", icon: Ghost },
+  { label: "ثريدز", href: "https://www.threads.com/@ivan.clinicksa", icon: AtSign },
+] as const;
 
 export default function SiteFooter() {
   return (
@@ -11,6 +18,22 @@ export default function SiteFooter() {
           <p className="mt-3 max-w-md text-xs leading-6 text-muted-foreground">
             {CLINIC.description}
           </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="ml-1 text-xs font-extrabold text-foreground">تابعنا</span>
+            {SOCIAL_LINKS.map(({ label, href, icon: Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={label}
+                title={label}
+                className="grid size-9 place-items-center rounded-full border border-primary/15 bg-white text-primary shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:bg-primary hover:text-white active:scale-[0.97]"
+              >
+                <Icon className="size-4" />
+              </a>
+            ))}
+          </div>
         </div>
 
         <div>

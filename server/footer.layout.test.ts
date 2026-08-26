@@ -11,4 +11,12 @@ describe("compact footer layout", () => {
     expect(footerSource).toContain("href={branch.mapUrl}");
     expect(footerSource).not.toContain("{branch.phone}");
   });
+
+  it("shows accessible links to the approved social profiles", () => {
+    expect(footerSource).toContain("https://www.instagram.com/ivan.clinicksa/");
+    expect(footerSource).toContain("https://www.facebook.com/ivanclinicksa/");
+    expect(footerSource).toContain("https://www.snapchat.com/add/ivandental");
+    expect(footerSource).toContain("https://www.threads.com/@ivan.clinicksa");
+    expect(footerSource).toContain('aria-label={label}');
+  });
 });
