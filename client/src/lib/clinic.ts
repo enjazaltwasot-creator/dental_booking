@@ -1,6 +1,8 @@
 const ASSET_BASE = import.meta.env.VITE_ASSET_BASE || "/manus-storage";
 export const asset = (filename: string) => `${ASSET_BASE}/${filename}`;
 export const optimizedAsset = (webpFilename: string, localFilename: string) => asset(ASSET_BASE === "/assets" ? webpFilename : localFilename);
+export const campaignAsset = (manusUrl: string, hostingerFilename: string) =>
+  ASSET_BASE === "/assets" ? asset(hostingerFilename) : manusUrl;
 
 export const LOGO_SRC = asset("evan-logo_076a049e.webp");
 export const HERO_VIDEO_SRC = asset("evan-natural-hero-day-extended_5ec37a01.mp4");

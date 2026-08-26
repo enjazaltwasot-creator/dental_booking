@@ -12,10 +12,20 @@ describe("branch advertising landing pages", () => {
     expect(landingSource).toContain('useRoute("/go/:slug")');
   });
 
-  it("keeps direct booking and directions calls to action", () => {
-    expect(landingSource).toContain("branch.bookingPath");
+  it("uses branch-specific contact and WhatsApp calls to action instead of booking", () => {
+    expect(landingSource).not.toContain("branch.bookingPath");
     expect(landingSource).toContain("branch.mapUrl");
-    expect(landingSource).toContain("احجز موعدك الآن");
+    expect(landingSource).toContain("LANDING_CONTACTS");
+    expect(landingSource).toContain("https://wa.me/");
+    expect(landingSource).toContain("راسلنا على واتساب");
+    expect(landingSource).toContain("اتصل الآن");
+  });
+
+  it("includes the approved campaign and case-study sections", () => {
+    expect(landingSource).toContain("NATIONAL_DAY_OFFERS");
+    expect(landingSource).toContain("BRANCH_CASES");
+    expect(landingSource).toContain("BRANCH_DOCTORS");
+    expect(landingSource).toContain("النتائج تختلف من حالة لأخرى");
   });
 
   it("registers the ad landing route without adding it to site navigation", () => {
