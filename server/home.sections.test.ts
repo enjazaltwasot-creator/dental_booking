@@ -31,6 +31,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("trust-section");
     expect(home).toContain("trust-card");
     expect(home).toContain("trust-card-sheen");
+    expect(home).toContain("JourneyProgressCharts");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
@@ -48,5 +49,18 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(hero).toContain("text=\"رعاية متكاملة،\"");
     expect(hero).toContain("delay: 0.92");
     expect(hero).toContain("delay: 1.04");
+  });
+
+  it("يعرض مخططات متحركة لرحلة المراجع دون نسب أو ادعاءات علاجية", () => {
+    const charts = readFileSync(join(process.cwd(), "client/src/components/JourneyProgressCharts.tsx"), "utf8");
+
+    expect(charts).toContain("ابدأ بالفرع الأقرب");
+    expect(charts).toContain("حدّد الخدمة والطبيب");
+    expect(charts).toContain("أرسل طلب الحجز");
+    expect(charts).toContain("useReducedMotion");
+    expect(charts).toContain("role=\"progressbar\"");
+    expect(charts).not.toContain("86%");
+    expect(charts).not.toContain("93%");
+    expect(charts).not.toContain("87%");
   });
 });
