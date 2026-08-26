@@ -51,16 +51,17 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(hero).toContain("delay: 1.04");
   });
 
-  it("يعرض مخططات متحركة لرحلة المراجع دون نسب أو ادعاءات علاجية", () => {
+  it("يعرض لوحة إعلانات متحركة بالمؤشرات الفعلية وتسميات دقيقة", () => {
     const charts = readFileSync(join(process.cwd(), "client/src/components/JourneyProgressCharts.tsx"), "utf8");
 
-    expect(charts).toContain("ابدأ بالفرع الأقرب");
-    expect(charts).toContain("حدّد الخدمة والطبيب");
-    expect(charts).toContain("أرسل طلب الحجز");
+    expect(charts).toContain("الإنفاق الإعلاني");
+    expect(charts).toContain("النقرات");
+    expect(charts).toContain("التحويلات المسجلة");
+    expect(charts).toContain("33383");
+    expect(charts).toContain("34595");
+    expect(charts).toContain("Google Ads");
     expect(charts).toContain("useReducedMotion");
     expect(charts).toContain("role=\"progressbar\"");
-    expect(charts).not.toContain("86%");
-    expect(charts).not.toContain("93%");
-    expect(charts).not.toContain("87%");
+    expect(charts).toContain("وليست حالات علاجية أو عملاء");
   });
 });
