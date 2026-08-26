@@ -43,7 +43,7 @@ export default function SiteFooter() {
             <li><Link href="/services" className="transition-colors hover:text-primary">خدماتنا</Link></li>
             <li><Link href="/doctors" className="transition-colors hover:text-primary">الأطباء</Link></li>
             <li><Link href="/branches" className="transition-colors hover:text-primary">فروعنا</Link></li>
-            <li><Link href="/booking" className="transition-colors hover:text-primary">حجز موعد</Link></li>
+            <li><Link href="/booking" className="transition-colors hover:text-primary">ابدأ الحجز</Link></li>
           </ul>
         </div>
 

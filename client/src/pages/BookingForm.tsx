@@ -110,7 +110,7 @@ export default function BookingForm() {
       navigate(`/confirmation/${booking.referenceNumber}`);
     },
     onError: error => {
-      toast.error(error.message || "تعذر إتمام الحجز، يرجى المحاولة مرة أخرى.");
+      toast.error(error.message || "تعذر إرسال طلب الحجز، يرجى المحاولة مرة أخرى.");
     },
   });
 
@@ -142,7 +142,7 @@ export default function BookingForm() {
     <PageShell>
       <section className="border-b border-border bg-secondary/30 py-12">
         <div className="container text-center">
-          <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">احجز موعدك</h1>
+          <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">أرسل طلب حجزك</h1>
           <p className="mx-auto mt-3 max-w-lg text-[15px] leading-8 text-muted-foreground">
             ابدأ باختيار الفرع، ثم نوع الرعاية والخدمة والطبيب والموعد المناسب.
           </p>
@@ -431,7 +431,7 @@ export default function BookingForm() {
               <div>
                 <h2 className="text-xl font-bold text-foreground">اختر التاريخ والوقت</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  المواعيد المعروضة متاحة فعلياً لدى الطبيب المختار.
+                  تظهر الأوقات المتاحة للطبيب المختار في التاريخ الذي حددته.
                 </p>
 
                 <div className="mt-6">
@@ -494,7 +494,7 @@ export default function BookingForm() {
             {step === 5 && (
               <div>
                 <h2 className="text-xl font-bold text-foreground">بياناتك</h2>
-                <p className="mt-1 text-sm text-muted-foreground">سنستخدم هذه البيانات لتأكيد موعدك.</p>
+                <p className="mt-1 text-sm text-muted-foreground">نستخدم هذه البيانات لمراجعة طلبك والتواصل معك بشأن الموعد.</p>
 
                 <div className="mt-6 space-y-5">
                   <div>
@@ -542,7 +542,7 @@ export default function BookingForm() {
                       rows={3}
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
-                      placeholder="أي تفاصيل تودّ إخبار الطبيب بها"
+                      placeholder="أي تفاصيل تودّ مشاركتها مع فريق المواعيد"
                       className="mt-2 w-full resize-none rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
                     />
                   </div>
@@ -580,7 +580,7 @@ export default function BookingForm() {
                   className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-accent-foreground transition-all duration-200 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {createBooking.isPending && <Loader2 className="size-4 animate-spin" />}
-                  تأكيد الحجز
+                  إرسال طلب الحجز
                 </button>
               )}
             </div>

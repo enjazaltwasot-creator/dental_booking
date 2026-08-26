@@ -195,7 +195,7 @@ describe("booking lifecycle", () => {
       const candidate = new Date(start);
       candidate.setUTCDate(start.getUTCDate() + offset);
       const candidateDate = candidate.toISOString().slice(0, 10);
-      const slots = await caller.workingHours.availableSlots({ dentistId: 2, date: candidateDate });
+      const slots = await caller.workingHours.availableSlots({ dentistId: 2, date: candidateDate, serviceId: 1 });
       if (slots.length > 0) {
         date = candidateDate;
         before = slots;
@@ -216,7 +216,7 @@ describe("booking lifecycle", () => {
       appointmentTime: target,
     });
 
-    const after = await caller.workingHours.availableSlots({ dentistId: 2, date });
+    const after = await caller.workingHours.availableSlots({ dentistId: 2, date, serviceId: 1 });
     expect(after).not.toContain(target);
     expect(after.length).toBe(before.length - 1);
   });
