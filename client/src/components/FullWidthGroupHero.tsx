@@ -85,13 +85,13 @@ export default function FullWidthGroupHero() {
             </motion.h1>
 
             <motion.p initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.48, delay: 0.46, ease: [0.23, 1, 0.32, 1] }} className="mt-6 max-w-xl border-r-2 border-accent pr-4 text-[15px] font-semibold leading-8 text-white/95 drop-shadow-[0_2px_12px_rgba(2,6,23,0.72)] sm:text-lg">
-              <AnimatedWords text="منظومة طبية تجمع التخصصات والفروع وتجربة حجز موحّدة، لتصل إلى الخدمة والطبيب والموعد المناسب من مكان واحد." delay={0.54} step={0.035} />
+              <AnimatedWords text="ابدأ بالفرع، ثم حدّد الخدمة والطبيب والوقت المتاح، لتصل إلى طلب حجز واضح من مكان واحد." delay={0.54} step={0.035} />
             </motion.p>
 
             <motion.div initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.42, delay: 0.92, ease: [0.23, 1, 0.32, 1] }} className="mt-8 flex flex-wrap gap-3">
               <Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-extrabold text-accent-foreground shadow-lg shadow-accent/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl">
                 <CalendarCheck className="size-4" />
-                احجز موعدك الآن
+                ابدأ الحجز
               </Link>
               <a href="#branches" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/95 px-6 py-3.5 text-sm font-extrabold text-primary shadow-lg shadow-slate-950/15 transition-all duration-200 hover:bg-white hover:shadow-xl">
                 استكشف فروعنا
@@ -102,7 +102,7 @@ export default function FullWidthGroupHero() {
             <motion.div initial={reduceMotion ? false : { opacity: 0, y: 10 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.42, delay: 1.04, ease: [0.23, 1, 0.32, 1] }} className="mt-8 grid max-w-md grid-cols-3 divide-x divide-x-reverse divide-white/15 rounded-2xl border border-white/20 bg-slate-950/25 p-3 shadow-lg shadow-slate-950/15 backdrop-blur-md">
               <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">3</strong><span className="mt-1 block text-[11px] font-extrabold text-white/90">فروع في الرياض</span></div>
               <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">3</strong><span className="mt-1 block text-[11px] font-extrabold text-white/90">مجالات تخصصية</span></div>
-              <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">1</strong><span className="mt-1 block text-[11px] font-extrabold text-white/90">رحلة حجز موحّدة</span></div>
+              <div className="px-2 text-center"><strong className="block text-xl font-extrabold text-orange-200">1</strong><span className="mt-1 block text-[11px] font-extrabold text-white/90">مسار حجز واضح</span></div>
             </motion.div>
           </div>
         </div>

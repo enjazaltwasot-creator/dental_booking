@@ -104,7 +104,7 @@ export default function SiteHeader() {
             className="hidden items-center gap-2 rounded-xl bg-accent px-5 py-2.5 text-sm font-bold text-accent-foreground shadow-sm transition-all duration-200 hover:shadow-md sm:inline-flex"
           >
             <CalendarPlus className="size-4" />
-            حجز موعد
+            ابدأ الحجز
           </Link>
 
           <button
@@ -154,7 +154,7 @@ export default function SiteHeader() {
               onClick={() => setOpen(false)}
               className="mt-2 rounded-xl bg-accent px-4 py-3 text-center text-sm font-bold text-accent-foreground"
             >
-              حجز موعد
+              ابدأ الحجز
             </Link>
           </nav>
         </div>

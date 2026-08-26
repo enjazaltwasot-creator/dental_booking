@@ -9,7 +9,7 @@ const SPECIALTIES = [
     number: "01",
     eyebrow: "الرعاية السنية",
     title: "طب الأسنان",
-    summary: "رعاية سنية منظمة تجمع التقييم وخيارات العلاج والتجميل، وتنتقل بك إلى الفرع والطبيب والموعد المناسب من مكان واحد.",
+    summary: "رعاية سنية تساعدك على مراجعة خيارات الخدمة المتاحة، ثم اختيار الفرع والطبيب والوقت المناسب لإرسال طلب الحجز.",
     image: optimizedAsset("services-overview_66815dcd.webp", "services-overview_66815dcd.jpg"),
     alt: "طبيب أسنان مع مراجع داخل عيادة",
     services: ["زراعة الأسنان", "تقويم الأسنان", "ابتسامة هوليود", "تركيبات الأسنان"],
@@ -20,7 +20,7 @@ const SPECIALTIES = [
     number: "02",
     eyebrow: "العناية بالبشرة",
     title: "الجلدية والتجميل",
-    summary: "تخصص يركز على العناية الطبية بالبشرة والاستشارات التجميلية ضمن تجربة مريحة وواضحة قبل تحديد مسار الزيارة.",
+    summary: "تخصص للعناية الطبية بالبشرة والاستشارات التجميلية، مع تنسيق الزيارة بحسب الخدمة والفرع والإتاحة.",
     image: optimizedAsset("clinic-care_9c78a4bb.webp", "clinic-care_9c78a4bb.jpg"),
     alt: "جلسة عناية بالبشرة داخل بيئة طبية",
     services: ["العناية بالجلد", "استشارات تجميلية", "بروفايلو", "تقييم الاحتياج"],
@@ -31,11 +31,11 @@ const SPECIALTIES = [
     number: "03",
     eyebrow: "تقنيات حديثة",
     title: "تقنيات الليزر",
-    summary: "مسار واضح لتنسيق خدمات الليزر المعلنة بحسب الخدمة والفرع والموعد، ضمن تجربة حجز موحدة ومباشرة.",
+    summary: "مسار واضح للتواصل بشأن خدمات الليزر المتاحة بحسب الخدمة والفرع والوقت المناسب.",
     image: optimizedAsset("laser-care-neutral_0fe7d79f.webp", "laser-care-neutral_0fe7d79f.png"),
     alt: "جلسة ليزر في عيادة طبية",
     services: ["تقنيات الليزر", "ليزر الرجال", "اختيار الفرع", "تنسيق الموعد"],
-    note: "يعرض الحجز الخدمة والفرع والوقت قبل تثبيت الموعد.",
+    note: "تظهر الخدمة والفرع والوقت المتاح قبل إرسال طلب الحجز.",
   },
 ] as const;
 
@@ -83,7 +83,7 @@ export default function ServicesList() {
                     {specialty.services.map((service) => <div key={service} className="flex items-center gap-2 rounded-xl border border-primary/10 bg-[#f8fbfe] px-3 py-3 text-sm font-bold text-primary"><CheckCircle2 className="size-4 shrink-0 text-accent" />{service}</div>)}
                   </div>
                   <div className="mt-7 border-r-2 border-accent pr-4 text-sm leading-7 text-slate-500">{specialty.note}</div>
-                  <div className="mt-8 flex flex-wrap gap-3"><Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#143b70] hover:shadow-lg hover:shadow-primary/20">احجز ضمن هذا التخصص <ArrowLeft className="size-4" /></Link><Link href="/branches" className="inline-flex items-center gap-2 rounded-xl border border-primary/15 px-5 py-3 text-sm font-extrabold text-primary transition-colors hover:bg-primary/5">اختر الفرع <ArrowLeft className="size-4" /></Link></div>
+                  <div className="mt-8 flex flex-wrap gap-3"><Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-extrabold text-primary-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#143b70] hover:shadow-lg hover:shadow-primary/20">ابدأ الحجز <ArrowLeft className="size-4" /></Link><Link href="/branches" className="inline-flex items-center gap-2 rounded-xl border border-primary/15 px-5 py-3 text-sm font-extrabold text-primary transition-colors hover:bg-primary/5">اختر الفرع <ArrowLeft className="size-4" /></Link></div>
                 </div>
               </div>
             </article>
@@ -93,8 +93,8 @@ export default function ServicesList() {
 
       <section className="border-t border-primary/10 bg-[#0f2544] py-14 text-white sm:py-16">
         <div className="container flex flex-col items-start justify-between gap-7 lg:flex-row lg:items-center">
-          <div><p className="text-sm font-extrabold text-orange-300">مسار حجز موحّد</p><h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">اختر التخصص، ثم نساعدك للوصول إلى الموعد المناسب.</h2></div>
-          <Link href="/booking" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-extrabold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-500 hover:shadow-lg hover:shadow-orange-950/25">ابدأ الحجز الآن <ChevronLeft className="size-4" /></Link>
+          <div><p className="text-sm font-extrabold text-orange-300">مسار حجز واضح</p><h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">اختر التخصص، ثم حدّد الفرع والطبيب والوقت المتاح.</h2></div>
+          <Link href="/booking" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-extrabold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-orange-500 hover:shadow-lg hover:shadow-orange-950/25">ابدأ الحجز <ChevronLeft className="size-4" /></Link>
         </div>
       </section>
     </PageShell>

@@ -92,9 +92,9 @@ export default function Vision() {
             <div className="relative mx-auto max-w-2xl">
               <p className="text-sm font-extrabold text-orange-200">ابدأ رحلتك معنا</p>
               <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">اختر التخصص والفرع والموعد المناسب.</h2>
-              <p className="mt-4 text-[15px] leading-8 text-white/80">تبدأ تجربة الرعاية بخطوة بسيطة ومنظمة.</p>
+              <p className="mt-4 text-[15px] leading-8 text-white/80">اختر الفرع، ثم الخدمة والطبيب والوقت المتاح قبل إرسال طلب الحجز.</p>
               <Link href="/booking" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-7 py-3.5 text-sm font-extrabold text-accent-foreground transition-all hover:-translate-y-0.5 hover:shadow-lg">
-                <CalendarCheck className="size-4" /> احجز موعداً الآن
+                <CalendarCheck className="size-4" /> ابدأ الحجز
               </Link>
               <Link href="/specialties" className="mr-3 mt-8 inline-flex items-center gap-2 rounded-xl border border-white/20 px-6 py-3.5 text-sm font-extrabold text-white transition-all hover:bg-white/10">
                 استكشف التخصصات <ArrowLeft className="size-4" />

@@ -22,18 +22,18 @@ import { trpc } from "@/lib/trpc";
 const PILLARS = [
   {
     icon: Stethoscope,
-    title: "رعاية تخصصية متكاملة",
-    text: "خدمات الأسنان والجلدية والليزر ضمن تجربة علاجية مترابطة.",
+    title: "رعاية تخصصية ضمن مسار واضح",
+    text: "خدمات الأسنان والجلدية والليزر، مع تنسيق الزيارة بحسب الفرع والإتاحة.",
   },
   {
     icon: Building2,
-    title: "فروع قريبة منك",
-    text: "ثلاثة مواقع في الرياض، لتختار الفرع الأنسب لموعدك.",
+    title: "فروع أقرب إليك",
+    text: "ثلاثة فروع في الرياض لتختار الموقع الأنسب لزيارتك.",
   },
   {
     icon: ShieldCheck,
-    title: "تجربة منظمة وواضحة",
-    text: "رحلة حجز رقمية بسيطة تبدأ من اختيار الخدمة وتنتهي بتأكيد الموعد.",
+    title: "خطوات حجز واضحة",
+    text: "ابدأ بالفرع ثم الخدمة والطبيب والوقت المتاح قبل إرسال الطلب.",
   },
 ];
 
@@ -46,13 +46,13 @@ const PILLAR_STYLES = [
 const TRUST_SIGNALS = [
   {
     icon: CheckCircle2,
-    title: "وضوح في رحلة الرعاية",
-    text: "تظهر الخدمة والطبيب والموعد بوضوح قبل إرسال طلب الحجز.",
+    title: "وضوح قبل طلب الحجز",
+    text: "تتضح خيارات الخدمة والطبيب والوقت المتاح قبل إرسال الطلب.",
   },
   {
     icon: ShieldCheck,
     title: "خصوصية بيانات المراجعين",
-    text: "تُستخدم بيانات الحجز بالقدر اللازم لتنسيق الموعد والتواصل بشأنه.",
+    text: "تُستخدم بيانات التواصل بالقدر اللازم لتنسيق الموعد والتواصل بشأنه.",
   },
   {
     icon: MapPin,
@@ -63,8 +63,8 @@ const TRUST_SIGNALS = [
 
 const FAQS = [
   {
-    question: "كيف أحجز موعداً؟",
-    answer: "ابدأ باختيار الفرع، ثم الخدمة والطبيب والموعد المتاح، وأدخل بيانات التواصل لإرسال طلب الحجز.",
+    question: "كيف أبدأ الحجز؟",
+    answer: "اختر الفرع، ثم الخدمة والطبيب والوقت المتاح، وأدخل بيانات التواصل لإرسال طلب الحجز.",
   },
   {
     question: "كيف أختار الفرع الأنسب؟",
@@ -76,7 +76,7 @@ const FAQS = [
   },
   {
     question: "ماذا أحصل عليه بعد إرسال الطلب؟",
-    answer: "تظهر لك صفحة تأكيد تتضمن رقماً مرجعياً للحجز. تبقى حالة الموعد معلقة إلى حين مراجعته من إدارة المواعيد.",
+    answer: "تظهر لك صفحة تأكيد تتضمن رقماً مرجعياً للطلب. يبقى الموعد قيد المراجعة إلى حين تأكيده من إدارة المواعيد.",
   },
 ];
 
@@ -207,7 +207,7 @@ export default function Home() {
                 <span className="text-primary"> وابدأ رحلتك من المكان المناسب.</span>
               </h2>
               <p className="mt-4 text-[15px] leading-8 text-muted-foreground">
-                لكل فرع صفحة مستقلة تشمل صورة المبنى، الموقع عبر خرائط Google، ونقطة حجز موجهة للفرع المختار.
+                لكل فرع صفحة مستقلة توضح الموقع والخدمات وطرق التواصل، ثم تقودك إلى الخطوة المناسبة لزيارتك.
               </p>
             </div>
             <Link href="/branches" className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
@@ -232,7 +232,7 @@ export default function Home() {
                   <h3 className="mt-8 text-2xl font-extrabold text-foreground">{branch.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{branch.city}</p>
                   <div className="mt-7 flex items-center justify-between border-t border-border/70 pt-5">
-                    <span className="text-xs font-semibold text-muted-foreground">تخصصات وأطباء وحجز</span>
+                    <span className="text-xs font-semibold text-muted-foreground">خدمات وموقع وطرق تواصل</span>
                     <Link href={branch.route} className="inline-flex items-center gap-1 text-sm font-extrabold text-primary transition-transform duration-200 group-hover:-translate-x-1">
                       استكشف الفرع <ChevronLeft className="size-4" />
                     </Link>
@@ -249,8 +249,8 @@ export default function Home() {
           <div className="rounded-[2rem] bg-primary p-7 text-white shadow-xl shadow-primary/15 sm:p-9">
             <span className="grid size-12 place-items-center rounded-2xl bg-white/10 text-orange-200"><CircleHelp className="size-6" /></span>
             <span className="mt-7 block text-xs font-extrabold tracking-[0.17em] text-orange-200">أسئلة شائعة</span>
-            <h2 className="mt-3 text-3xl font-extrabold leading-tight">كل ما تحتاج معرفته قبل الحجز.</h2>
-            <p className="mt-4 text-[15px] leading-8 text-white/75">إجابات عملية وسريعة تساعدك على اختيار الفرع والخدمة والموعد بوضوح.</p>
+            <h2 className="mt-3 text-3xl font-extrabold leading-tight">ما تحتاج معرفته قبل إرسال طلب الحجز.</h2>
+            <p className="mt-4 text-[15px] leading-8 text-white/75">إجابات عملية تساعدك على اختيار الفرع والخدمة والطبيب والوقت المتاح بوضوح.</p>
             <Link href="/booking" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-extrabold text-accent-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">ابدأ الحجز <ArrowLeft className="size-4" /></Link>
           </div>
           <div className="rounded-[2rem] border border-border bg-white px-6 shadow-sm sm:px-8">
@@ -274,10 +274,10 @@ export default function Home() {
             <div className="relative mx-auto max-w-2xl">
               <p className="text-sm font-bold text-orange-200">الخطوة التالية</p>
               <h2 className="mt-3 text-3xl font-extrabold sm:text-4xl">ابدأ من الفرع الذي يناسبك.</h2>
-              <p className="mt-4 text-[15px] leading-8 text-white/80">اختر الخدمة، ثم الطبيب، ثم الموعد المناسب، وستصل إلى تأكيد حجز واضح برقم مرجعي.</p>
+              <p className="mt-4 text-[15px] leading-8 text-white/80">اختر الخدمة، ثم الطبيب، ثم الوقت المتاح، وأرسل طلب الحجز لتحصل على رقم مرجعي للمتابعة.</p>
               <Link href="/booking" className="mt-8 inline-flex items-center gap-2 rounded-xl bg-accent px-7 py-3.5 text-sm font-extrabold text-accent-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                 <CalendarCheck className="size-4" />
-                احجز موعداً الآن
+                ابدأ الحجز
               </Link>
             </div>
           </div>

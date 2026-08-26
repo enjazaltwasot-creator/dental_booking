@@ -31,12 +31,12 @@ export default function BranchDetail() {
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-tight text-foreground sm:text-5xl">{branch.name}</h1>
             <p className="mt-4 max-w-xl text-[15px] leading-8 text-muted-foreground">
-              بوابة الفرع لتحديد الموقع وبدء الحجز بصورة مباشرة من الفرع الذي يناسبك.
+              صفحة الفرع لتحديد الموقع ثم بدء طلب الحجز من المكان الذي يناسبك.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href={branch.bookingPath} className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3.5 text-sm font-extrabold text-accent-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
                 <CalendarCheck className="size-4" />
-                احجز الآن في هذا الفرع
+                ابدأ الحجز من هذا الفرع
               </Link>
               <a href={branch.mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-primary/15 bg-white px-5 py-3.5 text-sm font-extrabold text-primary transition-all duration-200 hover:shadow-sm">
                 <Navigation className="size-4" />
@@ -80,9 +80,9 @@ export default function BranchDetail() {
         <div className="container grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div>
             <span className="text-xs font-bold tracking-[0.17em] text-accent">رحلة الحجز</span>
-            <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground">ابدأ من فرعك، ثم أكمل الموعد بثقة.</h2>
+            <h2 className="mt-3 text-3xl font-extrabold leading-tight text-foreground">ابدأ من فرعك، ثم اختر الخدمة والطبيب والوقت المتاح.</h2>
             <p className="mt-4 max-w-2xl text-[15px] leading-8 text-muted-foreground">
-              عند بدء الحجز من هذه الصفحة، يتم اختيار الفرع تلقائياً في نموذج الحجز، لتكون رحلتك أقرب إلى احتياجك من أول خطوة.
+              عند بدء الحجز من هذه الصفحة، يُختار الفرع تلقائياً في النموذج لتنتقل مباشرة إلى الخدمة والطبيب والوقت المتاح.
             </p>
             <div className="mt-7 grid gap-3">
               {HIGHLIGHTS.map((highlight, index) => (
@@ -96,13 +96,13 @@ export default function BranchDetail() {
           <div className="rounded-3xl border border-border bg-white p-6 shadow-sm sm:p-7">
             <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary"><Sparkles className="size-5" /></span>
             <h3 className="mt-5 text-xl font-extrabold text-foreground">التخصصات المتاحة ضمن المجموعة</h3>
-            <p className="mt-2 text-sm leading-7 text-muted-foreground">تظهر قائمة الخدمات والأطباء المتاحة حالياً في النظام أثناء الحجز، ويُحفظ اختيار الفرع مع طلبك.</p>
+            <p className="mt-2 text-sm leading-7 text-muted-foreground">تظهر الخدمات والأطباء المتاحون أثناء الحجز، ويُحفظ اختيار الفرع مع طلبك.</p>
             <div className="mt-5 flex flex-wrap gap-2">
               {DEPARTMENTS.map(department => <span key={department} className="rounded-full bg-secondary px-3 py-2 text-xs font-bold text-secondary-foreground">{department}</span>)}
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-4">
             <Link href={branch.bookingPath} className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
-              متابعة الحجز في {branch.shortName} <ArrowLeft className="size-4" />
+              ابدأ الحجز في {branch.shortName} <ArrowLeft className="size-4" />
             </Link>
             <Link href="/specialties" className="inline-flex items-center gap-2 text-sm font-extrabold text-primary hover:underline">
               استكشف التخصصات <ArrowLeft className="size-4" />

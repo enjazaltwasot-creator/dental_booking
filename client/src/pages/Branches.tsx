@@ -10,7 +10,7 @@ export default function Branches() {
         <div className="container text-center">
           <h1 className="text-3xl font-extrabold text-foreground sm:text-4xl">فروعنا</h1>
           <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-muted-foreground">
-            ثلاثة فروع في مواقع استراتيجية بالرياض لخدمتك بالقرب منك.
+            ثلاثة فروع في الرياض لتختار الموقع الأقرب إليك.
           </p>
         </div>
       </section>

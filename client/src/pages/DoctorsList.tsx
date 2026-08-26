@@ -114,7 +114,7 @@ export default function DoctorsList() {
                     ))}
                   </div>
                   <div className="flex justify-end px-7 pb-7">
-                    <Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-extrabold text-accent-foreground">استمر إلى الحجز <CalendarCheck className="size-4" /></Link>
+                    <Link href="/booking" className="inline-flex items-center gap-2 rounded-xl bg-accent px-5 py-3 text-sm font-extrabold text-accent-foreground">ابدأ الحجز <CalendarCheck className="size-4" /></Link>
                   </div>
                 </DialogContent>
               </Dialog>
