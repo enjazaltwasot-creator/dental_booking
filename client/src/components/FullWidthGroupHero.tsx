@@ -76,7 +76,7 @@ export default function FullWidthGroupHero() {
               <span className="grid h-11 w-20 place-items-center rounded-xl bg-white/95 p-1.5 shadow-sm sm:w-24">
                 <img src={LOGO_SRC} alt="شعار مجموعة عيادات إيفان الطبية" className="h-full w-full object-contain" />
               </span>
-              <span className="border-r border-white/20 pr-3 text-xs font-extrabold text-white sm:text-sm">مجموعة إيفان الطبية<br /><span className="font-semibold text-sky-100/85">ثلاث فروع في الرياض</span></span>
+              <span className="border-r border-white/20 pr-3 text-xs font-extrabold text-white sm:text-sm">مجموعة إيفان الطبية<br /><span className="font-semibold text-sky-100/85">رعاية متخصصة تبدأ من فهم احتياجك.</span></span>
             </motion.div>
 
             <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 16 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1, ease: [0.23, 1, 0.32, 1] }} className="mt-7 max-w-2xl text-4xl font-extrabold leading-[1.13] tracking-tight text-white drop-shadow-[0_4px_18px_rgba(2,6,23,0.7)] sm:text-5xl lg:text-6xl">
