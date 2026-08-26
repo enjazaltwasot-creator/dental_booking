@@ -16,7 +16,6 @@ import {
 import PageShell from "@/components/PageShell";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import FullWidthGroupHero from "@/components/FullWidthGroupHero";
-import JourneyProgressCharts from "@/components/JourneyProgressCharts";
 import { BRANCHES } from "@/lib/clinic";
 import { trpc } from "@/lib/trpc";
 
@@ -114,8 +113,6 @@ export default function Home() {
           })}
         </div>
       </section>
-
-      <JourneyProgressCharts />
 
       <section id="about" className="relative overflow-hidden py-16 lg:py-24">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_5%_50%,rgba(249,115,22,0.1),transparent_24%),radial-gradient(circle_at_95%_20%,rgba(2,132,199,0.1),transparent_26%)]" />

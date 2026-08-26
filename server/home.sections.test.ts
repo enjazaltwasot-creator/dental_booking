@@ -31,7 +31,7 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(home).toContain("trust-section");
     expect(home).toContain("trust-card");
     expect(home).toContain("trust-card-sheen");
-    expect(home).toContain("JourneyProgressCharts");
+    expect(home).not.toContain("JourneyProgressCharts");
   });
 
   it("يعرض محتوى افتتاحية عائماً ذا تباين عالٍ وعلامة إيفان دون بطاقة كبيرة", () => {
@@ -62,5 +62,13 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(charts).toContain("perspective");
     expect(charts).toContain("useReducedMotion");
     expect(charts).toContain("لا تُستنتج هذه المؤشرات من بيانات الإعلانات وحدها");
+  });
+
+  it("لا يضم قسم الشارتس في تسلسل الصفحة الرئيسية", () => {
+    const home = readFileSync(join(process.cwd(), "client/src/pages/Home.tsx"), "utf8");
+
+    expect(home).not.toContain("JourneyProgressCharts");
+    expect(home).toContain("FullWidthGroupHero");
+    expect(home).toContain('section id="about"');
   });
 });
