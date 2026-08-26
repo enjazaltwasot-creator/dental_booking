@@ -1,111 +1,77 @@
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { BarChart3, MousePointerClick, ReceiptText } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Activity, UserCheck, UserPlus } from "lucide-react";
+import { useRef } from "react";
 
-const AD_METRICS = [
+const METRIC_CARDS = [
   {
-    icon: ReceiptText,
-    title: "الإنفاق الإعلاني",
-    value: 33383,
-    suffix: "ر.س.",
-    context: "مقارنة بالفترة السابقة: انخفاض 16.9% من 40,150 ر.س.",
-    comparisonWidth: 83.1,
-    accent: "from-orange-400 via-accent to-orange-300",
+    icon: Activity,
+    title: "إجمالي الحالات",
+    detail: "مؤشر تشغيلي شامل",
+    accent: "from-cyan-300 via-sky-500 to-primary",
+    glow: "bg-sky-400/35",
   },
   {
-    icon: MousePointerClick,
-    title: "النقرات",
-    value: 34595,
-    suffix: "نقرة",
-    context: "مقارنة بالفترة السابقة: انخفاض 24.9% من 46,078 نقرة.",
-    comparisonWidth: 75.1,
-    accent: "from-primary via-sky-500 to-cyan-300",
+    icon: UserCheck,
+    title: "عملاء حاليون",
+    detail: "استمرارية التواصل والرعاية",
+    accent: "from-orange-200 via-orange-400 to-accent",
+    glow: "bg-orange-300/40",
   },
   {
-    icon: BarChart3,
-    title: "التحويلات المسجلة",
-    value: 4,
-    suffix: "تحويلات",
-    context: "تحويلات مسجلة في Google Ads خلال فترة القياس، وليست حالات علاجية أو عملاء.",
-    comparisonWidth: 100,
-    accent: "from-emerald-500 via-cyan-500 to-sky-400",
+    icon: UserPlus,
+    title: "عملاء جدد",
+    detail: "مراجعون يبدأون رحلتهم معنا",
+    accent: "from-emerald-200 via-teal-400 to-cyan-600",
+    glow: "bg-emerald-300/35",
   },
 ] as const;
 
-function AnimatedNumber({ value, active }: { value: number; active: boolean }) {
-  const reduceMotion = useReducedMotion();
-  const [displayValue, setDisplayValue] = useState(reduceMotion ? value : 0);
-
-  useEffect(() => {
-    if (!active) return;
-    if (reduceMotion) {
-      setDisplayValue(value);
-      return;
-    }
-
-    const startedAt = performance.now();
-    const duration = 1050;
-    let frameId = 0;
-    const update = (now: number) => {
-      const progress = Math.min((now - startedAt) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayValue(Math.round(value * eased));
-      if (progress < 1) frameId = requestAnimationFrame(update);
-    };
-    frameId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(frameId);
-  }, [active, reduceMotion, value]);
-
-  return <>{new Intl.NumberFormat("ar-SA").format(displayValue)}</>;
-}
-
 export default function JourneyProgressCharts() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.28 });
+  const isInView = useInView(sectionRef, { once: true, amount: 0.24 });
   const reduceMotion = useReducedMotion();
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden border-y border-primary/10 bg-[#f5f8fc] py-16 sm:py-20">
-      <div aria-hidden="true" className="absolute -right-24 top-8 size-72 rounded-full bg-sky-200/50 blur-3xl" />
-      <div aria-hidden="true" className="absolute -bottom-20 -left-16 size-64 rounded-full bg-orange-100/80 blur-3xl" />
+    <section ref={sectionRef} className="relative overflow-hidden bg-[#071b3b] py-20 text-white sm:py-24">
+      <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_14%_22%,rgba(46,202,255,0.2),transparent_25%),radial-gradient(circle_at_85%_78%,rgba(255,130,38,0.2),transparent_25%)]" />
+      <div aria-hidden="true" className="absolute -right-28 -top-24 size-96 rounded-full border border-white/10" />
+      <div aria-hidden="true" className="absolute -bottom-40 -left-28 size-[32rem] rounded-full border border-white/10" />
+
       <div className="container relative">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/85 px-4 py-2 text-xs font-extrabold tracking-[0.12em] text-primary shadow-sm"><BarChart3 className="size-3.5" /> مؤشرات إعلانية</span>
-          <h2 className="mt-5 text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">أداء الحملات في لوحة واحدة واضحة.</h2>
-          <p className="mt-4 text-[15px] leading-8 text-muted-foreground">ملخص فعلي من حملات Google Ads للفترة من 23 يوليو إلى 21 أغسطس 2026. لا تمثل هذه الأرقام حالات علاجية أو عدد العملاء.</p>
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="inline-flex rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-extrabold tracking-[0.14em] text-sky-100 backdrop-blur">مؤشرات تجربة المراجعين</span>
+          <h2 className="mt-5 text-3xl font-black leading-tight sm:text-4xl">نموٌّ نتابعه بعناية، ورعايةٌ تبقى قريبة.</h2>
+          <p className="mt-4 text-[15px] leading-8 text-slate-200">تصميم بصري ثلاثي الأبعاد لعرض مؤشرات المجموعة. تُحدَّث القيم عند اعتماد التقرير التشغيلي الدوري.</p>
         </div>
 
-        <div className="mx-auto mt-10 max-w-4xl space-y-5">
-          {AD_METRICS.map((metric, index) => {
+        <div className="mx-auto mt-12 grid max-w-5xl gap-7 md:grid-cols-3" style={{ perspective: "1200px" }}>
+          {METRIC_CARDS.map((metric, index) => {
             const Icon = metric.icon;
             return (
               <motion.article
                 key={metric.title}
-                initial={reduceMotion ? false : { opacity: 0, y: 18 }}
-                animate={reduceMotion || isInView ? { opacity: 1, y: 0 } : undefined}
-                transition={{ duration: 0.5, delay: index * 0.12, ease: [0.23, 1, 0.32, 1] }}
-                className="relative overflow-hidden rounded-[1.6rem] border border-white bg-white/90 p-5 shadow-[0_16px_45px_rgba(21,62,115,0.08)] backdrop-blur-sm sm:p-6"
+                initial={reduceMotion ? false : { opacity: 0, y: 32, rotateX: 12 }}
+                animate={reduceMotion || isInView ? { opacity: 1, y: 0, rotateX: 0 } : undefined}
+                transition={{ duration: 0.65, delay: index * 0.13, ease: [0.23, 1, 0.32, 1] }}
+                className="group relative min-h-[295px] [transform-style:preserve-3d]"
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary text-primary shadow-sm"><Icon className="size-5" /></span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-end justify-between gap-2">
-                      <div>
-                        <h3 className="text-base font-extrabold text-foreground sm:text-lg">{metric.title}</h3>
-                        <p className="mt-1 text-xs leading-6 text-muted-foreground">{metric.context}</p>
-                      </div>
-                      <div className="text-left" dir="rtl">
-                        <strong className="block text-3xl font-black tracking-tight text-primary sm:text-4xl"><AnimatedNumber value={metric.value} active={isInView} /></strong>
-                        <span className="mt-1 block text-xs font-extrabold text-accent">{metric.suffix}</span>
-                      </div>
+                <div aria-hidden="true" className={`absolute inset-x-7 bottom-2 h-12 rounded-[1.65rem] ${metric.glow} blur-2xl transition-transform duration-500 group-hover:translate-y-3`} />
+                <div aria-hidden="true" className="absolute inset-x-5 bottom-1 h-20 origin-bottom rounded-[1.45rem] border border-white/10 bg-[#041127] opacity-85 [transform:rotateX(63deg)]" />
+                <div className="relative h-full overflow-hidden rounded-[1.8rem] border border-white/15 bg-white/[0.09] p-6 shadow-[0_28px_70px_rgba(0,0,0,0.32)] backdrop-blur-xl transition duration-500 [transform:translateZ(24px)] group-hover:[transform:translateZ(44px)_translateY(-8px)] sm:p-7">
+                  <div aria-hidden="true" className={`absolute -right-10 top-8 size-36 rounded-full bg-gradient-to-br ${metric.accent} opacity-25 blur-2xl`} />
+                  <div aria-hidden="true" className="absolute bottom-0 left-0 h-28 w-full bg-gradient-to-t from-black/30 to-transparent" />
+                  <div className="relative flex h-full flex-col">
+                    <span className="grid size-12 place-items-center rounded-2xl border border-white/15 bg-white/10 text-white shadow-lg"><Icon className="size-5" /></span>
+                    <div className="mt-9">
+                      <p className="text-sm font-bold text-sky-100">{metric.detail}</p>
+                      <h3 className="mt-2 text-2xl font-black">{metric.title}</h3>
                     </div>
-                    <div className="mt-5 h-3 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-label={metric.title} aria-valuemin={0} aria-valuemax={100} aria-valuenow={metric.comparisonWidth}>
-                      <motion.div
-                        className={`h-full rounded-full bg-gradient-to-l ${metric.accent}`}
-                        initial={reduceMotion ? false : { width: "0%" }}
-                        animate={reduceMotion || isInView ? { width: `${metric.comparisonWidth}%` } : undefined}
-                        transition={{ duration: 1, delay: 0.22 + index * 0.18, ease: [0.23, 1, 0.32, 1] }}
-                      />
+                    <div className="mt-auto pt-8">
+                      <div className="relative h-16 [transform-style:preserve-3d]">
+                        <div aria-hidden="true" className={`absolute inset-x-0 bottom-0 h-10 rounded-xl bg-gradient-to-l ${metric.accent} opacity-55 [transform:rotateX(56deg)_translateY(14px)]`} />
+                        <div aria-hidden="true" className={`absolute inset-x-3 bottom-3 h-9 rounded-xl bg-gradient-to-l ${metric.accent} shadow-[0_12px_28px_rgba(0,0,0,0.28)]`} />
+                      </div>
+                      <p className="mt-3 text-xs font-bold text-slate-200">القيمة: <span className="text-white">قيد التحديث</span></p>
                     </div>
                   </div>
                 </div>
@@ -114,7 +80,7 @@ export default function JourneyProgressCharts() {
           })}
         </div>
 
-        <p className="mx-auto mt-7 max-w-4xl text-center text-xs leading-6 text-muted-foreground">المصدر: Google Ads. الفترة: 23 يوليو–21 أغسطس 2026. التحويلات المسجلة مؤشر إعلاني ولا تعادل بالضرورة زيارات أو حالات علاجية مؤكدة.</p>
+        <p className="mx-auto mt-10 max-w-3xl text-center text-xs leading-6 text-slate-300">تُعرض الأرقام الفعلية بعد اعتمادها من التقرير التشغيلي للمجموعة؛ لا تُستنتج هذه المؤشرات من بيانات الإعلانات وحدها.</p>
       </div>
     </section>
   );

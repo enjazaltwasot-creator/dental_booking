@@ -51,17 +51,16 @@ describe("تكوين الصفحة الرئيسية", () => {
     expect(hero).toContain("delay: 1.04");
   });
 
-  it("يعرض لوحة إعلانات متحركة بالمؤشرات الفعلية وتسميات دقيقة", () => {
+  it("يعرض شارتس ثلاثية الأبعاد للحالات والعملاء دون أرقام غير معتمدة", () => {
     const charts = readFileSync(join(process.cwd(), "client/src/components/JourneyProgressCharts.tsx"), "utf8");
 
-    expect(charts).toContain("الإنفاق الإعلاني");
-    expect(charts).toContain("النقرات");
-    expect(charts).toContain("التحويلات المسجلة");
-    expect(charts).toContain("33383");
-    expect(charts).toContain("34595");
-    expect(charts).toContain("Google Ads");
+    expect(charts).toContain("إجمالي الحالات");
+    expect(charts).toContain("عملاء حاليون");
+    expect(charts).toContain("عملاء جدد");
+    expect(charts).toContain("قيد التحديث");
+    expect(charts).toContain("transform-style:preserve-3d");
+    expect(charts).toContain("perspective");
     expect(charts).toContain("useReducedMotion");
-    expect(charts).toContain("role=\"progressbar\"");
-    expect(charts).toContain("وليست حالات علاجية أو عملاء");
+    expect(charts).toContain("لا تُستنتج هذه المؤشرات من بيانات الإعلانات وحدها");
   });
 });
