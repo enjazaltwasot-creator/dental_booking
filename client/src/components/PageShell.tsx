@@ -6,13 +6,13 @@ import SiteFooter from "./SiteFooter";
 
 const EvanAssistant = lazy(() => import("./EvanAssistant"));
 
-function AssistantLauncher({ onOpen, disabled = false }: { onOpen: () => void; disabled?: boolean }) {
+function AssistantLauncher({ onLoad, onOpen, disabled = false }: { onLoad: () => void; onOpen: () => void; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      onFocus={onOpen}
-      onPointerEnter={onOpen}
+      onFocus={onLoad}
+      onPointerEnter={onLoad}
       disabled={disabled}
       aria-label="فتح مساعد إيفان"
       className="fixed bottom-5 left-5 z-50 inline-flex items-center gap-2 rounded-2xl bg-accent px-5 py-3.5 text-sm font-extrabold text-accent-foreground shadow-lg shadow-orange-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97] disabled:cursor-wait sm:bottom-6 sm:left-6"
@@ -37,9 +37,9 @@ function DeferredEvanAssistant() {
     setShouldLoad(true);
   };
 
-  if (!shouldLoad) return <AssistantLauncher onOpen={loadAndOpen} />;
+  if (!shouldLoad) return <AssistantLauncher onLoad={() => setShouldLoad(true)} onOpen={loadAndOpen} />;
   return (
-    <Suspense fallback={<AssistantLauncher onOpen={() => undefined} disabled />}>
+    <Suspense fallback={<AssistantLauncher onLoad={() => undefined} onOpen={() => undefined} disabled />}>
       <EvanAssistant initialOpen={openOnLoad} />
     </Suspense>
   );
