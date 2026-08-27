@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import { generateClinicAssistantReply } from "./clinicAssistant";
 import { notifyOwner } from "./_core/notification";
 import { ADMIN_SESSION_MAX_AGE_MS, createAdminSession, hashAdminPassword, readAdminSession, verifyAdminPassword } from "./adminAuth";
+import { dispatchBookingRequestReceived } from "./whatsapp";
 
 function readCookie(cookieHeader: string | undefined, key: string) {
   return cookieHeader?.split(";").map(item => item.trim()).find(item => item.startsWith(`${key}=`))?.slice(key.length + 1);
@@ -389,6 +390,7 @@ export const appRouter = router({
         appointmentDate: z.string().transform(str => new Date(str)),
         appointmentTime: z.string(),
         bookingSource: bookingSourceSchema.default("other"),
+        whatsappBookingConsent: z.boolean().default(false),
         notes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
@@ -414,6 +416,7 @@ export const appRouter = router({
             appointmentDate: input.appointmentDate,
             appointmentTime: input.appointmentTime,
             bookingSource: input.bookingSource,
+            whatsappBookingConsent: input.whatsappBookingConsent,
             notes: input.notes,
           });
         } catch (error) {
@@ -422,6 +425,11 @@ export const appRouter = router({
         }
         await db.createBookingReminderQueue(booking);
         await db.queueCrmBookingCreatedEvent(booking);
+        try {
+          await dispatchBookingRequestReceived(booking);
+        } catch (error) {
+          console.warn("[Booking] WhatsApp booking-request confirmation failed", { referenceNumber: booking.referenceNumber });
+        }
         try {
           await notifyOwner({
             title: "طلب حجز جديد — مجموعة إيفان الطبية",

@@ -6,6 +6,10 @@ export const campaignAsset = (manusUrl: string, hostingerFilename: string) =>
 
 export const LOGO_SRC = asset("evan-logo_076a049e.webp");
 export const HERO_VIDEO_SRC = asset("evan-natural-hero-day-extended_5ec37a01.mp4");
+export const HERO_POSTER_SRC = campaignAsset(
+  "/manus-storage/evan-natural-hero-poster-mobile_08e82d2f.webp",
+  "evan-natural-hero-poster-mobile_08e82d2f.webp",
+);
 
 export const CLINIC = {
   name: "مجموعة عيادات إيفان الطبية",

@@ -1,8 +1,49 @@
-import { ReactNode, useEffect, useRef } from "react";
+import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
+import { MessageCircleMore } from "lucide-react";
 import SiteHeader from "./SiteHeader";
 import SiteFooter from "./SiteFooter";
-import EvanAssistant from "./EvanAssistant";
+
+const EvanAssistant = lazy(() => import("./EvanAssistant"));
+
+function AssistantLauncher({ onOpen, disabled = false }: { onOpen: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      onFocus={onOpen}
+      onPointerEnter={onOpen}
+      disabled={disabled}
+      aria-label="فتح مساعد إيفان"
+      className="fixed bottom-5 left-5 z-50 inline-flex items-center gap-2 rounded-2xl bg-accent px-5 py-3.5 text-sm font-extrabold text-accent-foreground shadow-lg shadow-orange-500/25 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97] disabled:cursor-wait sm:bottom-6 sm:left-6"
+    >
+      <MessageCircleMore className="size-5" />
+      مساعد إيفان
+    </button>
+  );
+}
+
+function DeferredEvanAssistant() {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const [openOnLoad, setOpenOnLoad] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShouldLoad(true), 5_000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const loadAndOpen = () => {
+    setOpenOnLoad(true);
+    setShouldLoad(true);
+  };
+
+  if (!shouldLoad) return <AssistantLauncher onOpen={loadAndOpen} />;
+  return (
+    <Suspense fallback={<AssistantLauncher onOpen={() => undefined} disabled />}>
+      <EvanAssistant initialOpen={openOnLoad} />
+    </Suspense>
+  );
+}
 
 export default function PageShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
@@ -43,7 +84,7 @@ export default function PageShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <SiteFooter />
-      <EvanAssistant />
+      <DeferredEvanAssistant />
     </div>
   );
 }

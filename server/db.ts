@@ -1,6 +1,6 @@
-import { asc, desc, eq, and, gte, lte, ne, inArray } from "drizzle-orm";
+import { asc, desc, eq, and, gte, lte, ne, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, services, branches, branchSpecialties, dentists, dentistBranches, dentistServices, workingHours, bookings, bookingReminders, crmSyncEvents, bookingActionRequests, bookingAdminActions, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord, BranchSpecialty, DentistBranch, DentistService } from "../drizzle/schema";
+import { InsertUser, users, services, branches, branchSpecialties, dentists, dentistBranches, dentistServices, workingHours, bookings, bookingReminders, whatsappMessageEvents, crmSyncEvents, bookingActionRequests, bookingAdminActions, assistantConversations, assistantMessages, AssistantConversation, AssistantMessage, Booking, BookingActionRequest, BookingReminder, WhatsAppMessageEvent, CrmSyncEvent, Service, Dentist, WorkingHour, User, BranchRecord, BranchSpecialty, DentistBranch, DentistService } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -455,6 +455,7 @@ export async function createBooking(booking: {
   appointmentDate: Date;
   appointmentTime: string;
   bookingSource: BookingSource;
+  whatsappBookingConsent: boolean;
   notes?: string;
 }): Promise<Booking> {
   const db = await getDb();
@@ -470,6 +471,7 @@ export async function createBooking(booking: {
     appointmentDate: booking.appointmentDate,
     appointmentTime: booking.appointmentTime,
     bookingSource: booking.bookingSource,
+    whatsappBookingConsent: booking.whatsappBookingConsent,
     slotState: "reserved",
     status: 'pending',
     notes: booking.notes,
@@ -494,6 +496,84 @@ export async function getAllBookings(): Promise<Booking[]> {
 }
 
 export type BookingReminderType = "booking_created" | "before_48h" | "before_24h";
+
+export type WhatsAppMessageStatus = "queued" | "sending" | "accepted" | "delivered" | "read" | "failed" | "skipped";
+
+export async function queueWhatsAppMessageEvent(input: {
+  bookingId: number;
+  templateName: string;
+  recipientFingerprint: string;
+}): Promise<WhatsAppMessageEvent> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+
+  await database.insert(whatsappMessageEvents).values({
+    bookingId: input.bookingId,
+    templateName: input.templateName,
+    recipientFingerprint: input.recipientFingerprint,
+    status: "queued",
+  }).onDuplicateKeyUpdate({ set: { templateName: input.templateName } });
+
+  const event = (await database.select().from(whatsappMessageEvents).where(
+    and(eq(whatsappMessageEvents.bookingId, input.bookingId), eq(whatsappMessageEvents.templateName, input.templateName))
+  ).limit(1))[0];
+  if (!event) throw new Error("Failed to queue WhatsApp message event");
+  return event;
+}
+
+export async function claimQueuedWhatsAppMessageEvent(eventId: number): Promise<boolean> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+
+  const result = await database.update(whatsappMessageEvents).set({
+    status: "sending",
+    attemptCount: sql`${whatsappMessageEvents.attemptCount} + 1`,
+    lastAttemptAt: new Date(),
+    errorCode: null,
+  }).where(and(eq(whatsappMessageEvents.id, eventId), eq(whatsappMessageEvents.status, "queued")));
+
+  return Number(result[0]?.affectedRows ?? 0) === 1;
+}
+
+export async function updateWhatsAppMessageEvent(input: {
+  eventId: number;
+  status: WhatsAppMessageStatus;
+  providerMessageId?: string | null;
+  errorCode?: string | null;
+  providerUpdatedAt?: Date | null;
+}): Promise<void> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+
+  await database.update(whatsappMessageEvents).set({
+    status: input.status,
+    providerMessageId: input.providerMessageId,
+    errorCode: input.errorCode,
+    providerUpdatedAt: input.providerUpdatedAt,
+  }).where(eq(whatsappMessageEvents.id, input.eventId));
+}
+
+export async function updateWhatsAppMessageDeliveryStatus(input: {
+  providerMessageId: string;
+  status: Extract<WhatsAppMessageStatus, "delivered" | "read" | "failed">;
+  errorCode?: string | null;
+  providerUpdatedAt?: Date;
+}): Promise<void> {
+  const database = await getDb();
+  if (!database) throw new Error("Database not available");
+
+  await database.update(whatsappMessageEvents).set({
+    status: input.status,
+    errorCode: input.errorCode ?? null,
+    providerUpdatedAt: input.providerUpdatedAt ?? new Date(),
+  }).where(eq(whatsappMessageEvents.providerMessageId, input.providerMessageId));
+}
+
+export async function getWhatsAppMessageEvents(bookingId: number): Promise<WhatsAppMessageEvent[]> {
+  const database = await getDb();
+  if (!database) return [];
+  return database.select().from(whatsappMessageEvents).where(eq(whatsappMessageEvents.bookingId, bookingId)).orderBy(desc(whatsappMessageEvents.createdAt));
+}
 
 function toAppointmentStart(date: Date, timeValue: string): Date {
   const datePart = date.toISOString().slice(0, 10);

@@ -146,6 +146,7 @@ export const bookings = mysqlTable("bookings", {
   appointmentDate: date("appointment_date").notNull(),
   appointmentTime: time("appointment_time").notNull(),
   bookingSource: mysqlEnum("booking_source", ["snapchat", "instagram", "facebook", "branch_visit", "other"]).default("other").notNull(),
+  whatsappBookingConsent: boolean("whatsapp_booking_consent").default(false).notNull(),
   slotState: varchar("slot_state", { length: 16 }).default("reserved"),
   status: mysqlEnum("status", ["pending", "confirmed", "cancelled"]).default("pending").notNull(),
   notes: text("notes"),
@@ -194,6 +195,31 @@ export const bookingReminders = mysqlTable("booking_reminders", {
 
 export type BookingReminder = typeof bookingReminders.$inferSelect;
 export type InsertBookingReminder = typeof bookingReminders.$inferInsert;
+
+/**
+ * A privacy-preserving audit/outbox for transactional WhatsApp messages.
+ * Phone numbers and message bodies are deliberately excluded from this table.
+ */
+export const whatsappMessageEvents = mysqlTable("whatsapp_message_events", {
+  id: int("id").autoincrement().primaryKey(),
+  bookingId: int("booking_id").notNull(),
+  templateName: varchar("template_name", { length: 128 }).notNull(),
+  recipientFingerprint: varchar("recipient_fingerprint", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["queued", "sending", "accepted", "delivered", "read", "failed", "skipped"]).default("queued").notNull(),
+  attemptCount: int("attempt_count").default(0).notNull(),
+  providerMessageId: varchar("provider_message_id", { length: 160 }),
+  errorCode: varchar("error_code", { length: 96 }),
+  lastAttemptAt: timestamp("last_attempt_at"),
+  providerUpdatedAt: timestamp("provider_updated_at"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, table => [
+  uniqueIndex("whatsapp_message_events_booking_template_unique").on(table.bookingId, table.templateName),
+  uniqueIndex("whatsapp_message_events_provider_message_unique").on(table.providerMessageId),
+  index("whatsapp_message_events_status_index").on(table.status, table.createdAt),
+]);
+
+export type WhatsAppMessageEvent = typeof whatsappMessageEvents.$inferSelect;
 
 /** Pseudonymous website or messaging-channel sessions for Evan Assistant. */
 export const assistantConversations = mysqlTable("assistant_conversations", {

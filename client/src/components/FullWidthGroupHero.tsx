@@ -1,8 +1,8 @@
 import { ArrowLeft, Building2, CalendarCheck } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
-import { HERO_VIDEO_SRC, LOGO_SRC } from "@/lib/clinic";
+import { HERO_POSTER_SRC, HERO_VIDEO_SRC, LOGO_SRC } from "@/lib/clinic";
 
 function AnimatedWords({ text, delay = 0, step = 0.075 }: { text: string; delay?: number; step?: number }) {
   const reduceMotion = useReducedMotion();
@@ -26,10 +26,23 @@ function AnimatedWords({ text, delay = 0, step = 0.075 }: { text: string; delay?
   );
 }
 
+export function getHeroVideoLoadDelay(viewportWidth: number) {
+  return viewportWidth < 768 ? 5_500 : 1_200;
+}
+
 export default function FullWidthGroupHero() {
   const reduceMotion = useReducedMotion();
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [glow, setGlow] = useState({ x: 50, y: 50, active: false });
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setShouldLoadVideo(true),
+      getHeroVideoLoadDelay(window.innerWidth),
+    );
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   function updateTilt(event: React.PointerEvent<HTMLDivElement>) {
     if (reduceMotion || event.pointerType !== "mouse" || window.innerWidth < 1024) return;
@@ -42,10 +55,22 @@ export default function FullWidthGroupHero() {
 
   return (
     <section className="relative isolate min-h-[670px] overflow-hidden border-b border-primary/10 bg-slate-100 sm:min-h-[690px] lg:min-h-[720px]">
-      <video autoPlay loop muted playsInline preload="metadata" className="absolute inset-0 z-0 h-full w-full object-cover brightness-[1.22] saturate-110" aria-label="منظر طبيعي متحرك في خلفية الافتتاحية">
-        <source src={HERO_VIDEO_SRC} type="video/mp4" />
-      </video>
-      <div aria-hidden="true" className="absolute inset-0 z-[1] bg-gradient-to-b from-slate-950/40 via-slate-950/20 to-slate-950/65 lg:bg-gradient-to-l lg:from-slate-950/78 lg:via-slate-950/42 lg:to-transparent" />
+      <img
+        src={HERO_POSTER_SRC}
+        alt=""
+        aria-hidden="true"
+        width={960}
+        height={540}
+        fetchPriority="high"
+        decoding="async"
+        className="absolute inset-0 z-0 h-full w-full object-cover brightness-[1.22] saturate-110"
+      />
+      {shouldLoadVideo && (
+        <video autoPlay loop muted playsInline preload="none" className="absolute inset-0 z-[1] h-full w-full object-cover brightness-[1.22] saturate-110" aria-hidden="true">
+          <source src={HERO_VIDEO_SRC} type="video/mp4" />
+        </video>
+      )}
+      <div aria-hidden="true" className="absolute inset-0 z-[2] bg-gradient-to-b from-slate-950/40 via-slate-950/20 to-slate-950/65 lg:bg-gradient-to-l lg:from-slate-950/78 lg:via-slate-950/42 lg:to-transparent" />
 
       <div className="container relative z-10 flex min-h-[670px] items-end py-8 sm:min-h-[690px] sm:py-12 lg:min-h-[720px] lg:items-center lg:py-20" style={{ perspective: "1100px" }}>
         <div

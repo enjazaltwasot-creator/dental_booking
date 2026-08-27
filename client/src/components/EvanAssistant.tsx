@@ -21,8 +21,8 @@ function getAssistantSessionKey() {
   }
 }
 
-export default function EvanAssistant() {
-  const [open, setOpen] = useState(false);
+export default function EvanAssistant({ initialOpen = false }: { initialOpen?: boolean }) {
+  const [open, setOpen] = useState(initialOpen);
   const [sessionKey] = useState(getAssistantSessionKey);
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: STARTER_MESSAGE },

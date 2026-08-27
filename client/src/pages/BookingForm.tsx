@@ -37,6 +37,7 @@ export default function BookingForm() {
   const [patientPhone, setPatientPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [bookingSource, setBookingSource] = useState<(typeof BOOKING_SOURCES)[number]["value"]>("other");
+  const [whatsappBookingConsent, setWhatsappBookingConsent] = useState(false);
 
   const minDate = useMemo(() => toDateInputValue(new Date()), []);
   const { data: branches, isLoading: loadingBranches } = trpc.branches.list.useQuery();
@@ -132,6 +133,7 @@ export default function BookingForm() {
       appointmentDate: date,
       appointmentTime: time,
       bookingSource,
+      whatsappBookingConsent,
       patientName: patientName.trim(),
       patientPhone: patientPhone.trim(),
       notes: notes.trim() || undefined,
@@ -525,6 +527,19 @@ export default function BookingForm() {
                       className="mt-2 w-full rounded-xl border border-border bg-white px-4 py-3 text-right text-sm text-foreground outline-none transition-colors duration-200 placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-ring/20"
                     />
                   </div>
+
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-primary/15 bg-primary/[0.03] p-4 text-right transition-colors hover:border-primary/35">
+                    <input
+                      type="checkbox"
+                      checked={whatsappBookingConsent}
+                      onChange={event => setWhatsappBookingConsent(event.target.checked)}
+                      className="mt-0.5 size-4 shrink-0 accent-primary"
+                    />
+                    <span>
+                      <span className="block text-sm font-bold text-foreground">أوافق على استلام رسالة واتساب تتعلق بطلب الحجز.</span>
+                      <span className="mt-1 block text-xs leading-6 text-muted-foreground">تُستخدم فقط لتأكيد استلام الطلب والتواصل بشأن هذا الموعد، وليست رسائل تسويقية. اختيارية ولا تؤثر في إرسال طلب الحجز.</span>
+                    </span>
+                  </label>
 
                   <div>
                     <label htmlFor="booking-source" className="block text-sm font-semibold text-foreground">كيف سمعت عنا؟</label>
