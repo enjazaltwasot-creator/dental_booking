@@ -1,5 +1,5 @@
 import { useRoute } from "wouter";
-import { CheckCircle2, MapPin, MessageCircle, Navigation, Phone, Sparkles } from "lucide-react";
+import { CheckCircle2, MapPin, MessageCircle, Navigation, Phone, Sparkles, Stethoscope } from "lucide-react";
 import NotFound from "@/pages/NotFound";
 import { CLINIC, DEPARTMENTS, getBranchBySlug, LOGO_SRC } from "@/lib/clinic";
 import { BRANCH_CASES, BRANCH_DOCTORS, LANDING_CONTACTS, NATIONAL_DAY_OFFERS } from "@/lib/landingCampaign";
@@ -161,8 +161,10 @@ export default function BranchLanding() {
                     {doctor.image ? (
                       <img src={doctor.image} alt={doctor.alt ?? doctor.name} loading="eager" decoding="async" className="aspect-[4/5] w-full object-cover object-top" />
                     ) : (
-                      <div className="grid aspect-[4/5] place-items-center bg-gradient-to-br from-primary to-sky-500 text-5xl font-black text-white/90" aria-hidden="true">
-                        {`د. ${doctor.name.replace(/^د\.\s*/, "").split(" ").filter(Boolean).slice(0, 2).map(part => part[0]).join(" ")}`}
+                      <div className="grid aspect-[4/5] place-items-center bg-gradient-to-br from-primary to-sky-500" aria-hidden="true">
+                        <span className="grid size-24 place-items-center rounded-[2rem] border border-white/30 bg-white/15 text-white shadow-xl shadow-primary/30">
+                          <Stethoscope className="size-11" strokeWidth={1.5} />
+                        </span>
                       </div>
                     )}
                     <div className="p-5">

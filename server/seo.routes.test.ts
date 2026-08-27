@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPageMeta, renderSeoPageHtml } from "./_core/seo";
+import { getPageMeta, INDEXABLE_SITEMAP_PATHS, renderSeoPageHtml } from "./_core/seo";
 
 const template = "<html><head><!--seo-head--></head><body><div id=\"root\"><!--seo-html--></div></body></html>";
 
@@ -33,5 +33,13 @@ describe("SEO page renderer", () => {
     expect(html).toContain('name="robots" content="noindex, follow"');
     expect(html).toContain("Article");
     expect(html).toContain("البوتوكس والفيلر");
+  });
+
+  it("keeps noindex ad, booking, doctor, and draft-blog pages out of the sitemap", () => {
+    expect(INDEXABLE_SITEMAP_PATHS).toContain("/branches/al-mahdiyah");
+    expect(INDEXABLE_SITEMAP_PATHS).not.toContain("/go/mahdiyah");
+    expect(INDEXABLE_SITEMAP_PATHS).not.toContain("/booking");
+    expect(INDEXABLE_SITEMAP_PATHS).not.toContain("/doctors");
+    expect(INDEXABLE_SITEMAP_PATHS).not.toContain("/blog");
   });
 });

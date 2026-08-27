@@ -22,6 +22,16 @@ const BRANCHES: BranchMeta[] = [
   { slug: "ahmadiyah-laban", name: "فرع حي الأحمدية — لبن", district: "الأحمدية، لبن", address: "حي الأحمدية، لبن، غرب الرياض", lat: 24.6310446, lng: 46.6094759, image: "/assets/evan-ahmadiyah-building-enhanced_1a2b3264.webp" },
 ];
 
+export const INDEXABLE_SITEMAP_PATHS = [
+  "/",
+  "/about",
+  "/vision",
+  "/specialties",
+  "/branches",
+  "/partners",
+  ...BRANCHES.map(branch => `/branches/al-${branch.slug}`),
+];
+
 type PageMeta = {
   title: string;
   description: string;
@@ -159,7 +169,6 @@ export function renderSeoPageHtml(rawUrl: string, template: string) {
 
 export function registerSeoRoutes(app: Express) {
   const origin = getOrigin();
-  const urls = ["/", "/about", "/vision", "/specialties", "/branches", "/doctors", "/partners", ...BRANCHES.flatMap(branch => [`/branches/al-${branch.slug}`, `/go/${branch.slug}`])];
   app.get("/robots.txt", (_req, res) => {
     const privatePaths = "Disallow: /admin\nDisallow: /admin-login\nDisallow: /confirmation/";
     const aiAgents = ["Googlebot", "Bingbot", "GPTBot", "OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "ClaudeBot", "Claude-SearchBot", "Google-Extended", "Applebot-Extended"];
@@ -167,7 +176,7 @@ export function registerSeoRoutes(app: Express) {
     res.type("text/plain").send(`${directives.join("\n\n")}\n\nSitemap: ${origin}/sitemap.xml\n`);
   });
   app.get("/sitemap.xml", (_req, res) => {
-    const rows = urls.map(url => `<url><loc>${origin}${url}</loc><changefreq>${url.startsWith("/go/") ? "monthly" : "weekly"}</changefreq><priority>${url === "/" ? "1.0" : url.startsWith("/branches/") ? "0.9" : "0.7"}</priority></url>`).join("");
+    const rows = INDEXABLE_SITEMAP_PATHS.map(url => `<url><loc>${origin}${url}</loc><changefreq>weekly</changefreq><priority>${url === "/" ? "1.0" : url.startsWith("/branches/") ? "0.9" : "0.7"}</priority></url>`).join("");
     res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${rows}</urlset>`);
   });
   app.get("/llms.txt", (_req, res) => {
